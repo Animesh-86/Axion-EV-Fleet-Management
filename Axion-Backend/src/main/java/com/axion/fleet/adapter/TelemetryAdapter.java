@@ -1,4 +1,7 @@
 package com.axion.fleet.adapter;
 
-public class TelemetryAdapter {
+import com.axion.fleet.model.CanonicalTelemetryEnvelope;
+
+public interface TelemetryAdapter {
+    CanonicalTelemetryEnvelope adapt(String rawPayload);
 }
