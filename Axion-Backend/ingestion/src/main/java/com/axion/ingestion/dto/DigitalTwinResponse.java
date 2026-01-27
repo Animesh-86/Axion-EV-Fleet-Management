@@ -1,4 +1,4 @@
-package com.axion.ingestion.model;
+package com.axion.ingestion.dto;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -9,18 +9,14 @@ import java.time.Instant;
 @RequiredArgsConstructor
 @Getter
 @Setter
-public class DigitalTwinState {
+public class DigitalTwinResponse {
 
     private String vehicleId;
-
+    private Boolean online;
     private Instant lastSeen;
 
-    private boolean Online;
-
-    private TelemetrySnapshot telemetry;
-
     private Integer healthScore;
-
     private String healthState;
 
+    private Object telemetry;
 }
