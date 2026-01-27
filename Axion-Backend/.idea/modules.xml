@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/Axion-Backend.iml" filepath="$PROJECT_DIR$/.idea/Axion-Backend.iml" />
-      <module fileurl="file://$PROJECT_DIR$/ingestion/ingestion.iml" filepath="$PROJECT_DIR$/ingestion/ingestion.iml" />
     </modules>
   </component>
 </project>
