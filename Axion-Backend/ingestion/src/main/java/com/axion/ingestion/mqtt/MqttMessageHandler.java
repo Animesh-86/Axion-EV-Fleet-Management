@@ -4,6 +4,8 @@ import com.axion.ingestion.adapter.RestTelemetryAdapter;
 import com.axion.ingestion.model.CanonicalTelemetryEnvelope;
 import com.axion.ingestion.producer.TelemetryKafkaProducer;
 import com.axion.ingestion.validation.TelemetryValidator;
+import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.messaging.Message;
 
 public class MqttMessageHandler {
 
@@ -15,7 +17,11 @@ public class MqttMessageHandler {
         this.producer = producer;
     }
 
-    public void handle(String payload) {
+    @ServiceActivator(inputChannel = "mqttInputChannel")
+    public void handle(Message<String> message) {
+
+        String payload = message.getPayload();
+
         CanonicalTelemetryEnvelope envelope = adapter.adapt(payload);
         envelope.getConnection().setProtocol("MQTT");
 
