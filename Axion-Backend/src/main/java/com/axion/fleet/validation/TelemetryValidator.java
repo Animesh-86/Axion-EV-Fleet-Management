@@ -1,5 +1,6 @@
 package com.axion.fleet.validation;
 
+import com.axion.fleet.exception.ValidationException;
 import com.axion.fleet.model.CanonicalTelemetryEnvelope;
 import com.axion.fleet.model.TelemetryPayload;
 
@@ -8,25 +9,25 @@ public class TelemetryValidator {
     public void validate(CanonicalTelemetryEnvelope envelope) {
 
         if (envelope == null) {
-            throw new IllegalArgumentException("Telemetry envelope cannot be null");
+            throw new ValidationException("Telemetry envelope is missing");
         }
 
         if (envelope.getVehicleId() == null || envelope.getVehicleId().isBlank()) {
-            throw new IllegalArgumentException("vehicle_id is required");
+            throw new ValidationException("vehicle_id is required");
         }
 
         if (envelope.getTimestamp() == null) {
-            throw new IllegalArgumentException("timestamp is required");
+            throw new ValidationException("timestamp is required");
         }
 
         TelemetryPayload telemetry = envelope.getTelemetry();
 
         if (telemetry == null) {
-            throw new IllegalArgumentException("telemetry payload is required");
+            throw new ValidationException("telemetry payload is required");
         }
 
-        if (telemetry.getBatterySocPct() == null) {
-            throw new IllegalArgumentException("battery_soc_pct is required");
+        if (envelope.getTelemetry().getBatterySocPct() == null) {
+            throw new ValidationException("battery_soc_pct is required");
         }
     }
 }

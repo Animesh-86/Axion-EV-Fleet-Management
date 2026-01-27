@@ -1,5 +1,6 @@
 package com.axion.fleet.producer;
 
+import com.axion.fleet.exception.IngestionUnavailableException;
 import com.axion.fleet.model.CanonicalTelemetryEnvelope;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
@@ -16,6 +17,12 @@ public class TelemetryKafkaProducer {
     }
 
     public void publish(CanonicalTelemetryEnvelope envelope) {
-        kafkaTemplate.send(TOPIC, envelope.getVehicleId(), envelope);
+        try {
+            kafkaTemplate.send(TOPIC, envelope.getVehicleId(), envelope).get();
+        } catch (Exception e) {
+            throw new IngestionUnavailableException(
+                    "Kafka unavailable, telemetry not accepted", e
+            );
+        }
     }
 }

@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/Axion - EV Fleet Management.iml" filepath="$PROJECT_DIR$/.idea/Axion - EV Fleet Management.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Axion-Backend/fleet.iml" filepath="$PROJECT_DIR$/Axion-Backend/fleet.iml" />
     </modules>
   </component>
 </project>

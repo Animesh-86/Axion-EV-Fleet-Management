@@ -19,8 +19,8 @@ public class TelemertryIngestioncontroller {
     }
 
     @PostMapping
-    public Mono<ResponseEntity<Void>> ingest(@RequestBody String rawPayLoad) {
-        return ingestionService.ingestRest(rawPayLoad)
+    public Mono<ResponseEntity<Void>> ingest(@RequestBody String rawPayload) {
+        return ingestionService.ingestRest(rawPayload)
                 .thenReturn(ResponseEntity.accepted().build());
     }
 }

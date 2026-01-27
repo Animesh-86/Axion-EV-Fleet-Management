@@ -1,5 +1,6 @@
 package com.axion.fleet.adapter;
 
+import com.axion.fleet.exception.InvalidPayloadException;
 import com.axion.fleet.model.CanonicalTelemetryEnvelope;
 import com.axion.fleet.model.ConnectionMetadata;
 import com.axion.fleet.model.TelemetryPayload;
@@ -38,7 +39,7 @@ public class RestTelemetryAdapter implements TelemetryAdapter {
             return envelope;
 
         } catch (Exception e) {
-            throw new RuntimeException("invalid REST telemetry payload", e);
+            throw new InvalidPayloadException("Malformed or invalid JSON payload");
         }
     }
 }
