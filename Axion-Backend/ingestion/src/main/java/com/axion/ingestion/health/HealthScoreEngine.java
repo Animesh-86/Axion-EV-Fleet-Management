@@ -39,7 +39,7 @@ public class HealthScoreEngine {
         }
 
         // ---- Connectivity ----
-        if (twin.getOnline() == false) {
+        if (!twin.isOnline()) {
             score -= HealthRules.PENALTY_CRITICAL;
             reasons.add("Vehicle offline");
         }

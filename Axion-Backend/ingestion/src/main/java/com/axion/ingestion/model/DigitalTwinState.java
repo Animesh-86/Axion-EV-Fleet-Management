@@ -15,7 +15,7 @@ public class DigitalTwinState {
 
     private Instant lastSeen;
 
-    private boolean Online;
+    private boolean online;
 
     private TelemetrySnapshot telemetry;
 

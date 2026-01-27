@@ -14,8 +14,8 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 public class RedisConfig {
 
     @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory Connectionfactory) {
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
+    public RedisTemplate<String, DigitalTwinState> redisTemplate(RedisConnectionFactory Connectionfactory) {
+        RedisTemplate<String, DigitalTwinState> template = new RedisTemplate<>();
         template.setConnectionFactory(Connectionfactory);
 
         template.setKeySerializer(new StringRedisSerializer());
@@ -24,8 +24,8 @@ public class RedisConfig {
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.findAndRegisterModules();
 
-        Jackson2JsonRedisSerializer<DigitalTwinState> valueSerializer =
-                new Jackson2JsonRedisSerializer<>(DigitalTwinState.class);
+        Jackson2JsonRedisSerializer<DigitalTwinState> valueSerializer = new Jackson2JsonRedisSerializer<>(
+                DigitalTwinState.class);
 
         valueSerializer.setObjectMapper(objectMapper);
 

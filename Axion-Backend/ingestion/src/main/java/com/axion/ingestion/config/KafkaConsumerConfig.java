@@ -1,7 +1,7 @@
 package com.axion.ingestion.config;
 
 import com.axion.ingestion.model.CanonicalTelemetryEnvelope;
-import com.fasterxml.jackson.databind.deser.std.StringDeserializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,14 +34,11 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, CanonicalTelemetryEnvelope>
-    kafkaListenerContainerFactory() {
+    public ConcurrentKafkaListenerContainerFactory<String, CanonicalTelemetryEnvelope> kafkaListenerContainerFactory() {
 
-        ConcurrentKafkaListenerContainerFactory<String, CanonicalTelemetryEnvelope> factory =
-                new ConcurrentKafkaListenerContainerFactory<>();
+        ConcurrentKafkaListenerContainerFactory<String, CanonicalTelemetryEnvelope> factory = new ConcurrentKafkaListenerContainerFactory<>();
 
         factory.setConsumerFactory(consumerFactory());
         return factory;
     }
 }
-
