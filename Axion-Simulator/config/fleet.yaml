@@ -1,0 +1,9 @@
+vehicles:
+  - id: "v001"
+    profile: "sedan_standard"
+  - id: "v002"
+    profile: "truck_heavy"
+mqtt:
+  broker: "localhost"
+  port: 1883
+  topic_prefix: "axion/telemetry"
