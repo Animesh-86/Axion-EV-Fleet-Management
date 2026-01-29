@@ -29,7 +29,7 @@ async def main():
             last_timestamp=None
         )
 
-        emitter = RestEmitter("http://localhost:8080/telemetry")
+        emitter = RestEmitter("http://localhost:8080/api/v1/telemetry")
         scenarios = [
             NormalDriveScenario(),
             OTATriggerScenario(probability=0.2),
