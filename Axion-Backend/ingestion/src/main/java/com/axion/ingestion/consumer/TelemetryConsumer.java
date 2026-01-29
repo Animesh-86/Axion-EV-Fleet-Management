@@ -14,11 +14,9 @@ public class TelemetryConsumer {
         this.digitalTwinService = digitalTwinService;
     }
 
-    @KafkaListener(
-            topics = "telemetry.normal",
-            groupId = "digital-twin-updater"
-    )
+    @KafkaListener(topics = "telemetry.normal", groupId = "digital-twin-updater")
     public void consume(CanonicalTelemetryEnvelope event) {
+        System.out.println("CONSUMED EVENT for " + event.getVehicleId());
         digitalTwinService.update(event);
     }
 }

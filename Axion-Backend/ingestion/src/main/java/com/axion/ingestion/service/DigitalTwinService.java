@@ -20,22 +20,24 @@ public class DigitalTwinService {
     private static final Duration TTL = Duration.ofSeconds(120);
 
     public DigitalTwinService(RedisTemplate<String, DigitalTwinState> redisTemplate,
-                              HealthScoreEngine healthScoreEngine) {
+            HealthScoreEngine healthScoreEngine) {
         this.redisTemplate = redisTemplate;
         this.healthScoringEngine = healthScoreEngine;
     }
 
     public void update(CanonicalTelemetryEnvelope event) {
-        String key = "digital_twin" + event.getVehicleId();
+        String key = "digital_twin:" + event.getVehicleId();
 
-        DigitalTwinState existing =  redisTemplate.opsForValue().get(key);
+        DigitalTwinState existing = redisTemplate.opsForValue().get(key);
 
-        if (existing != null && existing.getLastSeen() != null && event.getTimestamp().isBefore(existing.getLastSeen())) {
+        if (existing != null && existing.getLastSeen() != null
+                && event.getTimestamp().isBefore(existing.getLastSeen())) {
             return;
         }
 
         DigitalTwinState updated = new DigitalTwinState();
         updated.setVehicleId(event.getVehicleId());
+        updated.setVendor(event.getVendor());
         updated.setLastSeen(event.getIngestionTs());
         updated.setOnline(true);
 
@@ -54,8 +56,7 @@ public class DigitalTwinService {
         updated.setHealthScore(result.getScore());
         updated.setHealthState(result.getState().name());
 
-
         redisTemplate.opsForValue().set(key, updated, TTL);
+        System.out.println("SAVED TO REDIS: " + key);
     }
 }
-

@@ -10,16 +10,33 @@ from ota.ota_scenarios import OTATriggerScenario
 from emitters.rest_emitter import RestEmitter
 
 
+import yaml
+
 async def main():
+    with open("config/fleet.yaml", "r") as f:
+        config = yaml.safe_load(f)
+
     vehicles = []
 
-    for i in range(5):
+    for v_conf in config.get("vehicles", []):
+        v_id = v_conf.get("id")
+        
+        # Default values
+        temp_c = 30.0
+        soc_pct = 90.0
+        
+        scenario = v_conf.get("scenario", "normal")
+        if scenario == "critical_temp":
+            temp_c = 60.0 # High temp trigger (Critical > 55)
+        elif scenario == "low_battery":
+            soc_pct = 25.0 # Warning battery (Warning < 30)
+            
         state = VehicleState(
-            vehicle_id=f"EV-{i}",
+            vehicle_id=v_id,
             vendor="SIMULATED",
             speed_kmph=0.0,
-            battery_soc_pct=90.0,
-            battery_temp_c=30.0,
+            battery_soc_pct=soc_pct,
+            battery_temp_c=temp_c,
             motor_temp_c=35.0,
             odometer_km=1000.0,
             online=True,
@@ -38,6 +55,11 @@ async def main():
 
         vehicles.append(Vehicle(state, scenarios, emitter))
 
+    if not vehicles:
+        print("No vehicles defined in config/fleet.yaml")
+        return
+
+    print(f"Starting simulation for {len(vehicles)} vehicles: {[v.state.vehicle_id for v in vehicles]}")
     await asyncio.gather(*(v.run() for v in vehicles))
 
 

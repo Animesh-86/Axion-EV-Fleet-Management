@@ -1,11 +1,11 @@
 import { ReactNode, useState } from 'react';
 import { motion } from 'motion/react';
-import { 
-  LayoutDashboard, 
-  Car, 
-  Layers, 
-  Upload, 
-  BarChart3, 
+import {
+  LayoutDashboard,
+  Car,
+  Layers,
+  Upload,
+  BarChart3,
   Settings,
   ChevronLeft,
   Search,
@@ -23,7 +23,7 @@ interface LayoutProps {
 
 export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [selectedFleet, setSelectedFleet] = useState('Global Fleet');
+  const [selectedFleet] = useState('Global Fleet');
 
   const navItems = [
     { id: 'dashboard' as Page, label: 'Dashboard', icon: LayoutDashboard },
@@ -34,8 +34,6 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
     { id: 'analytics' as Page, label: 'Analytics', icon: BarChart3 },
     { id: 'settings' as Page, label: 'Settings', icon: Settings },
   ];
-
-  const fleets = ['Global Fleet', 'North America', 'Europe', 'Asia Pacific'];
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
@@ -70,11 +68,10 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                 <li key={item.id}>
                   <button
                     onClick={() => onNavigate(item.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group ${
-                      isActive
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group ${isActive
                         ? 'bg-primary/10 text-primary shadow-lg shadow-primary/20'
                         : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-accent-foreground'
-                    }`}
+                      }`}
                   >
                     <Icon className="w-5 h-5 flex-shrink-0" />
                     {!sidebarCollapsed && (
@@ -100,9 +97,8 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
           className="absolute -right-3 top-20 w-6 h-6 bg-card border border-border rounded-full flex items-center justify-center hover:bg-accent transition-colors"
         >
           <ChevronLeft
-            className={`w-4 h-4 text-muted-foreground transition-transform ${
-              sidebarCollapsed ? 'rotate-180' : ''
-            }`}
+            className={`w-4 h-4 text-muted-foreground transition-transform ${sidebarCollapsed ? 'rotate-180' : ''
+              }`}
           />
         </button>
 

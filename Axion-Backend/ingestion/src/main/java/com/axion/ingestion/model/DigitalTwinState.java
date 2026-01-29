@@ -12,6 +12,7 @@ import java.time.Instant;
 public class DigitalTwinState {
 
     private String vehicleId;
+    private String vendor;
 
     private Instant lastSeen;
 

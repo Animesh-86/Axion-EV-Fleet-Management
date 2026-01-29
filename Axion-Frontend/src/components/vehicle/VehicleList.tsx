@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Activity, WifiOff, ExternalLink, Battery, Thermometer, TrendingUp } from 'lucide-react';
+import { AxionApi, FleetVehicle } from '../../services/api';
 
 interface VehicleListProps {
   onSelectVehicle: (id: string) => void;
@@ -16,69 +18,50 @@ interface Vehicle {
   degradationDrivers?: Array<{ label: string; trend: 'up' | 'down' }>;
 }
 
-const mockVehicles: Vehicle[] = [
-  { id: 'EV-001', vendor: 'Tesla-like', battery: 87, temperature: 23, healthScore: 95, status: 'online', lastUpdate: '2s ago' },
-  { 
-    id: 'EV-002', 
-    vendor: 'Tata-like', 
-    battery: 42, 
-    temperature: 31, 
-    healthScore: 68, 
-    status: 'online', 
-    lastUpdate: '5s ago',
-    degradationDrivers: [
-      { label: 'Temp Instability', trend: 'up' },
-      { label: 'Battery Drain', trend: 'up' }
-    ]
-  },
-  { id: 'EV-003', vendor: 'Tesla-like', battery: 91, temperature: 21, healthScore: 98, status: 'online', lastUpdate: '1s ago' },
-  { 
-    id: 'EV-004', 
-    vendor: 'Tata-like', 
-    battery: 15, 
-    temperature: 38, 
-    healthScore: 45, 
-    status: 'offline', 
-    lastUpdate: '2m ago',
-    degradationDrivers: [
-      { label: 'Critical Battery', trend: 'up' },
-      { label: 'Overheating', trend: 'up' }
-    ]
-  },
-  { id: 'EV-005', vendor: 'Tesla-like', battery: 73, temperature: 25, healthScore: 88, status: 'online', lastUpdate: '3s ago' },
-  { id: 'EV-006', vendor: 'Tata-like', battery: 58, temperature: 28, healthScore: 76, status: 'online', lastUpdate: '7s ago' },
-  { id: 'EV-007', vendor: 'Tesla-like', battery: 96, temperature: 19, healthScore: 99, status: 'online', lastUpdate: '1s ago' },
-  { 
-    id: 'EV-008', 
-    vendor: 'Tata-like', 
-    battery: 34, 
-    temperature: 35, 
-    healthScore: 52, 
-    status: 'offline', 
-    lastUpdate: '5m ago',
-    degradationDrivers: [
-      { label: 'Low Battery', trend: 'up' },
-      { label: 'Temp Spikes', trend: 'up' }
-    ]
-  },
-  { id: 'EV-009', vendor: 'Tesla-like', battery: 82, temperature: 24, healthScore: 92, status: 'online', lastUpdate: '4s ago' },
-  { id: 'EV-010', vendor: 'Tata-like', battery: 67, temperature: 27, healthScore: 81, status: 'online', lastUpdate: '2s ago' },
-];
-
 export function VehicleList({ onSelectVehicle }: VehicleListProps) {
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      try {
+        const data = await AxionApi.getFleetVehicles();
+        const mapped: Vehicle[] = data.map((v: FleetVehicle) => ({
+          id: v.vehicleId,
+          vendor: v.vendor || 'Unknown',
+          battery: v.battery || 0,
+          temperature: v.temperature || 0,
+          healthScore: v.healthScore || 100,
+          status: v.online ? 'online' : 'offline',
+          lastUpdate: new Date(v.lastSeen).toLocaleTimeString(),
+          degradationDrivers: v.healthScore < 80 ? [{ label: 'Battery Drain', trend: 'up' }] : undefined
+        }));
+        setVehicles(mapped);
+      } catch (err) {
+        console.error("Failed to fetch vehicles", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVehicles();
+    const interval = setInterval(fetchVehicles, 3000); // Poll every 3s
+    return () => clearInterval(interval);
+  }, []);
+
   const getHealthStatus = (score: number): { label: string; color: string; glow: string } => {
-    if (score >= 80) return { 
-      label: 'Healthy', 
+    if (score >= 80) return {
+      label: 'Healthy',
       color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
       glow: 'shadow-emerald-500/20'
     };
-    if (score >= 60) return { 
-      label: 'Warning', 
+    if (score >= 60) return {
+      label: 'Warning',
       color: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
       glow: 'shadow-amber-500/20'
     };
-    return { 
-      label: 'Critical', 
+    return {
+      label: 'Critical',
       color: 'bg-red-500/10 text-red-400 border-red-500/20',
       glow: 'shadow-red-500/30 animate-pulse'
     };
@@ -90,19 +73,23 @@ export function VehicleList({ onSelectVehicle }: VehicleListProps) {
     return 'bg-red-500';
   };
 
+  if (loading && vehicles.length === 0) {
+    return <div className="p-8 text-center text-muted-foreground">Loading fleet data...</div>;
+  }
+
   return (
     <div className="p-8">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight">Fleet Vehicles</h1>
         <p className="text-muted-foreground text-sm mt-1">
-          Monitor and manage all vehicles • {mockVehicles.filter(v => v.status === 'online').length} online
+          Monitor and manage all vehicles • {vehicles.filter(v => v.status === 'online').length} online
         </p>
       </div>
 
       {/* Vehicle Grid */}
       <div className="grid grid-cols-1 gap-3">
-        {mockVehicles.map((vehicle, index) => {
+        {vehicles.map((vehicle, index) => {
           const healthStatus = getHealthStatus(vehicle.healthScore);
           const batteryColor = getBatteryColor(vehicle.battery);
 
@@ -112,7 +99,7 @@ export function VehicleList({ onSelectVehicle }: VehicleListProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05, duration: 0.3 }}
-              whileHover={{ 
+              whileHover={{
                 scale: 1.005,
                 backgroundColor: 'rgba(0, 229, 255, 0.03)',
                 transition: { duration: 0.2 }
@@ -144,7 +131,7 @@ export function VehicleList({ onSelectVehicle }: VehicleListProps) {
                           className={`h-full ${batteryColor}`}
                         />
                       </div>
-                      <span className="text-sm font-semibold w-12 text-right">{vehicle.battery}%</span>
+                      <span className="text-sm font-semibold w-12 text-right">{vehicle.battery.toFixed(1)}%</span>
                     </div>
                   </div>
 
@@ -155,7 +142,7 @@ export function VehicleList({ onSelectVehicle }: VehicleListProps) {
                       <span className="text-xs text-muted-foreground uppercase tracking-wider">Temp</span>
                     </div>
                     <p className="text-sm font-semibold">
-                      {vehicle.temperature}°C
+                      {vehicle.temperature.toFixed(1)}°C
                     </p>
                   </div>
 
@@ -190,11 +177,10 @@ export function VehicleList({ onSelectVehicle }: VehicleListProps) {
                       Status
                     </span>
                     <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold ${
-                        vehicle.status === 'online'
-                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                          : 'bg-gray-500/10 text-gray-400 border border-gray-500/20'
-                      }`}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold ${vehicle.status === 'online'
+                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                        : 'bg-gray-500/10 text-gray-400 border border-gray-500/20'
+                        }`}
                     >
                       {vehicle.status === 'online' ? (
                         <>
@@ -235,25 +221,25 @@ export function VehicleList({ onSelectVehicle }: VehicleListProps) {
       {/* Footer Stats */}
       <div className="mt-6 flex items-center justify-between text-sm">
         <p className="text-muted-foreground">
-          Showing {mockVehicles.length} vehicles
+          Showing {vehicles.length} vehicles
         </p>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-emerald-500 rounded-full" />
             <span className="text-muted-foreground">
-              {mockVehicles.filter(v => v.healthScore >= 80).length} Healthy
+              {vehicles.filter(v => v.healthScore >= 80).length} Healthy
             </span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-amber-500 rounded-full" />
             <span className="text-muted-foreground">
-              {mockVehicles.filter(v => v.healthScore >= 60 && v.healthScore < 80).length} Warning
+              {vehicles.filter(v => v.healthScore >= 60 && v.healthScore < 80).length} Warning
             </span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
             <span className="text-muted-foreground">
-              {mockVehicles.filter(v => v.healthScore < 60).length} Critical
+              {vehicles.filter(v => v.healthScore < 60).length} Critical
             </span>
           </div>
         </div>

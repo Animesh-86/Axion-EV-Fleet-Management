@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+
 import { motion } from 'motion/react';
 import { LucideIcon } from 'lucide-react';
 
@@ -22,9 +22,8 @@ export function MetricCard({ title, value, subtitle, icon: Icon, trend, gradient
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`relative overflow-hidden rounded-xl bg-gradient-to-br ${
-        gradient || 'from-white/5 to-white/[0.02]'
-      } p-6 border border-white/10 backdrop-blur-sm`}
+      className={`relative overflow-hidden rounded-xl bg-gradient-to-br ${gradient || 'from-white/5 to-white/[0.02]'
+        } p-6 border border-white/10 backdrop-blur-sm`}
     >
       <div className="flex items-start justify-between mb-4">
         <div className="text-sm text-gray-400">{title}</div>

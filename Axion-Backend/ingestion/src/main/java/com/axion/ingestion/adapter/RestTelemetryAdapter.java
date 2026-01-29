@@ -23,9 +23,14 @@ public class RestTelemetryAdapter implements TelemetryAdapter {
             envelope.setTimestamp(Instant.parse(root.get("timestamp").asText()));
             envelope.setIngestionTs(Instant.now());
 
+            JsonNode telemetryNode = root.path("telemetry");
             TelemetryPayload telemetry = new TelemetryPayload();
-            telemetry.setBatterySocPct(root.path("battery_soc_pct").asDouble());
-            telemetry.setSpeedKmph(root.path("speed_kmph").asDouble());
+            telemetry.setBatterySocPct(telemetryNode.path("battery_soc_pct").asDouble());
+            telemetry.setSpeedKmph(telemetryNode.path("speed_kmph").asDouble());
+            telemetry.setBatteryTempC(telemetryNode.path("battery_temp_c").asDouble());
+            telemetry.setMotorTempC(telemetryNode.path("motor_temp_c").asDouble());
+            telemetry.setAmbientTempC(telemetryNode.path("ambient_temp_c").asDouble());
+            telemetry.setOdometerKm(telemetryNode.path("odometer_km").asDouble());
 
             envelope.setTelemetry(telemetry);
 

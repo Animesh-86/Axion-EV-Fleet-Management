@@ -1,8 +1,16 @@
 vehicles:
   - id: "v001"
     profile: "sedan_standard"
+    scenario: "normal"
   - id: "v002"
     profile: "truck_heavy"
+    scenario: "normal"
+  - id: "v003"
+    profile: "sedan_sport"
+    scenario: "critical_temp"
+  - id: "v004"
+    profile: "truck_light"
+    scenario: "low_battery"
 mqtt:
   broker: "localhost"
   port: 1883

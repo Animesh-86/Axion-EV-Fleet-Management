@@ -2,7 +2,8 @@ package com.axion.ingestion.health;
 
 public final class HealthRules {
 
-    private HealthRules() {}
+    private HealthRules() {
+    }
 
     // Battery SOC
     public static final double SOC_CRITICAL = 15.0;
@@ -17,6 +18,6 @@ public final class HealthRules {
     public static final double PACKET_LOSS_CRITICAL = 10.0;
 
     // Scoring penalties
-    public static final int PENALTY_WARNING = 10;
-    public static final int PENALTY_CRITICAL = 25;
+    public static final int PENALTY_WARNING = 30;
+    public static final int PENALTY_CRITICAL = 60;
 }
