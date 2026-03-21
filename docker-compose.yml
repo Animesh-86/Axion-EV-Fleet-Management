@@ -1,0 +1,124 @@
+version: '3.8'
+
+# ═══════════════════════════════════════════════════════
+# Axion EV Fleet Management — Full Stack Deployment
+# Run:  docker compose up --build -d
+# Open: http://localhost (Dashboard)
+# ═══════════════════════════════════════════════════════
+
+services:
+  # ── Infrastructure ──────────────────────────────────
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: axion-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    healthcheck:
+      test: echo ruok | nc localhost 2181 || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: axion-kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: kafka-topics --bootstrap-server localhost:9092 --list >/dev/null 2>&1 || exit 1
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  redis:
+    image: redis:7.0-alpine
+    container_name: axion-redis
+    healthcheck:
+      test: redis-cli ping | grep PONG
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: axion-mosquitto
+    volumes:
+      - ./Axion-Backend/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    command: /usr/sbin/mosquitto -c /mosquitto/config/mosquitto.conf
+    healthcheck:
+      test: mosquitto_sub -t '$$SYS/broker/uptime' -C 1 -W 3 || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Backend (Spring Boot) ───────────────────────────
+
+  backend:
+    build:
+      context: ./Axion-Backend/ingestion
+      dockerfile: Dockerfile
+    container_name: axion-backend
+    depends_on:
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mosquitto:
+        condition: service_healthy
+    environment:
+      # Override localhost references for container networking
+      AXION_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      AXION_MQTT_BROKER_URL: tcp://mosquitto:1883
+      AXION_CORS_ALLOWED_ORIGINS: http://localhost,http://localhost:80
+      SPRING_DATA_REDIS_HOST: redis
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: wget -qO- http://localhost:8080/api/v1/fleet/summary || exit 1
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+  # ── Frontend (React → Nginx) ───────────────────────
+
+  frontend:
+    build:
+      context: ./Axion-Frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ""
+    container_name: axion-frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "80:80"
+
+  # ── Simulator (Python) ─────────────────────────────
+
+  simulator:
+    build:
+      context: ./Axion-Simulator
+      dockerfile: Dockerfile
+    container_name: axion-simulator
+    depends_on:
+      backend:
+        condition: service_healthy
+      mosquitto:
+        condition: service_healthy
+    environment:
+      AXION_MQTT_BROKER: mosquitto
+      AXION_BACKEND_URL: http://backend:8080/api/v1/telemetry

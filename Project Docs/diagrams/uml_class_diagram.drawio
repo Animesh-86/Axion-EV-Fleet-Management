@@ -1,0 +1,126 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="UML Class Diagram" id="axion-class-diag">
+    <mxGraphModel dx="1400" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- API Layer -->
+        <mxCell id="ctrl_telemetry" value="&amp;lt;&amp;lt;RestController&amp;gt;&amp;gt;&#nTelemetryIngestionController" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="50" y="50" width="260" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="ctrl_telemetry_methods" value="+ ingestTelemetry(payload): ResponseEntity&#n+ processMqttMessage(topic, msg)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;" vertex="1" parent="ctrl_telemetry">
+          <mxGeometry y="40" width="260" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ctrl_fleet" value="&amp;lt;&amp;lt;RestController&amp;gt;&amp;gt;&#nFleetController" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="880" y="50" width="240" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="ctrl_fleet_methods" value="+ getFleetSummary(): FleetSummary&#n+ getVehicleTwin(id): DigitalTwinResponse&#n+ getAllVehicles(): List&lt;Twin&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;" vertex="1" parent="ctrl_fleet">
+          <mxGeometry y="40" width="240" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Service Layer -->
+        <mxCell id="svc_ingest" value="&amp;lt;&amp;lt;Service&amp;gt;&amp;gt;&#nTelemetryIngestionService" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="50" y="220" width="260" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="svc_ingest_fields" value="- adapter: TelemetryAdapter&#n- producer: TelemetryKafkaProducer" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;borderBottom=1;borderBottomColor=#82b366;" vertex="1" parent="svc_ingest">
+          <mxGeometry y="40" width="260" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="svc_ingest_methods" value="+ processTelemetry(rawPayload): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;" vertex="1" parent="svc_ingest">
+          <mxGeometry y="70" width="260" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="svc_twin" value="&amp;lt;&amp;lt;Service&amp;gt;&amp;gt;&#nDigitalTwinService" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="840" y="230" width="280" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="svc_twin_fields" value="- redisTemplate: RedisTemplate&#n- healthEngine: HealthScoreEngine" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;borderBottom=1;borderBottomColor=#82b366;" vertex="1" parent="svc_twin">
+          <mxGeometry y="40" width="280" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="svc_twin_methods" value="+ updateTwin(envelope): DigitalTwinState&#n+ getTwin(vehicleId): DigitalTwinState&#n+ checkStaleConnections(): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;" vertex="1" parent="svc_twin">
+          <mxGeometry y="80" width="280" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="svc_health" value="&amp;lt;&amp;lt;Component&amp;gt;&amp;gt;&#nHealthScoreEngine" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="460" y="300" width="260" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="svc_health_methods" value="+ calculateScore(envelope): HealthScoreResult&#n- evaluateRules(env): List&lt;Deduction&gt;&#n- determineState(score): HealthState" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;" vertex="1" parent="svc_health">
+          <mxGeometry y="40" width="260" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Pub/Sub Layer -->
+        <mxCell id="kafka_prod" value="&amp;lt;&amp;lt;Component&amp;gt;&amp;gt;&#nTelemetryKafkaProducer" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="80" y="390" width="200" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="kafka_prod_methods" value="+ publish(envelope): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;" vertex="1" parent="kafka_prod">
+          <mxGeometry y="40" width="200" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="kafka_cons" value="&amp;lt;&amp;lt;Component&amp;gt;&amp;gt;&#nTelemetryConsumer" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="880" y="440" width="200" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="kafka_cons_methods" value="+ onMessage(envelope): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;" vertex="1" parent="kafka_cons">
+          <mxGeometry y="40" width="200" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Models -->
+        <mxCell id="model_env" value="CanonicalTelemetryEnvelope" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="460" y="550" width="220" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="model_env_fields" value="- vehicleId: String&#n- vendor: String&#n- timestamp: Long&#n- batterySoc: Double&#n- speed: Double&#n- batteryTemp: Double&#n- motorTemp: Double" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;" vertex="1" parent="model_env">
+          <mxGeometry y="30" width="220" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="model_twin" value="DigitalTwinState" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="870" y="600" width="220" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="model_twin_fields" value="- vehicleId: String&#n- latestTelemetry: Envelope&#n- healthScore: Integer&#n- healthState: HealthState&#n- onlineStatus: Boolean&#n- lastSeenAt: Long" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;" vertex="1" parent="model_twin">
+          <mxGeometry y="30" width="220" height="110" as="geometry" />
+        </mxCell>
+
+        <!-- OTA Service -->
+        <mxCell id="svc_ota" value="&amp;lt;&amp;lt;Service&amp;gt;&amp;gt;&#nOtaOrchestratorService" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=40;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="450" y="50" width="280" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="svc_ota_fields" value="- digitalTwinService: DigitalTwinService&#n- producer: OtaEventProducer" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;borderBottom=1;borderBottomColor=#82b366;" vertex="1" parent="svc_ota">
+          <mxGeometry y="40" width="280" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="svc_ota_methods" value="+ triggerCampaign(targetGroup): Campaign&#n+ validateHealthGate(vehicleId): Boolean&#n+ rollbackFailedUpdates(): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;" vertex="1" parent="svc_ota">
+          <mxGeometry y="80" width="280" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Connections (Relationships) -->
+        <mxCell id="edge1" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=0;dashed=1;" edge="1" parent="1" source="ctrl_telemetry" target="svc_ingest">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge2" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=0;dashed=1;" edge="1" parent="1" source="ctrl_fleet" target="svc_twin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge3" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=0;dashed=1;" edge="1" parent="1" source="svc_ingest" target="kafka_prod">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge4" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=0;dashed=1;" edge="1" parent="1" source="kafka_cons" target="svc_twin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge5" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=0;" edge="1" parent="1" source="svc_twin" target="svc_health">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge6" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=diamond;endFill=1;" edge="1" parent="1" source="model_env" target="model_twin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge7" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=0;dashed=1;" edge="1" parent="1" source="svc_ota" target="svc_twin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Dependency to DTOs -->
+        <mxCell id="edge8" style="edgeStyle=orthogonalEdgeStyle;html=1;endArrow=open;endFill=0;dashed=1;" edge="1" parent="1" source="svc_ingest" target="model_env">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="180" y="625" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

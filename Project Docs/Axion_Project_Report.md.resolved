@@ -1,0 +1,529 @@
+# Axion — EV Fleet Management Platform
+## Combined Project Report: Minor Project (Completed) + Major Project (7th Semester Plan)
+
+> **Team**: Animesh (System & Platform Lead) + Kajol (Simulation & Analytics Lead)
+> **Date**: March 2026
+> **Institution**: Academic Project — 6th & 7th Semester
+
+---
+
+# Part I — Minor Project (Completed ✅)
+
+## 1. Project Overview
+
+**Axion** is a vendor-neutral, event-driven Electric Vehicle (EV) Fleet Telemetry, Digital Twin, and OTA Orchestration Platform. It ingests, normalizes, and processes EV telemetry at scale, maintains real-time digital twins for each vehicle, computes explainable health indicators, and orchestrates over-the-air (OTA) update simulations.
+
+The system is designed to tolerate unreliable vehicle connectivity, heterogeneous vendor data formats, and high-throughput telemetry streams — providing operators with actionable fleet insights.
+
+### Core Objectives Achieved
+- ✅ Ingest telemetry from multiple vehicles using REST and MQTT protocols
+- ✅ Normalize vendor-specific data into a canonical internal schema
+- ✅ Maintain a real-time digital twin per vehicle in Redis
+- ✅ Compute explainable vehicle health scores (0–100)
+- ✅ Simulate safe, controlled OTA update rollouts
+- ✅ Provide fleet-level and vehicle-level analytics dashboard
+- ✅ Python-based multi-vehicle simulator with fault injection
+
+---
+
+## 2. System Architecture
+
+```mermaid
+graph TD
+    SIM["🐍 Python Simulator<br/>250 Vehicles, 5 Scenarios"]
+    REST["REST API<br/>/api/v1/telemetry"]
+    MQTT["MQTT Broker<br/>Eclipse Mosquitto"]
+    
+    SIM -->|HTTP POST| REST
+    SIM -->|MQTT Publish| MQTT
+    
+    REST --> ING["Spring Boot<br/>Ingestion Service"]
+    MQTT --> ING
+    
+    ING -->|Normalize + Validate| KAFKA["Apache Kafka<br/>telemetry.normal"]
+    
+    KAFKA --> CONSUMER["TelemetryConsumer"]
+    CONSUMER --> TWIN["Digital Twin Service"]
+    TWIN --> REDIS["Redis<br/>Live State, 120s TTL"]
+    
+    REDIS --> API["Fleet REST API"]
+    API --> FRONTEND["React Dashboard<br/>Polling 3-5s"]
+    
+    KAFKA --> OTA_TOPIC["Kafka: ota.events"]
+    OTA_TOPIC --> OTA_CONSUMER["OTA Consumer"]
+```
+
+### Data Flow Pipeline
+```
+Python Simulator ──REST/MQTT──► Spring Boot Ingestion
+                                       │
+                               Validate + Normalize
+                                       │
+                                       ▼
+                             Kafka (telemetry.normal)
+                                       │
+                                       ▼
+                              TelemetryConsumer
+                                       │
+                           ┌───────────┼───────────┐
+                           ▼                       ▼
+                    Digital Twin              Health Score
+                    (Redis, 120s TTL)         Engine
+                           │
+                           ▼
+                    React Frontend (Polling 3-5s)
+```
+
+---
+
+## 3. Technology Stack (Minor Project)
+
+| Layer | Technology | Version |
+|-------|-----------|---------|
+| **Backend** | Java, Spring Boot, Spring WebFlux | Java 21, Spring Boot 3.2 |
+| **Messaging** | Apache Kafka + Zookeeper | Confluent 7.5 |
+| **MQTT** | Eclipse Mosquitto | 2.0 |
+| **Caching/State** | Redis | 7.0 Alpine |
+| **Frontend** | React, TypeScript, Vite, Tailwind CSS, Shadcn UI | React 18, Vite |
+| **Charting** | Recharts | — |
+| **Animations** | Framer Motion | — |
+| **Simulator** | Python, asyncio, YAML config | Python 3.12 |
+| **Containerization** | Docker, Docker Compose | — |
+
+---
+
+## 4. Backend Architecture (Spring Boot)
+
+### 4.1 Ingestion Layer (48 Java Source Files)
+
+The backend follows a clean, layered architecture:
+
+| Package | Purpose | Key Classes |
+|---------|---------|-------------|
+| `adapter` | Vendor data normalization | `RestTelemetryAdapter`, `TelemetryAdapter` |
+| `api` | REST controllers | `FleetController`, `VehicleController` |
+| `config` | Infrastructure configuration | `KafkaConsumerConfig`, `KafkaProducerConfig`, `MqttConfig`, `RedisConfig`, `WebConfig` |
+| `consumer` | Kafka event processing | `TelemetryConsumer` |
+| `controller` | Additional REST endpoints | `OtaController`, `TelemetryIngestionController` |
+| `dto` | API response models | `DigitalTwinResponse`, `FleetSummaryResponse`, `FleetVehicleResponse` |
+| `exception` | Error handling | `GlobalExceptionHandler`, `InvalidPayloadException`, `ValidationException` |
+| `health` | Health scoring engine | [HealthScoreEngine](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Backend/ingestion/src/main/java/com/axion/ingestion/health/HealthScoreEngine.java#11-79), `HealthRules`, `HealthScoreResult`, `HealthState` |
+| `model` | Core domain models | `CanonicalTelemetryEnvelope`, `DigitalTwinState`, `TelemetrySnapshot`, `ConnectionMetadata` |
+| `mqtt` | MQTT message handling | `MqttMessageHandler` |
+| `producer` | Kafka event publishing | `TelemetryKafkaProducer` |
+| `service` | Business logic | [DigitalTwinService](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Backend/ingestion/src/main/java/com/axion/ingestion/service/DigitalTwinService.java#14-71), [OtaService](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Backend/ingestion/src/main/java/com/axion/ingestion/service/OtaService.java#12-62), [TelemetryIngestionService](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Backend/ingestion/src/main/java/com/axion/ingestion/service/TelemetryIngestionService.java#10-33), `ThroughputTracker` |
+| `validation` | Payload validation | `TelemetryValidator` |
+
+### 4.2 OTA Module
+
+| Package | Purpose | Key Classes |
+|---------|---------|-------------|
+| `ota.api` | OTA REST controller | `OtaController` |
+| `ota.config` | Kafka config for OTA | `KafkaConfig` |
+| `ota.consumer` | OTA event processing | `OtaEventConsumer` |
+| `ota.model` | OTA domain models | `OtaCampaign`, `OtaJob`, `OtaState` |
+| `ota.producer` | OTA event publishing | `OtaEventProducer` |
+| `ota.service` | OTA orchestration | `OtaOrchestratorService` |
+
+### 4.3 Key Features Implemented
+
+**Telemetry Ingestion Service**
+- Dual-protocol ingestion (REST + MQTT)
+- Adapter pattern converts raw vendor data → `CanonicalTelemetryEnvelope`
+- Validation with graceful error handling
+- Publishes normalized telemetry to Kafka `telemetry.normal` topic
+- Throughput tracking (events/second)
+
+**Digital Twin Service**
+- Maintains one authoritative Redis digital twin per vehicle
+- Stale data protection using timestamp ordering
+- Automatic health score evaluation on each update
+- 120-second Redis TTL for twin expiry
+- Stores: vehicle ID, vendor, telemetry snapshot, health score, health state, online status
+
+**Health Score Engine**
+- Rule-based scoring system (0–100 scale)
+- Base score with penalty deductions
+- Factors: Battery SOC, battery temperature, connectivity status
+- Health states: `HEALTHY` (≥80), `DEGRADED` (50–79), `CRITICAL` (<50)
+- Human-readable explanations for each score deduction
+
+**OTA Update Service**
+- Health-gated OTA: refuses updates if battery low or temperature high
+- Simulated success/failure with 80% success probability
+- OTA eligibility tracking per vehicle
+- Campaign-based triggering
+
+### 4.4 REST API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/v1/telemetry` | Ingest telemetry (REST) |
+| `GET` | `/api/v1/fleet/summary` | Fleet-wide KPIs |
+| `GET` | `/api/v1/fleet/vehicles` | All vehicles with telemetry |
+| `GET` | `/api/v1/fleet/vehicle/{id}` | Single vehicle digital twin |
+| `POST` | `/api/v1/ota/trigger` | Trigger OTA update |
+
+---
+
+## 5. Frontend Dashboard (React 18)
+
+The frontend is a dark-themed, professional-grade dashboard built with React 18, TypeScript, Tailwind CSS, Shadcn UI, and Recharts. It includes:
+
+### 5.1 Pages Implemented
+
+| Page | Description |
+|------|-------------|
+| **Fleet Dashboard** | KPI cards (Total Vehicles, Online/Offline, Avg Health, Critical, Events/sec), Fleet Health Distribution pie chart, Live Fleet Status listing |
+| **Vehicle List** | Scrollable list of all vehicles with battery %, temperature, health score, health state badges, online/offline status |
+| **Vehicle Detail (Digital Twin)** | Deep-dive into individual vehicle — battery state, thermal state, motion state, operational state, policy enforcement |
+| **OTA Campaign Manager** | Campaign listing with progress bars, canary phase indicators, rollout status, failure rates, rollback tracking |
+| **Analytics & Health Scoring** | Health score breakdown, battery degradation trends, temperature anomaly detection charts, health score trend over time |
+| **Alerts** | Alert feed with severity indicators |
+| **System Health** | System-level monitoring |
+| **Settings** | Connection config, polling intervals, health scoring rules, system info |
+| **Login / Signup** | Authentication pages with 3D artwork |
+
+### 5.2 UI Design Highlights
+
+The dashboard features a premium dark-themed design with:
+- Glassmorphism card effects
+- Animated KPI counters using Framer Motion
+- Color-coded health state indicators (green/amber/red)
+- Interactive pie charts with hover tooltips
+- Responsive grid layouts
+- Sidebar navigation with icons
+- Real-time "LIVE" indicator
+- Vehicle search functionality
+
+### Dashboard Screenshots
+
+![Fleet Dashboard — Real-time monitoring with KPI cards, health distribution, and live vehicle status](C:\Users\Animesh\.gemini\antigravity\brain\366658f2-13f0-498b-9efb-3f14253952ca\1.png)
+
+![Fleet Vehicle List — All vehicles with battery, temperature, health scores, and online status](C:\Users\Animesh\.gemini\antigravity\brain\366658f2-13f0-498b-9efb-3f14253952ca\2.png)
+
+![Digital Twin Page — Explains digital twin states: Battery, Thermal, Motion, Operational](C:\Users\Animesh\.gemini\antigravity\brain\366658f2-13f0-498b-9efb-3f14253952ca\3.png)
+
+![OTA Campaign Manager — Campaign lifecycle with canary phases, progress bars, and rollback tracking](C:\Users\Animesh\.gemini\antigravity\brain\366658f2-13f0-498b-9efb-3f14253952ca\4.png)
+
+![Analytics & Health Scoring — Health breakdown, battery degradation, temperature anomaly, and trend charts](C:\Users\Animesh\.gemini\antigravity\brain\366658f2-13f0-498b-9efb-3f14253952ca\5.png)
+
+---
+
+## 6. Simulator (Python)
+
+The Python simulator emulates a fleet of EV vehicles sending realistic telemetry:
+
+### 6.1 Architecture (19 Python Files)
+
+| Module | Files | Purpose |
+|--------|-------|---------|
+| **Core** | [vehicle.py](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Simulator/core/vehicle.py), [vehicle_state.py](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Simulator/core/vehicle_state.py), [telemetry_builder.py](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Simulator/core/telemetry_builder.py), [clock.py](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Simulator/core/clock.py), [connection_state.py](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Simulator/core/connection_state.py) | Vehicle lifecycle, state management, telemetry construction |
+| **Scenarios** | [normal_drive.py](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Simulator/scenarios/normal_drive.py), [battery_drain.py](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Simulator/scenarios/battery_drain.py), [temp_spike.py](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Simulator/scenarios/temp_spike.py), [network_dropout.py](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Simulator/scenarios/network_dropout.py), [base.py](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Simulator/emitters/base.py) | Fault injection and behavior simulation |
+| **Emitters** | [rest_emitter.py](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Simulator/emitters/rest_emitter.py), [mqtt_emitter.py](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Simulator/emitters/mqtt_emitter.py), [base.py](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Simulator/emitters/base.py) | Protocol-specific telemetry transmission |
+| **OTA** | [ota_client.py](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Simulator/ota/ota_client.py), [ota_scenarios.py](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Simulator/ota/ota_scenarios.py), [ota_state.py](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Simulator/ota/ota_state.py) | OTA update simulation |
+| **Profiles** | [base_profile.py](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Simulator/profiles/base_profile.py), [loader.py](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Simulator/profiles/loader.py) | Vehicle profiles (sedan, truck, sport) |
+| **Config** | [fleet.yaml](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Simulator/config/fleet.yaml) | Fleet-wide configuration |
+
+### 6.2 Capabilities
+- **250 concurrent vehicles** via `asyncio` (20 manually defined + 230 auto-generated)
+- Configurable vehicle profiles (sedan, truck, sport) with different temp/SOC/speed ranges
+- 5 fault-injection scenarios:
+  - **Normal Drive**: Natural speed/SOC fluctuations
+  - **Battery Drain**: Accelerated battery depletion
+  - **Temperature Spike**: Overheating simulation
+  - **Network Dropout**: Intermittent connectivity loss
+  - **OTA Trigger**: Periodic OTA update requests
+- YAML-based fleet configuration
+- Auto-generation of vehicle fleets with configurable prefixes
+
+---
+
+## 7. Deployment & Infrastructure
+
+### 7.1 Docker Compose (7 Containers)
+
+| Container | Image | Port | Purpose |
+|-----------|-------|------|---------|
+| `axion-zookeeper` | Confluent 7.5 | 2181 | Kafka coordination |
+| `axion-kafka` | Confluent 7.5 | 9092 | Event streaming |
+| `axion-redis` | Redis 7.0 Alpine | 6379 | Digital twin state |
+| `axion-mosquitto` | Eclipse 2.0 | 1883 | MQTT broker |
+| `axion-backend` | Spring Boot (custom) | 8080 | API & business logic |
+| `axion-frontend` | React + Nginx (custom) | 80 | Dashboard |
+| `axion-simulator` | Python (custom) | — | Fleet simulation |
+
+### 7.2 One-Command Deployment
+```bash
+docker compose up --build -d
+```
+Open **http://localhost** — the full dashboard with 250 live simulated vehicles.
+---
+
+## 8. Known Limitations (To Solve in Major Project)
+
+| Limitation | Impact |
+|------------|--------|
+| No persistent database | All data lost when Redis TTL (120s) expires |
+| No authentication | All endpoints are open, no user roles |
+| No historical data | Only last-known-state snapshots available |
+| No ML/AI | Purely reactive system, no predictions |
+| Polling-only frontend | 3–5s polling intervals, not truly real-time |
+| No observability | No Prometheus, Grafana, or structured logging |
+
+---
+
+---
+
+# Part II — Major Project Plan (7th Semester 🚀)
+
+## 9. Vision
+
+Transform Axion from a functional prototype into an **intelligent, stateful, enterprise-ready fleet management platform** with persistent storage, authentication, real-time communication, ML-powered predictive analytics, and full observability.
+
+## 10. Target Architecture
+
+```mermaid
+graph TD
+    SIM["Python Simulator"] -->|REST/MQTT| GW["Spring Boot API Gateway"]
+    
+    GW --> KT["Kafka: telemetry.normal"]
+    GW --> KO["Kafka: ota.events"]
+    
+    KT --> TC["TwinConsumer"]
+    KO --> OC["OTA Consumer"]
+    
+    TC --> REDIS["Redis<br/>Live State"]
+    TC --> TSDB["TimescaleDB<br/>Time-Series"]
+    TC --> PG["PostgreSQL<br/>Campaigns, Users, Audit"]
+    
+    OC --> PG
+    
+    TSDB --> ML["FastAPI ML Service"]
+    ML -->|Predictions| GW
+    
+    GW -->|WebSocket STOMP| FRONT["React Dashboard<br/>JWT Auth + RBAC"]
+    
+    GW --> PROM["Prometheus"]
+    PROM --> GRAF["Grafana Dashboards"]
+```
+
+---
+
+## 11. Phase-by-Phase Roadmap (10 Weeks)
+
+### Phase 1 — Database & Persistence (Weeks 1–3)
+
+**Goal**: Axion remembers everything — historical telemetry + relational business data.
+
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| TimescaleDB | PostgreSQL extension | Store millions of telemetry rows with automatic time-partitioning |
+| PostgreSQL | Relational DB | Users, OTA campaigns, vehicle policies, audit logs |
+| Flyway | Migration tool | Schema version control |
+
+**Key Deliverables**:
+- `telemetry_history` hypertable with vehicle-specific indexes
+- PostgreSQL tables: `users`, `ota_campaigns`, `ota_jobs`, `vehicle_policies`, `audit_logs`
+- Historical telemetry API: time-range queries, hourly aggregates
+- 30-day retention policy with auto-cleanup
+- Frontend: historical charts (24h / 7d / 30d trends)
+
+---
+
+### Phase 2 — Authentication & Security (Weeks 3–4)
+
+**Goal**: Role-based access control — Admin vs Operator.
+
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| Spring Security | JWT (HS256, 24h expiry) | Backend authentication |
+| BCrypt | Password hashing | Secure credential storage |
+| AuthContext | React Context | Frontend auth state management |
+
+**Key Deliverables**:
+- JWT-based authentication filter chain
+- Role-based endpoint access (ADMIN: full, OPERATOR: read-only)
+- Login/Register API endpoints
+- Frontend login page, protected routes, conditional UI rendering
+- Audit log: "who did what" tracking
+
+---
+
+### Phase 3 — Real-Time WebSockets (Weeks 4–5)
+
+**Goal**: Replace polling with server-push — instant dashboard updates.
+
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| STOMP over SockJS | Spring WebSocket | Real-time server-to-client push |
+| STOMP.js | Frontend library | WebSocket client with auto-reconnect |
+
+**Key Deliverables**:
+- WebSocket topics: `/topic/fleet/updates`, `/topic/vehicle/{vehicleId}`
+- Message types: `TWIN_UPDATE`, `HEALTH_CHANGE`, `OTA_STATUS`, `ALERT`
+- Zero-polling dashboard — all `setInterval` loops replaced
+- Toast notifications on health state changes
+- Connection status indicator (Connected / Reconnecting)
+
+---
+
+### Phase 4 — ML Predictive Analytics (Weeks 5–8) ⭐
+
+**Goal**: The "star feature" — AI-powered battery degradation prediction and anomaly detection.
+
+| Model | Input | Output |
+|-------|-------|--------|
+| **Battery Depletion Predictor** | SOC drain rate, speed, temperature | Predicted hours until SOC ≤15% + confidence |
+| **Temperature Anomaly Detector** | Temperature trajectory, ambient temp | Anomaly risk (LOW/MEDIUM/HIGH) + predicted peak |
+
+**Stack**: Python 3.11, FastAPI, scikit-learn, XGBoost, pandas
+
+**Key Deliverables**:
+- FastAPI microservice (`Axion-ML/`) with trained models
+- Prediction endpoints: `/ml/v1/predict/{vehicleId}/battery`, `/ml/v1/predict/{vehicleId}/temperature`
+- Fleet risk ranking: `/ml/v1/fleet/risk-ranking`
+- Model retraining endpoint
+- Spring Boot ML client with Redis caching (60s TTL)
+- Frontend: prediction widgets, risk heatmap, ML-driven auto-alerts
+
+---
+
+### Phase 5 — Advanced OTA Orchestration (Weeks 6–8)
+
+**Goal**: Production-grade OTA with canary deployments, health-gating, and automatic rollback.
+
+**Campaign Lifecycle**:
+```
+DRAFT ──► CANARY ──► ROLLOUT ──► COMPLETED
+                  │            │
+                  └──► HALTED ◄┘
+```
+
+**Key Deliverables**:
+- Full campaign lifecycle state machine (persisted in PostgreSQL)
+- Canary deployment: 2–3 vehicles → 5-min health check → full rollout
+- Health-gated rollout (SOC ≥30%, Temp ≤45°C, not CRITICAL)
+- Auto-rollback if failure rate >30%
+- Campaign creation wizard UI with live rollout progress
+
+---
+
+### Phase 6 — Root Cause Analysis Timeline (Weeks 7–8)
+
+**Goal**: Correlate events across time to prove cause-and-effect relationships.
+
+**Key Deliverables**:
+- Cross-source event query engine (TimescaleDB + PostgreSQL)
+- RCA API endpoint: `/api/v1/rca/{vehicleId}?from=&to=`
+- Interactive timeline with zoom/scroll, color-coded event categories
+- Click-to-expand event details
+
+---
+
+### Phase 7 — Observability & Monitoring (Weeks 8–9)
+
+**Goal**: Professional-grade infrastructure monitoring.
+
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| Prometheus | Metrics collection | Custom Axion metrics |
+| Grafana | Dashboards | 8+ monitoring panels |
+| Micrometer | Spring integration | Actuator metrics exposure |
+| Logback | Structured logging | JSON logs with MDC correlation IDs |
+
+**Custom Metrics**: telemetry ingested, Kafka lag, health score distribution, active OTA campaigns, API latency (p50/p95/p99), JVM stats.
+
+---
+
+### Phase 8 — Polish & Presentation (Weeks 9–10)
+
+**Key Deliverables**:
+- Complete OpenAPI/Swagger documentation
+- Updated README with architecture diagrams
+- Single `docker-compose up -d` starts all 9–10 containers
+- Load test: 100+ vehicles validated
+- 10-minute structured demo script
+
+---
+
+## 12. Technology Stack: Minor vs Major
+
+| Component | Minor (Done ✅) | Major (Planned 🚀) |
+|-----------|----------------|---------------------|
+| **State** | Redis only (120s TTL) | Redis + PostgreSQL + TimescaleDB |
+| **Auth** | None | Spring Security + JWT + RBAC |
+| **Frontend** | Polling (3–5s) | WebSocket (STOMP) real-time push |
+| **Analytics** | Live snapshots only | 30-day trends + ML predictions |
+| **ML/AI** | None | FastAPI + scikit-learn + XGBoost |
+| **OTA** | Single trigger, in-memory | Campaign lifecycle, canary, rollback |
+| **Monitoring** | None | Prometheus + Grafana + Actuator |
+| **Logging** | Basic SLF4J | Structured JSON + MDC correlation |
+| **Timeline** | None | RCA with cross-source correlation |
+| **API Docs** | Minimal | Full OpenAPI/Swagger |
+| **Containers** | 7 containers | 9–10 containers |
+
+---
+
+## 13. Work Division (Major Project)
+
+### Animesh (System & Platform Lead)
+
+| Task | Phase |
+|------|-------|
+| Database schemas (TimescaleDB + PostgreSQL + Flyway) | Phase 1 |
+| JPA Repositories | Phase 1 |
+| Spring Security + JWT | Phase 2 |
+| WebSocket Backend (STOMP) | Phase 3 |
+| OTA Campaign Lifecycle (state machine, health-gating, canary) | Phase 5 |
+| Prometheus + Grafana | Phase 7 |
+| RCA Query Engine | Phase 6 |
+| Full Docker Compose orchestration | Phase 8 |
+
+### Kajol (Simulation & Analytics Lead)
+
+| Task | Phase |
+|------|-------|
+| FastAPI ML Service (model training, prediction endpoints) | Phase 4 |
+| Frontend Auth (login, AuthContext, protected routes, RBAC UI) | Phase 2 |
+| Frontend WebSocket (STOMP.js, useWebSocket hook) | Phase 3 |
+| RCA Timeline UI (interactive visualization) | Phase 6 |
+| Campaign Manager UI (wizard, rollout progress) | Phase 5 |
+| Analytics Upgrade (historical charts, ML widgets) | Phase 4 |
+| Load Testing (100+ vehicles) | Phase 8 |
+
+---
+
+## 14. What Makes This Production-Grade
+
+| Feature | Why It Matters |
+|---------|---------------|
+| **Persistent Data** | Survives restarts, 30-day queryable history — proves database competence |
+| **Authentication + RBAC** | Secured endpoints — proves security awareness |
+| **ML Predictions** | Intelligent system with confidence scores — proves data science integration |
+| **WebSockets** | True real-time push — proves modern architecture knowledge |
+| **Canary OTA Deployments** | Enterprise deployment strategy — proves production systems understanding |
+| **RCA Timeline** | Cause-and-effect analysis — proves event-driven architecture value |
+| **Grafana Dashboards** | Infrastructure visibility — proves DevOps/SRE awareness |
+| **One-Command Deploy** | `docker-compose up -d` runs everything — proves containerization mastery |
+
+---
+
+## 15. API Contract Freeze (Minor → Major)
+
+The following Minor Project artifacts are **frozen** and will not change:
+
+| Frozen Artifact | Details |
+|----------------|---------|
+| Canonical Telemetry Schema | `CanonicalTelemetryEnvelope` |
+| Existing REST APIs | `/api/v1/fleet/*`, `/api/v1/telemetry`, `/api/v1/ota/trigger` |
+| Kafka Topics | `telemetry.normal`, `ota.events` |
+| Health Scoring Logic | [HealthScoreEngine](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Backend/ingestion/src/main/java/com/axion/ingestion/health/HealthScoreEngine.java#11-79) thresholds |
+
+**Only additive changes allowed** — new endpoints, services, database tables, and frontend pages. No breaking changes to existing interfaces.
+
+---
+
+> *Axion EV Fleet Management Platform*
+> *Team: Animesh (System Lead) + Kajol (Analytics Lead)*
+> *Document Generated: March 2026*

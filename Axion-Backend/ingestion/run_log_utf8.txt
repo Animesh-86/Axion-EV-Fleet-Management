@@ -1,0 +1,95 @@
+﻿[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------------------< com.axion:ingestion >-------------------------
+[INFO] Building Axion 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.2.2:run (default-cli) > test-compile @ ingestion >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ ingestion ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ ingestion ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ ingestion ---
+[INFO] skip non existing resourceDirectory C:\CipherVault\Code\Projects\Axion - EV Fleet Management\Axion-Backend\ingestion\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ ingestion ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] <<< spring-boot:3.2.2:run (default-cli) < test-compile @ ingestion <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.2.2:run (default-cli) @ ingestion ---
+[INFO] Attaching agents: []
+
+    _    __  __ ___ ___  _   _ 
+   / \   \ \/ /|_ _/ _ \| \ | |
+  / _ \   \  /  | | | | |  \| |
+ / ___ \  /  \  | | |_| | |\  |
+/_/   \_\/_/\_\|___\___/|_| \_|
+                               
+:: Axion - EV Fleet Management ::
+
+2026-03-05T16:50:59.257+05:30  INFO 42184 --- [Axion] [           main] com.axion.ingestion.AxionApplication     : Starting AxionApplication using Java 17.0.12 with PID 42184 (C:\CipherVault\Code\Projects\Axion - EV Fleet Management\Axion-Backend\ingestion\target\classes started by Animesh in C:\CipherVault\Code\Projects\Axion - EV Fleet Management\Axion-Backend\ingestion)
+2026-03-05T16:50:59.264+05:30  INFO 42184 --- [Axion] [           main] com.axion.ingestion.AxionApplication     : No active profile set, falling back to 1 default profile: "default"
+2026-03-05T16:50:59.747+05:30  INFO 42184 --- [Axion] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-03-05T16:50:59.749+05:30  INFO 42184 --- [Axion] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-03-05T16:50:59.771+05:30  INFO 42184 --- [Axion] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 12 ms. Found 0 Redis repository interfaces.
+2026-03-05T16:50:59.869+05:30  INFO 42184 --- [Axion] [           main] faultConfiguringBeanFactoryPostProcessor : No bean named 'errorChannel' has been explicitly defined. Therefore, a default PublishSubscribeChannel will be created.
+2026-03-05T16:50:59.875+05:30  INFO 42184 --- [Axion] [           main] faultConfiguringBeanFactoryPostProcessor : No bean named 'integrationHeaderChannelRegistry' has been explicitly defined. Therefore, a default DefaultHeaderChannelRegistry will be created.
+2026-03-05T16:51:00.004+05:30  WARN 42184 --- [Axion] [           main] trationDelegate$BeanPostProcessorChecker : Bean 'org.springframework.ws.config.annotation.DelegatingWsConfiguration' of type [org.springframework.ws.config.annotation.DelegatingWsConfiguration$$SpringCGLIB$$0] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). The currently created BeanPostProcessor [annotationActionEndpointMapping] is declared through a non-static factory method on that class; consider declaring it as static instead.
+2026-03-05T16:51:00.027+05:30  INFO 42184 --- [Axion] [           main] .w.s.a.s.AnnotationActionEndpointMapping : Supporting [WS-Addressing August 2004, WS-Addressing 1.0]
+2026-03-05T16:51:00.240+05:30  INFO 42184 --- [Axion] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-03-05T16:51:00.249+05:30  INFO 42184 --- [Axion] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-03-05T16:51:00.249+05:30  INFO 42184 --- [Axion] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.20]
+2026-03-05T16:51:00.293+05:30  INFO 42184 --- [Axion] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-03-05T16:51:00.293+05:30  INFO 42184 --- [Axion] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1000 ms
+2026-03-05T16:51:01.181+05:30  INFO 42184 --- [Axion] [           main] o.s.i.endpoint.EventDrivenConsumer       : Adding {logging-channel-adapter:_org.springframework.integration.errorLogger} as a subscriber to the 'errorChannel' channel
+2026-03-05T16:51:01.182+05:30  INFO 42184 --- [Axion] [           main] o.s.i.channel.PublishSubscribeChannel    : Channel 'Axion.errorChannel' has 1 subscriber(s).
+2026-03-05T16:51:01.182+05:30  INFO 42184 --- [Axion] [           main] o.s.i.endpoint.EventDrivenConsumer       : started bean '_org.springframework.integration.errorLogger'
+2026-03-05T16:51:01.182+05:30  INFO 42184 --- [Axion] [           main] o.s.i.endpoint.EventDrivenConsumer       : Adding {service-activator:mqttMessageHandler.handle.serviceActivator} as a subscriber to the 'mqttInputChannel' channel
+2026-03-05T16:51:01.182+05:30  INFO 42184 --- [Axion] [           main] o.s.integration.channel.DirectChannel    : Channel 'Axion.mqttInputChannel' has 1 subscriber(s).
+2026-03-05T16:51:01.182+05:30  INFO 42184 --- [Axion] [           main] o.s.i.endpoint.EventDrivenConsumer       : started bean 'mqttMessageHandler.handle.serviceActivator'
+2026-03-05T16:51:01.538+05:30  INFO 42184 --- [Axion] [           main] .m.i.MqttPahoMessageDrivenChannelAdapter : started bean 'mqttInbound'; defined in: 'class path resource [com/axion/ingestion/config/MqttConfig.class]'; from source: 'com.axion.ingestion.config.MqttConfig.mqttInbound()'
+2026-03-05T16:51:06.546+05:30  INFO 42184 --- [Axion] [           main] .m.i.MqttPahoMessageDrivenChannelAdapter : stopped bean 'mqttInbound'; defined in: 'class path resource [com/axion/ingestion/config/MqttConfig.class]'; from source: 'com.axion.ingestion.config.MqttConfig.mqttInbound()'
+2026-03-05T16:51:06.561+05:30  INFO 42184 --- [Axion] [           main] o.s.i.endpoint.EventDrivenConsumer       : Removing {logging-channel-adapter:_org.springframework.integration.errorLogger} as a subscriber to the 'errorChannel' channel
+2026-03-05T16:51:06.561+05:30  INFO 42184 --- [Axion] [           main] o.s.i.channel.PublishSubscribeChannel    : Channel 'Axion.errorChannel' has 0 subscriber(s).
+2026-03-05T16:51:06.561+05:30  INFO 42184 --- [Axion] [           main] o.s.i.endpoint.EventDrivenConsumer       : stopped bean '_org.springframework.integration.errorLogger'
+2026-03-05T16:51:06.561+05:30  INFO 42184 --- [Axion] [           main] o.s.i.endpoint.EventDrivenConsumer       : Removing {service-activator:mqttMessageHandler.handle.serviceActivator} as a subscriber to the 'mqttInputChannel' channel
+2026-03-05T16:51:06.561+05:30  INFO 42184 --- [Axion] [           main] o.s.integration.channel.DirectChannel    : Channel 'Axion.mqttInputChannel' has 0 subscriber(s).
+2026-03-05T16:51:06.561+05:30  INFO 42184 --- [Axion] [           main] o.s.i.endpoint.EventDrivenConsumer       : stopped bean 'mqttMessageHandler.handle.serviceActivator'
+2026-03-05T16:51:06.561+05:30  WARN 42184 --- [Axion] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Failed to start bean 'webServerStartStop'
+2026-03-05T16:51:06.585+05:30  INFO 42184 --- [Axion] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-03-05T16:51:06.603+05:30 ERROR 42184 --- [Axion] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Web server failed to start. Port 8080 was already in use.
+
+Action:
+
+Identify and stop the process that's listening on port 8080 or configure this application to listen on another port.
+
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  11.580 s
+[INFO] Finished at: 2026-03-05T16:51:08+05:30
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:3.2.2:run (default-cli) on project ingestion: Process terminated with exit code: 1 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

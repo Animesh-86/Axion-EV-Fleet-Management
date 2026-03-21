@@ -1,0 +1,171 @@
+﻿[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------------------< com.axion:ingestion >-------------------------
+[INFO] Building Axion 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.2.2:run (default-cli) > test-compile @ ingestion >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ ingestion ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ ingestion ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ ingestion ---
+[INFO] skip non existing resourceDirectory C:\CipherVault\Code\Projects\Axion - EV Fleet Management\Axion-Backend\ingestion\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ ingestion ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] <<< spring-boot:3.2.2:run (default-cli) < test-compile @ ingestion <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.2.2:run (default-cli) @ ingestion ---
+[INFO] Attaching agents: []
+
+    _    __  __ ___ ___  _   _ 
+   / \   \ \/ /|_ _/ _ \| \ | |
+  / _ \   \  /  | | | | |  \| |
+ / ___ \  /  \  | | |_| | |\  |
+/_/   \_\/_/\_\|___\___/|_| \_|
+                               
+:: Axion - EV Fleet Management ::
+
+2026-03-05T19:12:04.433+05:30  INFO 49088 --- [Axion] [           main] com.axion.ingestion.AxionApplication     : Starting AxionApplication using Java 17.0.12 with PID 49088 (C:\CipherVault\Code\Projects\Axion - EV Fleet Management\Axion-Backend\ingestion\target\classes started by Animesh in C:\CipherVault\Code\Projects\Axion - EV Fleet Management\Axion-Backend\ingestion)
+2026-03-05T19:12:04.437+05:30  INFO 49088 --- [Axion] [           main] com.axion.ingestion.AxionApplication     : No active profile set, falling back to 1 default profile: "default"
+2026-03-05T19:12:05.332+05:30  INFO 49088 --- [Axion] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-03-05T19:12:05.336+05:30  INFO 49088 --- [Axion] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-03-05T19:12:05.376+05:30  INFO 49088 --- [Axion] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 18 ms. Found 0 Redis repository interfaces.
+2026-03-05T19:12:05.549+05:30  INFO 49088 --- [Axion] [           main] faultConfiguringBeanFactoryPostProcessor : No bean named 'errorChannel' has been explicitly defined. Therefore, a default PublishSubscribeChannel will be created.
+2026-03-05T19:12:05.566+05:30  INFO 49088 --- [Axion] [           main] faultConfiguringBeanFactoryPostProcessor : No bean named 'integrationHeaderChannelRegistry' has been explicitly defined. Therefore, a default DefaultHeaderChannelRegistry will be created.
+2026-03-05T19:12:05.792+05:30  WARN 49088 --- [Axion] [           main] trationDelegate$BeanPostProcessorChecker : Bean 'org.springframework.ws.config.annotation.DelegatingWsConfiguration' of type [org.springframework.ws.config.annotation.DelegatingWsConfiguration$$SpringCGLIB$$0] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). The currently created BeanPostProcessor [annotationActionEndpointMapping] is declared through a non-static factory method on that class; consider declaring it as static instead.
+2026-03-05T19:12:05.866+05:30  INFO 49088 --- [Axion] [           main] .w.s.a.s.AnnotationActionEndpointMapping : Supporting [WS-Addressing August 2004, WS-Addressing 1.0]
+2026-03-05T19:12:06.246+05:30  INFO 49088 --- [Axion] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-03-05T19:12:06.263+05:30  INFO 49088 --- [Axion] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-03-05T19:12:06.263+05:30  INFO 49088 --- [Axion] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.20]
+2026-03-05T19:12:06.349+05:30  INFO 49088 --- [Axion] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-03-05T19:12:06.350+05:30  INFO 49088 --- [Axion] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1849 ms
+2026-03-05T19:12:07.961+05:30  INFO 49088 --- [Axion] [           main] o.s.i.endpoint.EventDrivenConsumer       : Adding {logging-channel-adapter:_org.springframework.integration.errorLogger} as a subscriber to the 'errorChannel' channel
+2026-03-05T19:12:07.961+05:30  INFO 49088 --- [Axion] [           main] o.s.i.channel.PublishSubscribeChannel    : Channel 'Axion.errorChannel' has 1 subscriber(s).
+2026-03-05T19:12:07.963+05:30  INFO 49088 --- [Axion] [           main] o.s.i.endpoint.EventDrivenConsumer       : started bean '_org.springframework.integration.errorLogger'
+2026-03-05T19:12:07.963+05:30  INFO 49088 --- [Axion] [           main] o.s.i.endpoint.EventDrivenConsumer       : Adding {service-activator:mqttMessageHandler.handle.serviceActivator} as a subscriber to the 'mqttInputChannel' channel
+2026-03-05T19:12:07.963+05:30  INFO 49088 --- [Axion] [           main] o.s.integration.channel.DirectChannel    : Channel 'Axion.mqttInputChannel' has 1 subscriber(s).
+2026-03-05T19:12:07.964+05:30  INFO 49088 --- [Axion] [           main] o.s.i.endpoint.EventDrivenConsumer       : started bean 'mqttMessageHandler.handle.serviceActivator'
+2026-03-05T19:12:08.323+05:30  INFO 49088 --- [Axion] [           main] .m.i.MqttPahoMessageDrivenChannelAdapter : started bean 'mqttInbound'; defined in: 'class path resource [com/axion/ingestion/config/MqttConfig.class]'; from source: 'com.axion.ingestion.config.MqttConfig.mqttInbound()'
+2026-03-05T19:12:08.335+05:30  INFO 49088 --- [Axion] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path ''
+2026-03-05T19:12:08.393+05:30  INFO 49088 --- [Axion] [           main] o.a.k.clients.consumer.ConsumerConfig    : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.include.jmx.reporter = true
+	auto.offset.reset = earliest
+	bootstrap.servers = [localhost:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-digital-twin-updater-1
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = digital-twin-updater
+	group.instance.id = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_uncommitted
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 500
+	metadata.max.age.ms = 300000
+	metric.reporters = []
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = null
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = null
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = null
+	ssl.truststore.type = JKS
+	value.deserializer = class org.springframework.kafka.support.serializer.JsonDeserializer
+
+2026-03-05T19:12:08.578+05:30  INFO 49088 --- [Axion] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 3.6.2
+2026-03-05T19:12:08.578+05:30  INFO 49088 --- [Axion] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c4deed513057c94e
+2026-03-05T19:12:08.578+05:30  INFO 49088 --- [Axion] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: 1772718128576
+2026-03-05T19:12:08.583+05:30  INFO 49088 --- [Axion] [           main] fkaConsumerFactory$ExtendedKafkaConsumer : [Consumer clientId=consumer-digital-twin-updater-1, groupId=digital-twin-updater] Subscribed to topic(s): telemetry.normal
+2026-03-05T19:12:08.608+05:30  INFO 49088 --- [Axion] [           main] com.axion.ingestion.AxionApplication     : Started AxionApplication in 4.693 seconds (process running for 5.179)
+2026-03-05T19:12:09.039+05:30  INFO 49088 --- [Axion] [ntainer#0-0-C-1] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-digital-twin-updater-1, groupId=digital-twin-updater] Cluster ID: gE_l5Tc0RAejjjxF4QYpOA
+2026-03-05T19:12:09.040+05:30  INFO 49088 --- [Axion] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-digital-twin-updater-1, groupId=digital-twin-updater] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-03-05T19:12:09.041+05:30  INFO 49088 --- [Axion] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-digital-twin-updater-1, groupId=digital-twin-updater] (Re-)joining group
+2026-03-05T19:12:09.080+05:30  INFO 49088 --- [Axion] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-digital-twin-updater-1, groupId=digital-twin-updater] Request joining group due to: need to re-join with the given member-id: consumer-digital-twin-updater-1-b31b41be-aa65-4679-a289-7ae1addb73b4
+2026-03-05T19:12:09.081+05:30  INFO 49088 --- [Axion] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-digital-twin-updater-1, groupId=digital-twin-updater] Request joining group due to: rebalance failed due to 'The group member needs to have a valid member id before actually entering a consumer group.' (MemberIdRequiredException)
+2026-03-05T19:12:09.081+05:30  INFO 49088 --- [Axion] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-digital-twin-updater-1, groupId=digital-twin-updater] (Re-)joining group
+2026-03-05T19:12:12.143+05:30  INFO 49088 --- [Axion] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-digital-twin-updater-1, groupId=digital-twin-updater] Successfully joined group with generation Generation{generationId=1, memberId='consumer-digital-twin-updater-1-b31b41be-aa65-4679-a289-7ae1addb73b4', protocol='range'}
+2026-03-05T19:12:12.148+05:30  INFO 49088 --- [Axion] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-digital-twin-updater-1, groupId=digital-twin-updater] Finished assignment for group at generation 1: {consumer-digital-twin-updater-1-b31b41be-aa65-4679-a289-7ae1addb73b4=Assignment(partitions=[telemetry.normal-0])}
+2026-03-05T19:12:12.167+05:30  INFO 49088 --- [Axion] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-digital-twin-updater-1, groupId=digital-twin-updater] Successfully synced group in generation Generation{generationId=1, memberId='consumer-digital-twin-updater-1-b31b41be-aa65-4679-a289-7ae1addb73b4', protocol='range'}
+2026-03-05T19:12:12.167+05:30  INFO 49088 --- [Axion] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-digital-twin-updater-1, groupId=digital-twin-updater] Notifying assignor about the new Assignment(partitions=[telemetry.normal-0])
+2026-03-05T19:12:12.171+05:30  INFO 49088 --- [Axion] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-digital-twin-updater-1, groupId=digital-twin-updater] Adding newly assigned partitions: telemetry.normal-0
+2026-03-05T19:12:12.185+05:30  INFO 49088 --- [Axion] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-digital-twin-updater-1, groupId=digital-twin-updater] Found no committed offset for partition telemetry.normal-0
+2026-03-05T19:12:12.200+05:30  INFO 49088 --- [Axion] [ntainer#0-0-C-1] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-digital-twin-updater-1, groupId=digital-twin-updater] Resetting offset for partition telemetry.normal-0 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9092 (id: 1 rack: null)], epoch=0}}.
+2026-03-05T19:12:12.201+05:30  INFO 49088 --- [Axion] [ntainer#0-0-C-1] o.s.k.l.KafkaMessageListenerContainer    : digital-twin-updater: partitions assigned: [telemetry.normal-0]

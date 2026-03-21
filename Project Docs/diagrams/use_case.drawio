@@ -1,0 +1,112 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Use Case Diagram" id="axion-use-case">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- System Boundary -->
+        <mxCell id="system_boundary" value="Axion EV Fleet Management Platform" style="swimlane;whiteSpace=wrap;html=1;startSize=30;fillColor=#f5f5f5;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="250" y="50" width="450" height="700" as="geometry" />
+        </mxCell>
+
+        <!-- Actors -->
+        <mxCell id="actor_operator" value="Fleet Operator" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="320" width="40" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="actor_vehicle" value="EV Simulator&#n(Vehicle)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1">
+          <mxGeometry x="780" y="200" width="40" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Use Cases for Operator -->
+        <mxCell id="uc_dashboard" value="View Fleet Dashboard" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="system_boundary">
+          <mxGeometry x="50" y="60" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_monitor_vehicles" value="Monitor Vehicle Status" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="system_boundary">
+          <mxGeometry x="50" y="140" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_inspect_twin" value="Inspect Digital Twin" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="system_boundary">
+          <mxGeometry x="50" y="220" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_analytics" value="View Health Analytics" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="system_boundary">
+          <mxGeometry x="50" y="300" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_alerts" value="Monitor Alerts" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="system_boundary">
+          <mxGeometry x="50" y="380" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_trigger_ota" value="Trigger OTA Campaign" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="system_boundary">
+          <mxGeometry x="50" y="480" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_configure" value="Configure System Settings" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="system_boundary">
+          <mxGeometry x="50" y="580" width="160" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- Use Cases for Vehicle/System -->
+        <mxCell id="uc_transmit" value="Transmit Telemetry" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="system_boundary">
+          <mxGeometry x="270" y="100" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_update_twin" value="Update Digital Twin" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="system_boundary">
+          <mxGeometry x="270" y="180" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_eval_health" value="Evaluate Health Score" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="system_boundary">
+          <mxGeometry x="270" y="260" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_process_ota" value="Process OTA Sequence" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="system_boundary">
+          <mxGeometry x="270" y="480" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_health_gate" value="Health-Gate Check" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="system_boundary">
+          <mxGeometry x="270" y="580" width="140" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- Include/Extend Relationships -->
+        <mxCell id="inc_twin" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="html=1;verticalAlign=bottom;labelBackgroundColor=none;endArrow=open;endFill=0;dashed=1;rounded=0;" edge="1" parent="system_boundary" source="uc_transmit" target="uc_update_twin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="inc_health" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="html=1;verticalAlign=bottom;labelBackgroundColor=none;endArrow=open;endFill=0;dashed=1;rounded=0;" edge="1" parent="system_boundary" source="uc_transmit" target="uc_eval_health">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="inc_process" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="html=1;verticalAlign=bottom;labelBackgroundColor=none;endArrow=open;endFill=0;dashed=1;rounded=0;" edge="1" parent="system_boundary" source="uc_trigger_ota" target="uc_process_ota">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="inc_gate" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="html=1;verticalAlign=bottom;labelBackgroundColor=none;endArrow=open;endFill=0;dashed=1;rounded=0;" edge="1" parent="system_boundary" source="uc_process_ota" target="uc_health_gate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ext_alert" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="html=1;verticalAlign=bottom;labelBackgroundColor=none;endArrow=open;endFill=0;dashed=1;rounded=0;" edge="1" parent="system_boundary" source="uc_eval_health" target="uc_alerts">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Connections for Operator (Offsetting y by 50 to match system_boundary parent coords) -->
+        <mxCell id="conn_op_dash" style="edgeStyle=none;html=1;endArrow=none;endFill=0;" edge="1" parent="1" source="actor_operator" target="uc_dashboard">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="conn_op_mon" style="edgeStyle=none;html=1;endArrow=none;endFill=0;" edge="1" parent="1" source="actor_operator" target="uc_monitor_vehicles">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="conn_op_twin" style="edgeStyle=none;html=1;endArrow=none;endFill=0;" edge="1" parent="1" source="actor_operator" target="uc_inspect_twin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="conn_op_anal" style="edgeStyle=none;html=1;endArrow=none;endFill=0;" edge="1" parent="1" source="actor_operator" target="uc_analytics">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="conn_op_alert" style="edgeStyle=none;html=1;endArrow=none;endFill=0;" edge="1" parent="1" source="actor_operator" target="uc_alerts">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="conn_op_ota" style="edgeStyle=none;html=1;endArrow=none;endFill=0;" edge="1" parent="1" source="actor_operator" target="uc_trigger_ota">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="conn_op_cfg" style="edgeStyle=none;html=1;endArrow=none;endFill=0;" edge="1" parent="1" source="actor_operator" target="uc_configure">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Connections for Vehicle -->
+        <mxCell id="conn_veh_trans" style="edgeStyle=none;html=1;endArrow=none;endFill=0;" edge="1" parent="1" source="actor_vehicle" target="uc_transmit">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="conn_veh_ota" style="edgeStyle=none;html=1;endArrow=none;endFill=0;" edge="1" parent="1" source="actor_vehicle" target="uc_process_ota">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,117 @@
+vehicles:
+  # Standard Sedans (Bulk Load)
+  - id: "v001"
+    profile: "sedan_standard"
+  - id: "v002"
+    profile: "sedan_standard"
+  - id: "v003"
+    profile: "sedan_standard"
+  - id: "v004"
+    profile: "sedan_standard"
+  - id: "v005"
+    profile: "sedan_standard"
+  - id: "v006"
+    profile: "sedan_standard"
+  - id: "v007"
+    profile: "sedan_standard"
+  - id: "v008"
+    profile: "sedan_standard"
+  - id: "v009"
+    profile: "sedan_standard"
+  - id: "v010"
+    profile: "sedan_standard"
+  - id: "v011"
+    profile: "sedan_standard"
+  - id: "v012"
+    profile: "sedan_standard"
+  - id: "v013"
+    profile: "sedan_standard"
+  - id: "v014"
+    profile: "sedan_standard"
+  - id: "v015"
+    profile: "sedan_standard"
+  
+  # Heavy Trucks (Variety)
+  - id: "v016"
+    profile: "truck_heavy"
+  - id: "v017"
+    profile: "truck_heavy"
+  - id: "v018"
+    profile: "truck_heavy"
+
+  # Scenarios for Resume Validation
+  - id: "v019"
+    profile: "sedan_sport"
+    scenario: "critical_temp"  # Validates Health Score Logic
+  - id: "v020"
+    profile: "truck_light"
+    scenario: "low_battery"    # Validates Warning Logic
+
+# ── Auto-Generated Fleet (Scale Testing) ────────────
+auto_generate:
+  - prefix: "fleet-a"
+    start: 1
+    count: 120
+    profile: "sedan_standard"
+  - prefix: "fleet-b"
+    start: 1
+    count: 80
+    profile: "truck_heavy"
+  - prefix: "fleet-c"
+    start: 1
+    count: 30
+    profile: "sedan_sport"
+    scenario: "critical_temp"
+
+mqtt:
+  broker: "localhost"
+  port: 1883
+  topic_prefix: "axion/telemetry"
+
+# ── Backend Configuration ───────────────────────────
+backend:
+  url: "http://localhost:8080/api/v1/telemetry"
+  timeout_seconds: 1.0
+
+# ── Simulation Defaults ─────────────────────────────
+simulation:
+  tick_interval_seconds: 0.1
+  odometer_range_km: [5000, 50000]
+  packet_loss_pct: 0.1
+  signal_strength_dbm: -70
+  motor_temp_offset_c: 5.0
+
+# ── Vehicle Profile Defaults ────────────────────────
+profiles:
+  truck:
+    temp_range: [35.0, 40.0]
+    soc_range: [85.0, 100.0]
+    speed_range: [40.0, 60.0]
+  sport:
+    temp_range: [30.0, 38.0]
+    soc_range: [70.0, 95.0]
+    speed_range: [60.0, 110.0]
+  default:
+    temp_range: [25.0, 32.0]
+    soc_range: [80.0, 95.0]
+    speed_range: [40.0, 80.0]
+
+# ── Scenario Defaults ──────────────────────────────
+scenarios:
+  normal_drive:
+    speed_deltas: [-1.5, -0.5, 0.0, 0.5, 0.5, 1.0]
+    max_speed_kmh: 120.0
+  ota:
+    trigger_probability: 0.2
+    failure_rate: 0.2
+    download_delay_range: [1, 3]
+    apply_delay_range: [1, 2]
+  network_dropout:
+    dropout_probability: 0.01
+    max_offline_seconds: 20
+  battery_drain:
+    normal_rate: 0.01
+    critical_rate: 0.5
+  temp_spike:
+    spike_rate_per_sec: 0.5
+    max_temp_c: 75.0

@@ -1,0 +1,59 @@
+# PROGRESS AND MEETING CARD OF PROJECT
+
+> **ANNEXURE – V** | Parul University — Faculty of Engineering & Technology
+
+---
+
+| Field | Details |
+|-------|---------|
+| **A.Y.** | 2025–2026 |
+| **Branch** | Computer Science & Engineering |
+| **Semester** | 6th |
+| **Title of the Project** | Axion — Vendor-Neutral EV Fleet Telemetry, Digital Twin & OTA Orchestration Platform |
+| **Group ID** | PUCSE____ |
+| **Project Supervisor (Internal)** | ________________________ |
+| **Industry Mentor** | N/A |
+
+### Student Information
+
+| Sr No | Enrollment No | Name of the Student | Mobile No |
+|-------|---------------|---------------------|-----------|
+| 1 | _____________ | Animesh | __________ |
+| 2 | _____________ | Kajol | __________ |
+
+---
+
+## Weekly Progress
+
+| Week | Meeting Date | Details of Work Done | Student Sign | Supervisor Sign |
+|:----:|:------------:|:---------------------|:------------:|:---------------:|
+| **01** | __________ | **Project Ideation & Domain Research** — Studied EV fleet management challenges: telemetry ingestion at scale, heterogeneous vendor data, Digital Twin concepts, OTA update workflows. Surveyed existing platforms (Tesla Fleet API, AWS IoT FleetWise). Finalized project scope: vendor-neutral EV fleet telemetry platform with digital twins, health scoring, and OTA simulation. | | |
+| **02** | __________ | **Requirements Analysis & Architecture Design** — Defined functional requirements: dual-protocol ingestion (REST + MQTT), canonical data normalization, real-time digital twin per vehicle, rule-based health scoring (0–100), OTA simulation with state machine. Defined non-functional requirements: scalability to 250+ vehicles, fault tolerance, event-driven architecture. Designed high-level system architecture with Kafka as central event backbone. | | |
+| **03** | __________ | **Technology Stack Selection & Environment Setup** — Finalized tech stack: Java 21 + Spring Boot 3.2 (backend), React 18 + TypeScript + Vite (frontend), Python 3.12 (simulator), Apache Kafka + Redis + MQTT Mosquitto (infrastructure). Set up Git repository, folder structure (`Axion-Backend/`, `Axion-Frontend/`, `Axion-Simulator/`), and Docker Compose for infrastructure containers (Kafka, Zookeeper, Redis, Mosquitto). | | |
+| **04** | __________ | **Backend Foundation — Spring Boot Project Setup** — Initialized Spring Boot project with WebFlux for reactive ingestion. Created package structure: `adapter`, `api`, `config`, `consumer`, `controller`, `dto`, `exception`, `health`, `model`, `mqtt`, `producer`, `service`, `validation`. Configured `application.yml` with Kafka, Redis, MQTT, and CORS settings. Set up `KafkaProducerConfig`, `KafkaConsumerConfig`, `RedisConfig`, and `MqttConfig`. | | |
+| **05** | __________ | **Telemetry Ingestion Pipeline — REST & MQTT** — Built `TelemetryIngestionController` accepting raw JSON payloads via `POST /api/v1/telemetry`. Implemented `RestTelemetryAdapter` using adapter pattern to normalize vendor-specific data into `CanonicalTelemetryEnvelope` (canonical schema with vehicleId, vendor, timestamp, telemetry payload). Implemented `MqttMessageHandler` for MQTT protocol ingestion. Added `TelemetryValidator` for payload validation with graceful error handling. | | |
+| **06** | __________ | **Kafka Event Pipeline & Data Normalization** — Implemented `TelemetryKafkaProducer` publishing normalized telemetry to `telemetry.normal` Kafka topic. Created `TelemetryConsumer` that reads from Kafka and triggers downstream processing. Designed `CanonicalTelemetryEnvelope` model with nested `TelemetryPayload` (battery SOC, speed, temperatures, odometer). Built `ThroughputTracker` service for events/second monitoring. Tested end-to-end pipeline: Simulator → REST → Kafka → Consumer. | | |
+| **07** | __________ | **Digital Twin Engine — Redis State Management** — Implemented [DigitalTwinService](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Backend/ingestion/src/main/java/com/axion/ingestion/service/DigitalTwinService.java#14-71) maintaining one authoritative twin per vehicle in Redis. Built `DigitalTwinState` model storing: vehicleId, vendor, telemetry snapshot, health score, health state, online status, last seen timestamp. Implemented stale-data protection using timestamp-based ordering. Configured TTL-based twin expiry (120 seconds). Created `TelemetrySnapshot` model for battery, temperature, speed, and odometer data. | | |
+| **08** | __________ | **Health Scoring Engine** — Implemented [HealthScoreEngine](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Backend/ingestion/src/main/java/com/axion/ingestion/health/HealthScoreEngine.java#11-79) with rule-based scoring (0–100). Created `HealthRules` with configurable thresholds: battery SOC critical (<15%) and warning (<30%), battery temperature critical (>55°C) and warning (>45°C), connectivity penalties. Built `HealthScoreResult` with score, `HealthState` enum (HEALTHY ≥80, DEGRADED 50–79, CRITICAL <50), and human-readable explanation list. Integrated scoring into `DigitalTwinService.update()` for automatic evaluation on each telemetry event. | | |
+| **09** | __________ | **OTA Update Simulation** — Implemented [OtaService](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Backend/ingestion/src/main/java/com/axion/ingestion/service/OtaService.java#12-62) with health-gated OTA triggering: refuses updates if battery too low or temperature too high. Built `OtaController` with `POST /api/v1/ota/trigger` endpoint. Created OTA module with `OtaCampaign`, `OtaJob`, `OtaState` models and state machine: PENDING → IN\_PROGRESS → SUCCESS/FAILURE. Implemented `OtaOrchestratorService` with canary-style rollout logic and `OtaEventProducer` publishing to `ota.events` Kafka topic. Simulated 80% success rate with automatic rollback. | | |
+| **10** | __________ | **Fleet REST API & DTOs** — Built `FleetController` with endpoints: `GET /api/v1/fleet/summary` (fleet-wide KPIs), `GET /api/v1/fleet/vehicles` (all vehicles with telemetry). Created `VehicleController` for single-vehicle digital twin retrieval. Designed DTOs: `FleetSummaryResponse` (total, online, health distribution, events/sec), `FleetVehicleResponse` (per-vehicle snapshot), `DigitalTwinResponse` (full twin state). Added `GlobalExceptionHandler` with custom exceptions (`InvalidPayloadException`, `ValidationException`, `IngestionUnavailableException`). | | |
+| **11** | __________ | **Python Simulator — Core Framework** — Built simulator with `asyncio` for concurrent vehicle emulation. Created `Vehicle` class with tick-based lifecycle, `VehicleState` for runtime state, `TelemetryBuilder` for constructing payloads. Implemented `RestEmitter` (HTTP POST) and `MqttEmitter` (MQTT publish) for dual-protocol transmission. Designed YAML-based fleet configuration ([fleet.yaml](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Simulator/config/fleet.yaml)) with vehicle profiles (sedan, truck, sport) having different temp/SOC/speed ranges. Implemented auto-generation: 250 total vehicles (20 manual + 230 auto-generated fleets). | | |
+| **12** | __________ | **Simulator — Fault Injection Scenarios** — Implemented 5 scenario classes: `NormalDriveScenario` (natural speed/SOC fluctuations), `BatteryDrainScenario` (accelerated depletion, configurable drain rate), `TempSpikeScenario` (overheating simulation up to 75°C), `NetworkDropoutScenario` (intermittent connectivity loss, configurable probability), `OTATriggerScenario` (periodic OTA requests). Created `BaseScenario` abstract class for extensibility. Vehicles assigned scenarios via config: normal, critical\_temp, low\_battery. | | |
+| **13** | __________ | **Frontend Dashboard — React Setup & Fleet Overview** — Initialized React 18 + TypeScript + Vite project. Installed Tailwind CSS, Shadcn UI, Recharts, Framer Motion, Lucide icons. Built `Layout` component with dark-themed sidebar navigation (Dashboard, Fleet, Vehicles, Digital Twin, OTA Campaigns, Analytics, Settings). Created [FleetDashboard](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Frontend/src/components/dashboard/FleetDashboard.tsx#43-332) page with 6 animated KPI cards (Total Vehicles, Online, Offline, Avg Health, Critical, Events/sec), Fleet Health Distribution donut chart (Recharts), and Live Fleet Status vehicle list with health badges. Built `AxionApi` service layer for backend communication. | | |
+| **14** | __________ | **Frontend — Vehicle Pages, OTA, Analytics & Alerts** — Built `VehicleList` page with battery bars, temperature, health scores, online/offline status, and health state badges per vehicle. Created `VehicleDetail` (Digital Twin) page showing battery state, thermal state, motion state, operational state, and policy enforcement. Built `OTAManagement` page with campaign cards, progress bars, canary phase indicators, rollback tracking. Created `Analytics` page with health score breakdowns, trend charts. Built `AlertsAnalytics` page, `SystemHealth` page, and `Settings` page (connection config, polling intervals, health scoring rules). | | |
+| **15** | __________ | **Frontend Auth, Docker Deployment & Integration Testing** — Built `LoginPage` and `SignupPage` with 3D artwork component. Created `AuthProvider` context with `useAuth` hook for global auth state. Implemented protected routes and auth-gated rendering in [App.tsx](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/Axion-Frontend/src/App.tsx). Containerized all services: Spring Boot (multi-stage Dockerfile), React (Nginx build), Python simulator, with individual Dockerfiles. Created root [docker-compose.yml](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/docker-compose.yml) orchestrating 7 containers with health-check dependency chains. Validated full pipeline: Simulator (250 vehicles) → Backend → Kafka → Redis → Frontend. | | |
+| **16** | __________ | **Documentation, Polish & Final Submission** — Wrote [README.md](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/README.md) with project overview, architecture, features, tech stack, and project structure. Created [DEPLOYMENT.md](file:///c:/CipherVault/Code/Projects/Axion%20-%20EV%20Fleet%20Management/DEPLOYMENT.md) with one-command deployment (`docker compose up --build -d`), cloud VM deployment, Railway/Render PaaS options, and GitHub Codespaces instructions. Documented environment variables, troubleshooting guide, and development mode. Created design mockups (Figma). Prepared presentation slides. Final testing: verified all 250 vehicles streaming, dashboard rendering, health scores calculating, OTA simulating. Submitted minor project deliverables. | | |
+
+---
+
+### Comments from H.O.D.
+
+**Satisfactory / Unsatisfactory**: ________________________
+
+**Sign. of H.O.D**: ________________________
+
+---
+
+> *PU/FET/B.TECH PROJECT GUIDELINES*
+> *Axion — EV Fleet Management Platform*
+> *Team: Animesh + Kajol*

@@ -1,0 +1,4 @@
+pyyaml
+requests
+paho-mqtt
+httpx
