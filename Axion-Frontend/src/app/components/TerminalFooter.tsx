@@ -205,8 +205,8 @@ export function TerminalFooter({ onGetStarted }: TerminalFooterProps) {
               © 2026 Axion Platform. All rights reserved.
             </div>
             <div className="flex gap-4">
-              {[Github, Twitter, Linkedin].map((Icon, i) => (
-                null
+              {[Github, Twitter, Linkedin].map((SocialIcon, idx) => (
+                <SocialIcon key={idx} className="w-5 h-5 text-gray-500 hover:text-[var(--axion-cyan)] cursor-pointer transition-colors" />
               ))}
             </div>
           </div>

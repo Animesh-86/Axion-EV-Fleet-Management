@@ -1,15 +1,11 @@
-import { motion, useScroll, useTransform } from 'motion/react';
-import { Database, Gauge, Lock, Workflow, Zap, Radio, Cpu, Settings, Target } from 'lucide-react';
+import { motion } from 'motion/react';
+import { Database, Gauge, Workflow, Zap, Radio, Cpu, Settings, Target } from 'lucide-react';
 import { useRef } from 'react';
 
 export function CoreFoundation() {
   const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"]
-  });
 
-  const flowProgress = useTransform(scrollYProgress, [0, 1], [0, 100]);
+
 
   const features = [
     {

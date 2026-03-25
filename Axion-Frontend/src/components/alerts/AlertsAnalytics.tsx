@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { AlertTriangle, AlertCircle, Info, TrendingDown, Brain, Filter } from 'lucide-react';
 import { motion } from 'motion/react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { StatusBadge } from '../ui/StatusBadge';
 import { AxionApi, FleetVehicle } from '../../services/api';
 import { POLL_ALERTS, HEALTH, TELEMETRY_HISTORY_WINDOW } from '../../config';

@@ -1,0 +1,67 @@
+/* Axion EV Fleet Platform - Custom Theme */
+
+:root {
+  /* Axion Brand Colors */
+  --axion-bg-deep: #0B0F14;
+  --axion-bg-card: #121821;
+  --axion-accent-cyan: #00E5FF;
+  --axion-accent-violet: #6C63FF;
+  
+  /* Status Colors */
+  --axion-status-healthy: #00FF85;
+  --axion-status-warning: #FFB800;
+  --axion-status-critical: #FF3D71;
+  
+  /* Gradients */
+  --axion-gradient-cyan: linear-gradient(135deg, #00E5FF 0%, #00B4D8 100%);
+  --axion-gradient-violet: linear-gradient(135deg, #6C63FF 0%, #5A52D5 100%);
+  --axion-gradient-card: linear-gradient(135deg, rgba(0, 229, 255, 0.05) 0%, rgba(108, 99, 255, 0.05) 100%);
+}
+
+@layer base {
+  body {
+    background-color: var(--axion-bg-deep);
+    color: #E4E7EB;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--axion-bg-deep);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--axion-bg-card);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #1a2332;
+}
+
+/* Glow effects */
+.glow-cyan {
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.3);
+}
+
+.glow-violet {
+  box-shadow: 0 0 20px rgba(108, 99, 255, 0.3);
+}
+
+.glow-healthy {
+  box-shadow: 0 0 15px rgba(0, 255, 133, 0.3);
+}
+
+.glow-warning {
+  box-shadow: 0 0 15px rgba(255, 184, 0, 0.3);
+}
+
+.glow-critical {
+  box-shadow: 0 0 15px rgba(255, 61, 113, 0.3);
+}

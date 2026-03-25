@@ -1,15 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, Battery, Thermometer, Gauge, Clock, Activity, WifiOff, Circle, Zap, Info, Shield, CheckCircle, Upload } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router';
 import { AxionApi, VehicleDetail as ApiVehicleDetail } from '../../services/api';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
 import { POLL_VEHICLE_DETAIL, TELEMETRY_HISTORY_WINDOW, DEFAULT_CAMPAIGN_ID, HEALTH } from '../../config';
-
-interface VehicleDetailProps {
-  vehicleId: string | null;
-  onBack: () => void;
-}
 
 interface TelemetryEvent {
   timestamp: string;
@@ -19,7 +15,11 @@ interface TelemetryEvent {
   type: 'battery' | 'speed' | 'temperature' | 'location' | 'charge' | 'info';
 }
 
-export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
+export function VehicleDetail() {
+  const { vehicleId } = useParams<{ vehicleId: string }>();
+  const navigate = useNavigate();
+
+
   const [vehicle, setVehicle] = useState<ApiVehicleDetail | null>(null);
   const [isOnline, setIsOnline] = useState(true);
   const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'outdated'>('synced');
@@ -186,7 +186,7 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
         <div className="flex items-center justify-between">
           <div>
             <button
-              onClick={onBack}
+              onClick={() => navigate('/dashboard/fleet')}
               className="flex items-center gap-2 text-muted-foreground hover:text-primary mb-3 transition-colors group"
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />

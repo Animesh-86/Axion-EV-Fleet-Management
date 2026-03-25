@@ -1,12 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
+import { useNavigate } from 'react-router';
 import { Activity, WifiOff, ExternalLink, Battery, Thermometer, TrendingUp } from 'lucide-react';
 import { AxionApi, FleetVehicle } from '../../services/api';
 import { POLL_VEHICLE_LIST, HEALTH } from '../../config';
-
-interface VehicleListProps {
-  onSelectVehicle: (id: string) => void;
-}
 
 interface Vehicle {
   id: string;
@@ -19,7 +16,8 @@ interface Vehicle {
   degradationDrivers?: Array<{ label: string; trend: 'up' | 'down' }>;
 }
 
-export function VehicleList({ onSelectVehicle }: VehicleListProps) {
+export function VehicleList() {
+  const navigate = useNavigate();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -113,7 +111,7 @@ export function VehicleList({ onSelectVehicle }: VehicleListProps) {
                 backgroundColor: 'rgba(0, 229, 255, 0.03)',
                 transition: { duration: 0.2 }
               }}
-              onClick={() => onSelectVehicle(vehicle.id)}
+              onClick={() => navigate(`/dashboard/digital-twin/${vehicle.id}`)}
               className="bg-card border border-border rounded-lg p-5 cursor-pointer transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 group"
             >
               <div className="flex items-center justify-between">

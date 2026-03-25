@@ -1,15 +1,12 @@
 import { useState, FormEvent } from 'react';
 import { motion } from 'motion/react';
+import { Link, useNavigate } from 'react-router';
 import { useAuth } from '../../services/auth';
 import { Zap, Mail, Lock, ArrowRight } from 'lucide-react';
 import { ThreeDartwork } from './ThreeDartwork';
 
-interface LoginPageProps {
-  onSwitchToSignup: () => void;
-  onBackToLanding: () => void;
-}
-
-export function LoginPage({ onSwitchToSignup, onBackToLanding }: LoginPageProps) {
+export function LoginPage() {
+  const navigate = useNavigate();
   const { loginAsync } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,7 +26,11 @@ export function LoginPage({ onSwitchToSignup, onBackToLanding }: LoginPageProps)
     const result = await loginAsync(email, password);
     setLoading(false);
 
-    if (!result.success) setError(result.error || 'Login failed');
+    if (!result.success) {
+      setError(result.error || 'Login failed');
+    } else {
+      navigate('/dashboard');
+    }
   };
 
   return (
@@ -51,13 +52,13 @@ export function LoginPage({ onSwitchToSignup, onBackToLanding }: LoginPageProps)
             </div>
           </div>
 
-          <button 
-            onClick={onBackToLanding}
+          <Link 
+            to="/"
             className="flex items-center gap-2 text-[#00E5FF] hover:text-[#00E5FF]/80 transition-colors mb-12 self-start bg-[#00E5FF]/5 px-4 py-2 rounded-lg border border-[#00E5FF]/20 backdrop-blur-sm"
           >
             <ArrowRight className="w-4 h-4 rotate-180" />
             <span className="font-medium text-sm">Back to Landing</span>
-          </button>
+          </Link>
 
           <h2 className="text-4xl font-bold text-white mb-4">
             Vendor-Neutral EV Fleet<br />Digital Twin & OTA Orchestration
@@ -164,9 +165,9 @@ export function LoginPage({ onSwitchToSignup, onBackToLanding }: LoginPageProps)
           <div className="mt-8 text-center">
             <p className="text-gray-400">
               Don't have an account?{' '}
-              <button onClick={onSwitchToSignup} className="hover:underline" style={{ color: '#00E5FF' }}>
+              <Link to="/signup" className="hover:underline" style={{ color: '#00E5FF' }}>
                 Sign up
-              </button>
+              </Link>
             </p>
           </div>
 

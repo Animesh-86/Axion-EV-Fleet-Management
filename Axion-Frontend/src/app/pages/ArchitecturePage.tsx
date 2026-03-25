@@ -1,11 +1,9 @@
 import { motion } from 'motion/react';
+import { useNavigate } from 'react-router';
 import { ArrowLeft, Database, Server, Cpu, Monitor, Zap, Cloud } from 'lucide-react';
 
-interface ArchitecturePageProps {
-  onBack: () => void;
-}
-
-export function ArchitecturePage({ onBack }: ArchitecturePageProps) {
+export function ArchitecturePage() {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-[#030712] relative overflow-hidden">
       {/* Grid background */}
@@ -30,7 +28,7 @@ export function ArchitecturePage({ onBack }: ArchitecturePageProps) {
           className="mb-16"
         >
           <button 
-            onClick={onBack}
+            onClick={() => navigate('/')}
             className="inline-flex items-center gap-2 text-[#00E5FF] hover:text-[#00E5FF]/80 transition-colors mb-6 cursor-pointer"
           >
             <ArrowLeft className="w-5 h-5" />

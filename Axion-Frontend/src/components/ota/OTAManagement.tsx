@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { CloudCog, Rocket, CheckCircle2, XCircle, Clock, Shield, Battery, Thermometer, Wifi, Upload } from 'lucide-react';
+import { CloudCog, Rocket, CheckCircle2, XCircle, Clock, Shield, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { AxionApi, FleetVehicle } from '../../services/api';
 import { POLL_OTA, DEFAULT_CAMPAIGN_ID, HEALTH } from '../../config';

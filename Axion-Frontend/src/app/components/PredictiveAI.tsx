@@ -1,23 +1,5 @@
 import { motion, useScroll, useTransform } from 'motion/react';
-import { Brain, TrendingUp, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
 import { useRef } from 'react';
-import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-
-const batteryData = [
-  { time: '00:00', prediction: 85, actual: 87, confidence: 92 },
-  { time: '04:00', prediction: 72, actual: 74, confidence: 89 },
-  { time: '08:00', prediction: 58, actual: 56, confidence: 91 },
-  { time: '12:00', prediction: 45, actual: 47, confidence: 87 },
-  { time: '16:00', prediction: 32, actual: 30, confidence: 85 },
-  { time: '20:00', prediction: 18, actual: 19, confidence: 88 },
-  { time: '24:00', prediction: 5, actual: 6, confidence: 90 },
-];
-
-const otaPhases = [
-  { phase: 'Draft', status: 'complete', icon: CheckCircle2, color: 'green' },
-  { phase: 'Canary', status: 'failed', icon: XCircle, color: 'red' },
-  { phase: 'Rollout', status: 'blocked', icon: AlertTriangle, color: 'amber' },
-];
 
 export function PredictiveAI() {
   const ref = useRef<HTMLDivElement>(null);
