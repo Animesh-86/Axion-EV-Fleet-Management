@@ -21,7 +21,7 @@ This document details the phase-wise breakdown, responsibilities, and implementa
 **Kajol:**
 - No direct tasks in this phase.
 
----
+---w
 
 ### Phase 2 — Authentication & Security
 
