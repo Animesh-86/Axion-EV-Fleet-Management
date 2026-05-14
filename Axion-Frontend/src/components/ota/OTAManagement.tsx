@@ -1,87 +1,76 @@
 import { useEffect, useState } from 'react';
-import { motion } from 'motion/react';
-import { CloudCog, Rocket, CheckCircle2, XCircle, Clock, Shield, Battery, Thermometer, Wifi, Upload } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { CloudCog, Rocket, CheckCircle2, XCircle, Clock, Shield, Plus, Eye, StopCircle, ChevronRight, AlertTriangle, Zap, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
-import { AxionApi, FleetVehicle } from '../../services/api';
-import { POLL_OTA, DEFAULT_CAMPAIGN_ID, HEALTH } from '../../config';
+import { AxionApi, FleetVehicle, CampaignResponse } from '../../services/api';
+import { POLL_OTA, HEALTH } from '../../config';
 
-interface OtaLog {
-  id: number;
-  vehicleId: string;
-  campaignId: string;
-  status: 'success' | 'failed' | 'pending';
-  timestamp: string;
-}
+type WizardStep = 'closed' | 'version' | 'vehicles' | 'canary' | 'review';
 
-let logCounter = 0;
+const STATUS_STYLES: Record<string, { bg: string; text: string; border: string }> = {
+  DRAFT: { bg: 'bg-slate-500/10', text: 'text-slate-400', border: 'border-slate-500/20' },
+  CANARY: { bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/20' },
+  ROLLOUT: { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/20' },
+  COMPLETED: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/20' },
+  HALTED: { bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500/20' },
+};
 
 export function OTAManagement() {
+  const [campaigns, setCampaigns] = useState<CampaignResponse[]>([]);
   const [vehicles, setVehicles] = useState<FleetVehicle[]>([]);
-  const [otaLogs, setOtaLogs] = useState<OtaLog[]>([]);
-  const [selectedCampaign] = useState(DEFAULT_CAMPAIGN_ID);
-  const [triggering, setTriggering] = useState<string | null>(null);
+  const [selectedCampaign, setSelectedCampaign] = useState<CampaignResponse | null>(null);
+  const [wizardStep, setWizardStep] = useState<WizardStep>('closed');
+  const [wizardVersion, setWizardVersion] = useState('');
+  const [wizardSelected, setWizardSelected] = useState<string[]>([]);
+  const [wizardCanary, setWizardCanary] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const fetch = async () => {
-      try {
-        const v = await AxionApi.getFleetVehicles();
-        setVehicles(v);
-      } catch { /* offline */ }
-    };
-    fetch();
-    const id = setInterval(fetch, POLL_OTA);
-    return () => clearInterval(id);
-  }, []);
-
-  const getEligibility = (v: FleetVehicle) => {
-    const checks = [
-      { label: `BATTERY > ${HEALTH.SOC_WARNING_PCT}%`, pass: v.battery > HEALTH.SOC_WARNING_PCT },
-      { label: 'SYNC_ACTIVE', pass: v.online },
-      { label: `THERMAL < ${HEALTH.TEMP_CRITICAL_C}°C`, pass: v.temperature < HEALTH.TEMP_CRITICAL_C },
-      { label: 'STATE_NOMINAL', pass: v.healthState !== 'CRITICAL' },
-    ];
-    return { checks, eligible: checks.every(c => c.pass) };
-  };
-
-  const handleTrigger = async (vehicleId: string) => {
-    setTriggering(vehicleId);
-    const newLog: OtaLog = {
-      id: ++logCounter,
-      vehicleId,
-      campaignId: selectedCampaign,
-      status: 'pending',
-      timestamp: new Date().toLocaleTimeString(),
-    };
-    setOtaLogs(prev => [newLog, ...prev]);
-
+  const fetchData = async () => {
     try {
-      await AxionApi.triggerOTA(selectedCampaign, vehicleId);
-      setOtaLogs(prev => prev.map(l => l.id === newLog.id ? { ...l, status: 'success' as const } : l));
-      toast.success(`DEPLOYMENT_COMPLETE: ${vehicleId}`);
-    } catch {
-      setOtaLogs(prev => prev.map(l => l.id === newLog.id ? { ...l, status: 'failed' as const } : l));
-      toast.error(`DEPLOYMENT_FAILED: ${vehicleId}`);
-    } finally {
-      setTriggering(null);
-    }
+      const [c, v] = await Promise.all([AxionApi.listCampaigns(), AxionApi.getFleetVehicles()]);
+      setCampaigns(c);
+      setVehicles(v);
+      if (selectedCampaign) {
+        const updated = c.find(x => x.campaignId === selectedCampaign.campaignId);
+        if (updated) setSelectedCampaign(updated);
+      }
+    } catch { /* offline */ }
   };
 
-  const handleRolloutAll = async () => {
-    const eligible = vehicles.filter(v => getEligibility(v).eligible);
-    if (eligible.length === 0) {
-      toast.error('NO_ELIGIBLE_NODES_DETECTED');
-      return;
-    }
-    toast.info(`EXECUTING_ROLLOUT: ${eligible.length} NODES`);
-    for (const v of eligible) {
-      await handleTrigger(v.vehicleId);
-    }
-    toast.success(`ROLLOUT_SEQUENCE_COMPLETE`);
+  useEffect(() => { fetchData(); const id = setInterval(fetchData, POLL_OTA); return () => clearInterval(id); }, []);
+
+  const handleCreate = async () => {
+    if (!wizardVersion || wizardSelected.length === 0) return;
+    setLoading(true);
+    try {
+      const campaign = await AxionApi.createCampaign({
+        targetVersion: wizardVersion,
+        vehicleIds: wizardSelected,
+        canaryVehicleIds: wizardCanary,
+      });
+      toast.success('CAMPAIGN_INITIALIZED: ' + campaign.campaignId.slice(0, 8));
+      setWizardStep('closed');
+      setWizardVersion(''); setWizardSelected([]); setWizardCanary([]);
+      fetchData();
+    } catch { toast.error('CAMPAIGN_CREATION_FAILED'); }
+    setLoading(false);
   };
 
-  const eligibleCount = vehicles.filter(v => getEligibility(v).eligible).length;
-  const successCount = otaLogs.filter(l => l.status === 'success').length;
-  const failCount = otaLogs.filter(l => l.status === 'failed').length;
+  const handleApprove = async (id: string) => {
+    try { await AxionApi.approveCampaign(id); toast.success('CAMPAIGN_APPROVED → CANARY'); fetchData(); }
+    catch { toast.error('APPROVAL_FAILED'); }
+  };
+
+  const handleHalt = async (id: string) => {
+    try { await AxionApi.haltCampaign(id); toast.error('CAMPAIGN_HALTED → ROLLBACK'); fetchData(); }
+    catch { toast.error('HALT_FAILED'); }
+  };
+
+  const toggleVehicle = (id: string) => setWizardSelected(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
+  const toggleCanary = (id: string) => setWizardCanary(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
+
+  const activeCampaigns = campaigns.filter(c => ['DRAFT', 'CANARY', 'ROLLOUT'].includes(c.status));
+  const historyCampaigns = campaigns.filter(c => ['COMPLETED', 'HALTED'].includes(c.status));
 
   return (
     <div className="p-8 max-w-[1600px] mx-auto space-y-8">
@@ -90,186 +79,318 @@ export function OTAManagement() {
         <div>
           <h1 className="text-4xl font-black tracking-tighter uppercase text-precision">OTA_Orchestration</h1>
           <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground mt-2 opacity-50">
-             FLEET_WIDE_DEPLOYMENT • FIRMWARE_STATE_SYNCHRONIZATION
+            CAMPAIGN_LIFECYCLE • CANARY_DEPLOYMENT • HEALTH_GATED_ROLLOUT
           </p>
         </div>
+        <button onClick={() => setWizardStep('version')}
+          className="px-6 py-3 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-lg font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-2">
+          <Plus className="w-3.5 h-3.5" /> New_Campaign
+        </button>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         {[
-          { label: 'NETWORK_NODES', value: vehicles.length, icon: Rocket, color: 'text-primary', border: 'border-primary/20', glow: 'shadow-[0_0_15px_rgba(16,185,129,0.1)]' },
-          { label: 'ELIGIBLE_NODES', value: eligibleCount, icon: Shield, color: 'text-emerald-400', border: 'border-emerald-500/20', glow: 'shadow-[0_0_15px_rgba(16,185,129,0.1)]' },
-          { label: 'DEPLOY_SUCCESS', value: successCount, icon: CheckCircle2, color: 'text-purple-400', border: 'border-purple-500/20', glow: 'shadow-[0_0_15px_rgba(167,139,250,0.1)]' },
-          { label: 'DEPLOY_FAILURE', value: failCount, icon: XCircle, color: 'text-red-400', border: 'border-red-500/20', glow: 'shadow-[0_0_15px_rgba(239,68,68,0.1)]' },
-        ].map((kpi, i) => {
-          const Icon = kpi.icon;
-          return (
-            <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-              className={`glass-card p-6 ${kpi.border} ${kpi.glow}`}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">{kpi.label}</span>
-                <Icon className={`w-3.5 h-3.5 ${kpi.color}`} />
+          { label: 'TOTAL_CAMPAIGNS', value: campaigns.length, icon: CloudCog, color: 'text-primary' },
+          { label: 'ACTIVE', value: activeCampaigns.length, icon: Rocket, color: 'text-blue-400' },
+          { label: 'COMPLETED', value: campaigns.filter(c => c.status === 'COMPLETED').length, icon: CheckCircle2, color: 'text-emerald-400' },
+          { label: 'HALTED', value: campaigns.filter(c => c.status === 'HALTED').length, icon: XCircle, color: 'text-red-400' },
+          { label: 'FLEET_NODES', value: vehicles.length, icon: Shield, color: 'text-purple-400' },
+        ].map((kpi, i) => (
+          <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
+            className="glass-card p-5">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">{kpi.label}</span>
+              <kpi.icon className={`w-3.5 h-3.5 ${kpi.color}`} />
+            </div>
+            <div className={`text-2xl font-black tracking-tighter text-precision ${kpi.color}`}>{kpi.value}</div>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Campaign Creation Wizard Modal */}
+      <AnimatePresence>
+        {wizardStep !== 'closed' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-8"
+            onClick={() => setWizardStep('closed')}>
+            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+              className="glass-card p-8 w-full max-w-2xl max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+
+              {/* Step indicator */}
+              <div className="flex items-center gap-2 mb-8">
+                {['version', 'vehicles', 'canary', 'review'].map((step, i) => (
+                  <div key={step} className="flex items-center gap-2">
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${
+                      wizardStep === step ? 'bg-primary text-black' :
+                      ['version', 'vehicles', 'canary', 'review'].indexOf(wizardStep) > i ? 'bg-primary/30 text-primary' :
+                      'bg-white/5 text-muted-foreground'}`}>{i + 1}</div>
+                    {i < 3 && <ChevronRight className="w-3 h-3 text-muted-foreground opacity-30" />}
+                  </div>
+                ))}
+                <span className="ml-4 text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">
+                  {wizardStep === 'version' ? 'Target_Version' : wizardStep === 'vehicles' ? 'Select_Nodes' :
+                   wizardStep === 'canary' ? 'Canary_Group' : 'Review_&_Deploy'}
+                </span>
               </div>
-              <div className={`text-3xl font-black tracking-tighter text-precision ${kpi.color}`}>{kpi.value}</div>
-            </motion.div>
-          );
-        })}
-      </div>
 
-      {/* Active Campaign Card */}
-      <div className="glass-card p-8 border-primary/20 relative overflow-hidden group">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/10 transition-all duration-1000" />
-        
-        <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-6">
-               <div className="p-2 bg-primary/10 rounded border border-primary/20">
-                  <Upload className="w-5 h-5 text-primary" />
-               </div>
-               <h2 className="text-xl font-black uppercase tracking-tighter text-precision">Active_Deployment_Campaign</h2>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-               <div className="space-y-4">
-                  <div>
-                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40 mb-1">Campaign_Reference</p>
-                    <p className="text-sm font-black text-primary font-mono">{selectedCampaign}</p>
-                  </div>
-                  <div>
-                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40 mb-1">Deployment_Type</p>
-                    <p className="text-xs font-bold uppercase tracking-tight text-muted-foreground">CRITICAL_FIRMWARE_V3.4_HOTFIX</p>
-                  </div>
-               </div>
-               <div className="p-4 bg-white/5 border border-white/5 rounded-lg">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40 mb-3">Pre-Flight_Constraint_Set</p>
-                  <div className="flex flex-wrap gap-2">
-                     {['SOC_30%_MIN', 'SYNC_REACHABLE', 'THERMAL_NOMINAL', 'HEALTH_OPTIMAL'].map(t => (
-                       <span key={t} className="text-[8px] font-black px-2 py-0.5 bg-white/5 border border-white/5 rounded uppercase tracking-tighter text-muted-foreground opacity-60">{t}</span>
-                     ))}
-                  </div>
-               </div>
-            </div>
-          </div>
-          
-          <button
-            onClick={handleRolloutAll}
-            disabled={eligibleCount === 0}
-            className="w-full md:w-auto px-10 py-5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-lg font-black uppercase tracking-widest text-xs transition-all active:scale-[0.98] disabled:opacity-20 disabled:cursor-not-allowed group/btn overflow-hidden relative"
-          >
-            <div className="flex items-center gap-3 justify-center relative z-10">
-              <Rocket className="w-4 h-4 group-hover/btn:-translate-y-1 transition-transform" />
-              <span>Initialize_Full_Rollout</span>
-            </div>
-          </button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-12 gap-6">
-        {/* Vehicle Eligibility Table */}
-        <div className="col-span-12 lg:col-span-8">
-          <div className="glass-card overflow-hidden">
-            <div className="p-6 border-b border-white/5">
-              <h2 className="text-xs font-black uppercase tracking-widest text-muted-foreground opacity-40">Target_Node_Eligibility</h2>
-            </div>
-            <div className="overflow-x-auto max-h-[700px] overflow-y-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40 border-b border-white/5">
-                    <th className="text-left p-6 font-black">Node_Identity</th>
-                    <th className="text-left p-6 font-black">Pre-Flight_Heuristics</th>
-                    <th className="text-left p-6 font-black">State</th>
-                    <th className="text-right p-6 font-black">Control</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {vehicles.map(v => {
-                    const { checks, eligible } = getEligibility(v);
-                    return (
-                      <tr key={v.vehicleId} className="hover:bg-white/[0.02] transition-colors group">
-                        <td className="p-6">
-                          <div className="text-sm font-black uppercase tracking-tight text-precision group-hover:text-primary transition-colors">{v.vehicleId}</div>
-                          <div className="text-[10px] font-bold text-muted-foreground opacity-40 uppercase tracking-wider mt-1">{v.vendor}</div>
-                        </td>
-                        <td className="p-6">
-                          <div className="flex flex-wrap gap-2">
-                            {checks.map((c, i) => (
-                              <span key={i} className={`text-[8px] font-black px-2 py-0.5 rounded border ${
-                                c.pass ? 'bg-emerald-500/5 text-emerald-400 border-emerald-500/20' : 'bg-red-500/5 text-red-400 border-red-500/20'
-                              }`}>
-                                {c.label}
-                              </span>
-                            ))}
-                          </div>
-                        </td>
-                        <td className="p-6">
-                          <span className={`text-[9px] font-black px-2 py-1 rounded border uppercase tracking-tighter ${
-                            eligible ? 'bg-emerald-500/5 text-emerald-400 border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.05)]' : 'bg-white/5 text-muted-foreground opacity-40 border-white/5'
-                          }`}>{eligible ? 'READY' : 'BLOCKED'}</span>
-                        </td>
-                        <td className="p-6 text-right">
-                          <button
-                            onClick={() => handleTrigger(v.vehicleId)}
-                            disabled={!eligible || triggering === v.vehicleId}
-                            className="px-4 py-2 text-[10px] font-black uppercase tracking-widest bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 rounded transition-all disabled:opacity-20 disabled:cursor-not-allowed active:scale-[0.95]"
-                          >
-                            {triggering === v.vehicleId ? 'EXECUTING...' : 'INIT_DEPLOY'}
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  {vehicles.length === 0 && (
-                    <tr><td colSpan={4} className="p-12 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-30 italic">No_Network_Nodes_Connected</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        {/* Deployment Log */}
-        <div className="col-span-12 lg:col-span-4">
-          <div className="glass-card h-full flex flex-col overflow-hidden">
-            <div className="p-6 border-b border-white/5">
-              <h2 className="text-xs font-black uppercase tracking-widest text-muted-foreground opacity-40">Orchestration_Log</h2>
-            </div>
-            <div className="flex-1 overflow-y-auto scrollbar-hide">
-              {otaLogs.length === 0 ? (
-                <div className="h-full flex items-center justify-center p-12 text-center">
-                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-20 italic">WAITING_FOR_ORCHESTRATION_INPUT...</p>
-                </div>
-              ) : (
-                <div className="divide-y divide-white/5">
-                  {otaLogs.map(log => (
-                    <motion.div key={log.id} initial={{ opacity: 0, x: 5 }} animate={{ opacity: 1, x: 0 }}
-                      className="p-5 hover:bg-white/[0.02] transition-colors"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className={`w-1.5 h-1.5 rounded-full ${
-                          log.status === 'success' ? 'bg-emerald-500 shadow-[0_0_8px_#10B981]' :
-                          log.status === 'failed' ? 'bg-red-500 shadow-[0_0_8px_#EF4444]' :
-                          'bg-amber-500 animate-pulse'
-                        }`} />
-                        <div className="min-w-0 flex-1">
-                          <div className="text-[10px] font-black uppercase tracking-tight text-precision truncate">{log.vehicleId}</div>
-                          <div className="text-[9px] font-bold text-muted-foreground opacity-40 uppercase tracking-widest mt-0.5">{log.timestamp} • {log.campaignId}</div>
-                        </div>
-                        <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase ${
-                          log.status === 'success' ? 'text-emerald-400' :
-                          log.status === 'failed' ? 'text-red-400' :
-                          'text-amber-400'
-                        }`}>[{log.status}]</span>
-                      </div>
-                    </motion.div>
-                  ))}
+              {/* Step 1: Version */}
+              {wizardStep === 'version' && (
+                <div className="space-y-6">
+                  <h3 className="text-lg font-black uppercase tracking-tight text-precision">Target_Firmware_Version</h3>
+                  <input value={wizardVersion} onChange={e => setWizardVersion(e.target.value)}
+                    placeholder="e.g. v3.4.1-hotfix"
+                    className="w-full p-4 bg-white/5 border border-white/10 rounded-lg text-sm font-mono text-precision focus:border-primary/40 outline-none" />
+                  <button disabled={!wizardVersion} onClick={() => setWizardStep('vehicles')}
+                    className="w-full py-3 bg-primary/10 text-primary border border-primary/30 rounded-lg font-black uppercase tracking-widest text-[10px] disabled:opacity-20">
+                    Continue → Select_Vehicles
+                  </button>
                 </div>
               )}
-            </div>
+
+              {/* Step 2: Vehicle Selection */}
+              {wizardStep === 'vehicles' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-black uppercase tracking-tight text-precision">Select_Target_Nodes</h3>
+                    <button onClick={() => setWizardSelected(vehicles.map(v => v.vehicleId))}
+                      className="text-[9px] font-black text-primary uppercase tracking-widest">Select_All</button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 max-h-[40vh] overflow-y-auto">
+                    {vehicles.map(v => {
+                      const sel = wizardSelected.includes(v.vehicleId);
+                      const eligible = v.battery > HEALTH.SOC_WARNING_PCT && v.temperature < HEALTH.TEMP_CRITICAL_C && v.healthState !== 'CRITICAL';
+                      return (
+                        <button key={v.vehicleId} onClick={() => toggleVehicle(v.vehicleId)}
+                          className={`p-3 rounded-lg border text-left transition-all ${
+                            sel ? 'bg-primary/10 border-primary/30' : 'bg-white/[0.02] border-white/5 hover:border-white/10'}`}>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-black uppercase text-precision">{v.vehicleId}</span>
+                            {!eligible && <AlertTriangle className="w-3 h-3 text-amber-400" />}
+                          </div>
+                          <div className="text-[8px] text-muted-foreground mt-1 font-mono">
+                            SOC:{v.battery?.toFixed(0)}% • {v.temperature?.toFixed(0)}°C • {v.healthState}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="flex gap-3">
+                    <button onClick={() => setWizardStep('version')} className="flex-1 py-3 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black uppercase text-muted-foreground">Back</button>
+                    <button disabled={wizardSelected.length === 0} onClick={() => setWizardStep('canary')}
+                      className="flex-1 py-3 bg-primary/10 text-primary border border-primary/30 rounded-lg font-black uppercase tracking-widest text-[10px] disabled:opacity-20">
+                      Continue → Canary ({wizardSelected.length})
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 3: Canary Selection */}
+              {wizardStep === 'canary' && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-black uppercase tracking-tight text-precision">Select_Canary_Group</h3>
+                  <p className="text-[10px] text-muted-foreground opacity-60">Select 2-3 vehicles for canary deployment. These will be updated first. If all pass health checks, full rollout begins.</p>
+                  <div className="grid grid-cols-2 gap-2 max-h-[40vh] overflow-y-auto">
+                    {wizardSelected.map(vid => {
+                      const isCan = wizardCanary.includes(vid);
+                      return (
+                        <button key={vid} onClick={() => toggleCanary(vid)}
+                          className={`p-3 rounded-lg border text-left transition-all ${
+                            isCan ? 'bg-amber-500/10 border-amber-500/30' : 'bg-white/[0.02] border-white/5 hover:border-white/10'}`}>
+                          <div className="flex items-center gap-2">
+                            {isCan && <Zap className="w-3 h-3 text-amber-400" />}
+                            <span className="text-xs font-black uppercase text-precision">{vid}</span>
+                          </div>
+                          <span className="text-[8px] text-muted-foreground">{isCan ? 'CANARY_NODE' : 'ROLLOUT_NODE'}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="flex gap-3">
+                    <button onClick={() => setWizardStep('vehicles')} className="flex-1 py-3 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black uppercase text-muted-foreground">Back</button>
+                    <button onClick={() => setWizardStep('review')}
+                      className="flex-1 py-3 bg-primary/10 text-primary border border-primary/30 rounded-lg font-black uppercase tracking-widest text-[10px]">
+                      Review ({wizardCanary.length} canary)
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 4: Review */}
+              {wizardStep === 'review' && (
+                <div className="space-y-6">
+                  <h3 className="text-lg font-black uppercase tracking-tight text-precision">Campaign_Review</h3>
+                  <div className="space-y-3">
+                    {[
+                      ['Firmware', wizardVersion],
+                      ['Total Vehicles', String(wizardSelected.length)],
+                      ['Canary Group', wizardCanary.length > 0 ? wizardCanary.join(', ') : 'None (skip to rollout)'],
+                      ['Rollout Strategy', wizardCanary.length > 0 ? 'CANARY → OBSERVE → ROLLOUT' : 'DIRECT_ROLLOUT'],
+                    ].map(([k, v]) => (
+                      <div key={k} className="flex justify-between p-3 bg-white/[0.02] rounded border border-white/5">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">{k}</span>
+                        <span className="text-xs font-black text-precision font-mono">{v}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="p-3 bg-amber-500/5 border border-amber-500/10 rounded text-[9px] text-amber-400 font-bold">
+                    ⚠ Campaign will be created in DRAFT state. You must APPROVE to begin deployment.
+                  </div>
+                  <div className="flex gap-3">
+                    <button onClick={() => setWizardStep('canary')} className="flex-1 py-3 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black uppercase text-muted-foreground">Back</button>
+                    <button onClick={handleCreate} disabled={loading}
+                      className="flex-1 py-3 bg-primary/10 text-primary border border-primary/30 rounded-lg font-black uppercase tracking-widest text-[10px] disabled:opacity-50">
+                      {loading ? 'INITIALIZING...' : 'COMMIT_CAMPAIGN'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Active Campaigns */}
+      <div className="space-y-4">
+        <h2 className="text-xs font-black uppercase tracking-widest text-muted-foreground opacity-40">Active_Campaigns</h2>
+        {activeCampaigns.length === 0 ? (
+          <div className="glass-card p-12 text-center">
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-20 italic">NO_ACTIVE_CAMPAIGNS</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {activeCampaigns.map(c => {
+              const style = STATUS_STYLES[c.status] || STATUS_STYLES.DRAFT;
+              return (
+                <motion.div key={c.campaignId} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
+                  className="glass-card p-6 hover:border-white/10 transition-all">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-4">
+                      <span className={`px-3 py-1 rounded text-[9px] font-black uppercase tracking-widest ${style.bg} ${style.text} border ${style.border}`}>
+                        {c.status}
+                      </span>
+                      <span className="text-sm font-black text-precision font-mono">{c.targetVersion}</span>
+                      <span className="text-[9px] text-muted-foreground font-mono opacity-40">{c.campaignId.slice(0, 8)}...</span>
+                    </div>
+                    <div className="flex gap-2">
+                      {c.status === 'DRAFT' && (
+                        <button onClick={() => handleApprove(c.campaignId)}
+                          className="px-4 py-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-[9px] font-black uppercase tracking-widest hover:bg-emerald-500/20 transition-all flex items-center gap-1.5">
+                          <Rocket className="w-3 h-3" /> Approve
+                        </button>
+                      )}
+                      {['DRAFT', 'CANARY', 'ROLLOUT'].includes(c.status) && (
+                        <button onClick={() => handleHalt(c.campaignId)}
+                          className="px-4 py-2 bg-red-500/10 text-red-400 border border-red-500/20 rounded text-[9px] font-black uppercase tracking-widest hover:bg-red-500/20 transition-all flex items-center gap-1.5">
+                          <StopCircle className="w-3 h-3" /> Halt
+                        </button>
+                      )}
+                      <button onClick={() => setSelectedCampaign(c)}
+                        className="px-4 py-2 bg-white/5 text-muted-foreground border border-white/5 rounded text-[9px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center gap-1.5">
+                        <Eye className="w-3 h-3" /> Detail
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
+                      <motion.div className="h-full bg-gradient-to-r from-primary to-emerald-400 rounded-full"
+                        initial={{ width: 0 }} animate={{ width: `${c.progress * 100}%` }} transition={{ duration: 0.8 }} />
+                    </div>
+                    <span className="text-[10px] font-black text-precision w-12 text-right">{Math.round(c.progress * 100)}%</span>
+                  </div>
+
+                  <div className="flex gap-6 mt-3 text-[9px] font-black text-muted-foreground opacity-50">
+                    <span>TOTAL: {c.totalJobs}</span>
+                    <span className="text-emerald-400">SUCCESS: {c.successJobs}</span>
+                    <span className="text-red-400">FAILED: {c.failedJobs}</span>
+                    <span className="text-amber-400">PENDING: {c.pendingJobs}</span>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Campaign Detail Modal */}
+      <AnimatePresence>
+        {selectedCampaign && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-8"
+            onClick={() => setSelectedCampaign(null)}>
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
+              className="glass-card p-8 w-full max-w-3xl max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-xl font-black uppercase tracking-tight text-precision">{selectedCampaign.targetVersion}</h3>
+                  <span className="text-[9px] font-mono text-muted-foreground">{selectedCampaign.campaignId}</span>
+                </div>
+                <span className={`px-3 py-1 rounded text-[9px] font-black uppercase ${STATUS_STYLES[selectedCampaign.status]?.bg} ${STATUS_STYLES[selectedCampaign.status]?.text} border ${STATUS_STYLES[selectedCampaign.status]?.border}`}>
+                  {selectedCampaign.status}
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                {selectedCampaign.jobs.map(job => (
+                  <div key={job.jobId} className="flex items-center gap-4 p-3 bg-white/[0.02] rounded border border-white/5">
+                    <div className={`w-2 h-2 rounded-full ${
+                      job.state === 'SUCCESS' ? 'bg-emerald-500 shadow-[0_0_6px_#10B981]' :
+                      job.state === 'FAILED' ? 'bg-red-500 shadow-[0_0_6px_#EF4444]' :
+                      job.state === 'IN_PROGRESS' ? 'bg-blue-500 animate-pulse' :
+                      job.state === 'ROLLED_BACK' ? 'bg-amber-500' : 'bg-white/20'}`} />
+                    <span className="text-xs font-black uppercase text-precision flex-1">{job.vehicleId}</span>
+                    {job.canary && <Zap className="w-3 h-3 text-amber-400" />}
+                    {job.state === 'ROLLED_BACK' && <RotateCcw className="w-3 h-3 text-amber-400" />}
+                    <span className={`text-[9px] font-black uppercase tracking-widest ${
+                      job.state === 'SUCCESS' ? 'text-emerald-400' :
+                      job.state === 'FAILED' ? 'text-red-400' :
+                      job.state === 'ROLLED_BACK' ? 'text-amber-400' :
+                      job.state === 'IN_PROGRESS' ? 'text-blue-400' : 'text-muted-foreground opacity-40'}`}>
+                      {job.state}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Campaign History */}
+      {historyCampaigns.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-xs font-black uppercase tracking-widest text-muted-foreground opacity-40">Campaign_History</h2>
+          <div className="glass-card overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40 border-b border-white/5">
+                  <th className="text-left p-4">Campaign</th><th className="text-left p-4">Version</th>
+                  <th className="text-left p-4">Status</th><th className="text-left p-4">Progress</th>
+                  <th className="text-right p-4">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {historyCampaigns.map(c => {
+                  const style = STATUS_STYLES[c.status] || STATUS_STYLES.DRAFT;
+                  return (
+                    <tr key={c.campaignId} className="hover:bg-white/[0.02] transition-colors">
+                      <td className="p-4 text-[10px] font-mono text-precision">{c.campaignId.slice(0, 8)}...</td>
+                      <td className="p-4 text-xs font-black text-precision">{c.targetVersion}</td>
+                      <td className="p-4"><span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${style.bg} ${style.text} border ${style.border}`}>{c.status}</span></td>
+                      <td className="p-4 text-[10px] font-black text-emerald-400">{c.successJobs}/{c.totalJobs} OK</td>
+                      <td className="p-4 text-right">
+                        <button onClick={() => setSelectedCampaign(c)} className="text-[9px] font-black text-primary uppercase tracking-widest hover:underline">View</button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

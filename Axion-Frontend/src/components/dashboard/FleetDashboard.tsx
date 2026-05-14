@@ -11,6 +11,7 @@ import {
 import { AxionApi, FleetSummary, FleetVehicle } from '../../services/api';
 import { POLL_DASHBOARD, COUNTER_ANIMATION_DURATION } from '../../config';
 import { useWebSocket } from '../../hooks/useWebSocket';
+import { FleetAssistantPanel } from './FleetAssistantPanel';
 
 function AnimatedCounter({ value, suffix = '' }: { value: number; suffix?: string }) {
   const [count, setCount] = useState(0);
@@ -62,7 +63,6 @@ export function FleetDashboard() {
 
     fetchData();
 
-    // Subscribe to real-time updates via WebSocket instead of polling
     const unsubscribe = subscribeToFleet((msg) => {
       if (msg.type === 'TWIN_UPDATE' && msg.data) {
         const twin = msg.data;
@@ -88,10 +88,8 @@ export function FleetDashboard() {
           }
         });
 
-        // Optionally update summary counts dynamically
         setSummary((prevSum) => {
           if (!prevSum) return prevSum;
-          // Simple live increment simulation
           return {
             ...prevSum,
             totalEventsProcessed: prevSum.totalEventsProcessed + 1,
@@ -105,14 +103,6 @@ export function FleetDashboard() {
     };
   }, [subscribeToFleet]);
 
-  // Derive Health Distribution
-  const healthDistribution = [
-    { name: 'Healthy', value: summary?.healthy || 0, color: '#10B981' },
-    { name: 'Degraded', value: summary?.degraded || 0, color: '#F59E0B' },
-    { name: 'Critical', value: summary?.critical || 0, color: '#EF4444' },
-  ].filter(d => d.value > 0);
-
-  // Derive Avg Health
   const avgHealth = vehicles.length > 0
     ? Math.round(vehicles.reduce((acc, v) => acc + v.healthScore, 0) / vehicles.length)
     : 0;
@@ -171,12 +161,24 @@ export function FleetDashboard() {
     },
   ];
 
+  const chartData = [
+    { name: 'Healthy', value: summary?.healthy || 0, color: '#10B981' },
+    { name: 'Degraded', value: summary?.degraded || 0, color: '#F59E0B' },
+    { name: 'Critical', value: summary?.critical || 0, color: '#EF4444' },
+  ].filter(d => d.value > 0);
+
   return (
-    <div className="p-8 space-y-8 max-w-[1600px] mx-auto">
+    <div className="p-8 space-y-8 max-w-[1600px] mx-auto relative">
       {/* Header */}
-      <div className="flex justify-between items-end">
+      <div className="flex justify-between items-end pb-4 border-b border-white/5">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Mission Control</h1>
+          <div className="flex items-center gap-2 mb-1">
+            <Circle className={`w-2 h-2 ${status === 'CONNECTED' ? 'fill-emerald-500 text-emerald-500 animate-pulse' : 'fill-red-500 text-red-500'}`} />
+            <span className="text-[10px] font-bold tracking-widest uppercase font-mono opacity-60">
+              {status === 'CONNECTED' ? 'LIVE TELEMETRY STREAM' : 'OFFLINE / RECONNECTING'}
+            </span>
+          </div>
+          <h1 className="text-3xl font-black tracking-tight uppercase text-foreground">Mission Control</h1>
           <p className="text-muted-foreground text-sm mt-1 uppercase tracking-widest font-medium opacity-70">
             Real-time Telemetry Orchestration
           </p>
@@ -221,7 +223,6 @@ export function FleetDashboard() {
                 </div>
               </div>
 
-              {/* Decorative radial glow */}
               <div 
                 className="absolute -right-4 -bottom-4 w-24 h-24 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
                 style={{ background: card.glowColor }}
@@ -231,102 +232,95 @@ export function FleetDashboard() {
         })}
       </div>
 
-      {/* Main Content Grid */}
+      {/* MAIN CONTENT GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Fleet Health Distribution */}
+        {/* LEFT: Fleet Health Distribution */}
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.4 }}
-          className="glass-card p-6 lg:col-span-1"
+          transition={{ duration: 0.3 }}
+          className="glass-card p-6 lg:col-span-1 flex flex-col justify-between"
         >
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Fleet Distribution</h2>
-            <Heart className="w-4 h-4 text-primary opacity-50" />
-          </div>
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+                Health Score Distribution
+              </h3>
+              <Heart className="w-4 h-4 text-primary opacity-50" />
+            </div>
 
-          <div className="h-56 mb-8 relative">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={healthDistribution}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={65}
-                  outerRadius={85}
-                  paddingAngle={8}
-                  dataKey="value"
-                  stroke="none"
-                >
-                  {healthDistribution.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={entry.color} 
-                      className="hover:opacity-80 transition-opacity cursor-pointer"
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'rgba(13, 15, 20, 0.9)',
-                    backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '8px',
-                    fontSize: '12px'
-                  }}
-                  itemStyle={{ color: '#fff' }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-3xl font-bold text-precision">{avgHealth}%</span>
-              <span className="text-[10px] text-muted-foreground uppercase tracking-widest">Avg Health</span>
+            <div className="h-64 w-full relative flex items-center justify-center mb-6">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={chartData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={70}
+                    outerRadius={95}
+                    paddingAngle={4}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'rgba(10, 12, 16, 0.95)',
+                      borderColor: 'rgba(255, 255, 255, 0.1)',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute text-center pointer-events-none">
+                <div className="text-2xl font-black font-mono">
+                  {summary?.totalVehicles ? Math.round(((summary?.healthy || 0) / summary.totalVehicles) * 100) : 0}%
+                </div>
+                <div className="text-[9px] uppercase tracking-widest text-muted-foreground">Fleet Index</div>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-2">
-            {healthDistribution.map((item, index) => (
-              <div key={index} className="bg-white/5 rounded-lg p-3 border border-white/5 text-center">
-                <span className="block text-[10px] text-muted-foreground uppercase tracking-wider mb-1">{item.name}</span>
-                <span className="text-lg font-bold text-precision" style={{ color: item.color }}>{item.value}</span>
+          <div className="space-y-3 pt-4 border-t border-white/5">
+            {chartData.map((item) => (
+              <div key={item.name} className="flex justify-between items-center text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                  <span className="font-semibold text-muted-foreground">{item.name}</span>
+                </div>
+                <span className="font-mono font-bold">{item.value} units</span>
               </div>
             ))}
           </div>
         </motion.div>
 
-        {/* Fleet Grid / Status */}
+        {/* RIGHT: Active Fleet Roster */}
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.5 }}
-          className="glass-card p-6 lg:col-span-2 flex flex-col"
+          transition={{ duration: 0.3, delay: 0.1 }}
+          className="glass-card p-6 lg:col-span-2 flex flex-col h-[450px]"
         >
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Live Fleet Status</h2>
-              <p className="text-[10px] text-muted-foreground opacity-60">Synchronized via Kafka & MQTT</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className={`flex items-center gap-1.5 text-[10px] font-bold ${status === 'CONNECTED' ? 'text-emerald-400' : 'text-amber-400'}`}>
-                <Circle className={`w-1.5 h-1.5 ${status === 'CONNECTED' ? 'fill-emerald-400 animate-pulse' : 'fill-amber-400'}`} />
-                {status === 'CONNECTED' ? 'WS_CONNECTED' : status}
-              </div>
-            </div>
+          <div className="flex justify-between items-center mb-6 shrink-0">
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+              Real-Time Asset Roster ({vehicles.length})
+            </h3>
+            <span className="text-[10px] font-mono text-primary bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20">
+              SYNCHRONIZED
+            </span>
           </div>
 
-          <div className="flex-1 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
-              {vehicles.length === 0 && (
-                <div className="col-span-full py-12 text-center border border-dashed border-white/10 rounded-xl">
-                  <Car className="w-8 h-8 text-muted-foreground mx-auto mb-3 opacity-20" />
-                  <p className="text-sm text-muted-foreground font-mono">WAITING FOR INGESTION...</p>
-                </div>
-              )}
+          <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+            <div className="space-y-2">
               {vehicles.map((vehicle) => {
                 const isCritical = vehicle.healthState === 'CRITICAL';
                 const isDegraded = vehicle.healthState === 'DEGRADED';
                 const statusColor = isCritical ? 'text-red-400' : isDegraded ? 'text-amber-400' : 'text-emerald-400';
-                
+
                 return (
                   <motion.div
                     key={vehicle.vehicleId}
@@ -365,6 +359,9 @@ export function FleetDashboard() {
           </div>
         </motion.div>
       </div>
+
+      {/* Floating GenAI Assistant Panel */}
+      <FleetAssistantPanel />
     </div>
   );
 }

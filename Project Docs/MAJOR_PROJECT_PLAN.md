@@ -479,11 +479,11 @@ DRAFT ──► CANARY ──► ROLLOUT ──► COMPLETED
 
 ### Phase 6 Deliverables
 
-- [ ] Cross-source event query engine
-- [ ] RCA API endpoint
-- [ ] Interactive timeline visualization component
-- [ ] Event correlation logic
-- [ ] Vehicle-specific RCA page accessible from Vehicle Detail
+- [x] Cross-source event query engine
+- [x] RCA API endpoint
+- [x] Interactive timeline visualization component
+- [x] Event correlation logic
+- [x] Vehicle-specific RCA page accessible from Vehicle Detail
 
 ---
 
@@ -614,11 +614,11 @@ grafana:
 
 ### Phase 9 Deliverables
 
-- [ ] Spring AI integration with structured output binding
-- [ ] RAG pipeline with PgVector store setup
-- [ ] Agentic loop using Spring AI `@Tool` functions
-- [ ] SSE streaming endpoint for AI queries
-- [ ] Natural Language Assistant UI in React dashboard
+- [x] Spring AI integration with structured output binding
+- [x] RAG pipeline with PgVector store setup
+- [x] Agentic loop using Spring AI `@Tool` functions
+- [x] SSE streaming endpoint for AI queries
+- [x] Natural Language Assistant UI in React dashboard
 
 ---
 
