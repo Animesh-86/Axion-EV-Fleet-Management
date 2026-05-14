@@ -25,13 +25,21 @@ public class DigitalTwinService {
 
     private final Duration ttl;
 
+    private final AnomalyExplainerService anomalyExplainerService;
+
+    private final MlServiceClient mlServiceClient;
+
     public DigitalTwinService(RedisTemplate<String, DigitalTwinState> redisTemplate,
             HealthScoreEngine healthScoreEngine,
             SimpMessagingTemplate messagingTemplate,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) AnomalyExplainerService anomalyExplainerService,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) MlServiceClient mlServiceClient,
             @org.springframework.beans.factory.annotation.Value("${axion.redis.ttl-seconds}") int ttlSeconds) {
         this.redisTemplate = redisTemplate;
         this.healthScoringEngine = healthScoreEngine;
         this.messagingTemplate = messagingTemplate;
+        this.anomalyExplainerService = anomalyExplainerService;
+        this.mlServiceClient = mlServiceClient;
         this.ttl = Duration.ofSeconds(ttlSeconds);
     }
 
@@ -94,6 +102,30 @@ public class DigitalTwinService {
                     .build();
             messagingTemplate.convertAndSend("/topic/fleet/updates", healthChangeMsg);
             messagingTemplate.convertAndSend("/topic/vehicle/" + updated.getVehicleId(), healthChangeMsg);
+
+            // Phase 9A Autonomous LLM Trigger Sequence: Trigger explanation engine async if degraded or critical
+            if (("DEGRADED".equals(result.getState().name()) || "CRITICAL".equals(result.getState().name())) 
+                && anomalyExplainerService != null) {
+                
+                final String vId = updated.getVehicleId();
+                final String targetState = result.getState().name();
+                final double spd = snapshot.getSpeedKmph() != null ? snapshot.getSpeedKmph() : 0.0;
+                final double soc = snapshot.getBatterySocPct() != null ? snapshot.getBatterySocPct() : 0.0;
+                final double tmp = snapshot.getBatteryTempC() != null ? snapshot.getBatteryTempC() : 0.0;
+                
+                java.util.concurrent.CompletableFuture.runAsync(() -> {
+                    try {
+                        String mlCtx = "Predictions pending / unavailable";
+                        if (mlServiceClient != null) {
+                            java.util.Map<String, Object> preds = mlServiceClient.getVehiclePredictions(vId);
+                            mlCtx = preds != null ? preds.toString() : mlCtx;
+                        }
+                        anomalyExplainerService.explainAnomaly(vId, targetState, spd, soc, tmp, mlCtx);
+                    } catch (Exception e) {
+                        log.error("Asynchronous execution context of Anomaly Explainer engine failed: {}", e.getMessage());
+                    }
+                });
+            }
         }
     }
 }

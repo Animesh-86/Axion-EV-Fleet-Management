@@ -6,6 +6,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsToolti
 import { toast } from 'sonner';
 import { POLL_VEHICLE_DETAIL, TELEMETRY_HISTORY_WINDOW, DEFAULT_CAMPAIGN_ID, HEALTH } from '../../config';
 import { useWebSocket } from '../../hooks/useWebSocket';
+import { RcaTimeline } from './RcaTimeline';
 
 interface VehicleDetailProps {
   vehicleId: string | null;
@@ -24,7 +25,8 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
   const [vehicle, setVehicle] = useState<ApiVehicleDetail | null>(null);
   const [isOnline, setIsOnline] = useState(true);
   const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'outdated'>('synced');
-  const [activeTab, setActiveTab] = useState<'live' | 'timeline' | 'policies' | 'ota'>('live');
+  const [activeTab, setActiveTab] = useState<'live' | 'timeline' | 'policies' | 'ota' | 'rca'>('live');
+
   const [telemetryHistory, setTelemetryHistory] = useState<any[]>([]);
   const [historicalData, setHistoricalData] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
@@ -306,7 +308,7 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
           </div>
           
           {/* Tabs */}
-          <div className="flex border-b border-white/10 mb-4">
+          <div className="flex border-b border-white/10 mb-4 flex-wrap gap-2">
             <button 
               onClick={() => setActiveTab('live')}
               className={`px-4 py-2 text-xs font-bold uppercase tracking-widest transition-colors ${activeTab === 'live' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground'}`}
@@ -319,47 +321,68 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
             >
               24h History (TimescaleDB)
             </button>
+            <button 
+              onClick={() => setActiveTab('rca')}
+              className={`px-4 py-2 text-xs font-bold uppercase tracking-widest transition-colors ${activeTab === 'rca' ? 'text-purple-400 border-b-2 border-purple-400' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              RCA Timeline Engine
+            </button>
           </div>
 
-          {/* Charts */}
-          <div className="glass-card p-6">
-             <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
-                  {activeTab === 'live' ? 'Telemetry Timeline' : 'Historical Aggregates'}
-                </h3>
-                <div className="flex gap-4">
-                   <div className="flex items-center gap-1.5 text-[9px] font-bold text-primary">
-                      <div className={`w-1 h-1 rounded-full bg-primary ${activeTab === 'live' ? 'animate-pulse' : ''}`} /> 
-                      {activeTab === 'live' ? 'REALTIME' : 'ARCHIVED'}
-                   </div>
-                </div>
-             </div>
-             
-             <div className="h-64 w-full">
-                {activeTab === 'timeline' && loadingHistory ? (
-                  <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground font-mono">LOADING HISTORY...</div>
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={activeTab === 'live' ? telemetryHistory : historicalData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                      <XAxis dataKey="time" stroke="rgba(255,255,255,0.2)" fontSize={9} tickMargin={10} axisLine={false} tickLine={false} />
-                      <YAxis stroke="rgba(255,255,255,0.2)" fontSize={9} width={25} axisLine={false} tickLine={false} />
-                      <RechartsTooltip
-                        contentStyle={{ backgroundColor: 'rgba(13, 15, 20, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', fontSize: '10px' }}
-                      />
-                      <Line type="monotone" dataKey="speed" stroke="#10B981" strokeWidth={2} dot={activeTab === 'timeline'} isAnimationActive={false} />
-                      <Line type="monotone" dataKey="battery" stroke="#3b82f6" strokeWidth={2} dot={activeTab === 'timeline'} isAnimationActive={false} />
-                      <Line type="monotone" dataKey="temp" stroke="#f59e0b" strokeWidth={2} dot={activeTab === 'timeline'} isAnimationActive={false} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                )}
-             </div>
-             <div className="flex justify-center gap-6 mt-4">
-                <div className="flex items-center gap-2 text-[9px] font-bold text-primary opacity-60"><div className="w-2 h-0.5 bg-primary" /> SPEED</div>
-                <div className="flex items-center gap-2 text-[9px] font-bold text-blue-400 opacity-60"><div className="w-2 h-0.5 bg-blue-400" /> BATTERY</div>
-                <div className="flex items-center gap-2 text-[9px] font-bold text-amber-400 opacity-60"><div className="w-2 h-0.5 bg-amber-400" /> TEMP</div>
-             </div>
-          </div>
+          {/* Tab Content Panels */}
+          {activeTab === 'rca' ? (
+            <div className="glass-card p-6">
+               <div className="mb-6">
+                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-purple-400">
+                    Root Cause Event Correlation
+                  </h3>
+                  <p className="text-[10px] text-muted-foreground opacity-60 mt-1">
+                    Multi-storage chronological event integration tracing firmware updates & sensory delta breaches.
+                  </p>
+               </div>
+               <RcaTimeline vehicleId={vehicleId} />
+            </div>
+          ) : (
+            <div className="glass-card p-6">
+               <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+                    {activeTab === 'live' ? 'Telemetry Timeline' : 'Historical Aggregates'}
+                  </h3>
+                  <div className="flex gap-4">
+                     <div className="flex items-center gap-1.5 text-[9px] font-bold text-primary">
+                        <div className={`w-1 h-1 rounded-full bg-primary ${activeTab === 'live' ? 'animate-pulse' : ''}`} /> 
+                        {activeTab === 'live' ? 'REALTIME' : 'ARCHIVED'}
+                     </div>
+                  </div>
+               </div>
+               
+               <div className="h-64 w-full">
+                  {activeTab === 'timeline' && loadingHistory ? (
+                    <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground font-mono">LOADING HISTORY...</div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={activeTab === 'live' ? telemetryHistory : historicalData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                        <XAxis dataKey="time" stroke="rgba(255,255,255,0.2)" fontSize={9} tickMargin={10} axisLine={false} tickLine={false} />
+                        <YAxis stroke="rgba(255,255,255,0.2)" fontSize={9} width={25} axisLine={false} tickLine={false} />
+                        <RechartsTooltip
+                          contentStyle={{ backgroundColor: 'rgba(13, 15, 20, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', fontSize: '10px' }}
+                        />
+                        <Line type="monotone" dataKey="speed" stroke="#10B981" strokeWidth={2} dot={activeTab === 'timeline'} isAnimationActive={false} />
+                        <Line type="monotone" dataKey="battery" stroke="#3b82f6" strokeWidth={2} dot={activeTab === 'timeline'} isAnimationActive={false} />
+                        <Line type="monotone" dataKey="temp" stroke="#f59e0b" strokeWidth={2} dot={activeTab === 'timeline'} isAnimationActive={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
+               </div>
+               <div className="flex justify-center gap-6 mt-4">
+                  <div className="flex items-center gap-2 text-[9px] font-bold text-primary opacity-60"><div className="w-2 h-0.5 bg-primary" /> SPEED</div>
+                  <div className="flex items-center gap-2 text-[9px] font-bold text-blue-400 opacity-60"><div className="w-2 h-0.5 bg-blue-400" /> BATTERY</div>
+                  <div className="flex items-center gap-2 text-[9px] font-bold text-amber-400 opacity-60"><div className="w-2 h-0.5 bg-amber-400" /> TEMP</div>
+               </div>
+            </div>
+          )}
+
         </div>
 
         {/* RIGHT: Status & Controls */}

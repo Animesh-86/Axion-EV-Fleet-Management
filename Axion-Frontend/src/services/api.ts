@@ -140,4 +140,119 @@ export class AxionApi {
     if (!res.ok) throw new Error('Failed to trigger retraining');
     return res.json();
   }
+
+  // ──── OTA Campaign API ────
+
+  static async createCampaign(data: CampaignCreateRequest): Promise<CampaignResponse> {
+    const res = await fetchWithAuth(`${BASE_URL}/api/v1/ota/campaigns`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Failed to create campaign');
+    return res.json();
+  }
+
+  static async listCampaigns(): Promise<CampaignResponse[]> {
+    const res = await fetchWithAuth(`${BASE_URL}/api/v1/ota/campaigns`);
+    if (!res.ok) throw new Error('Failed to list campaigns');
+    return res.json();
+  }
+
+  static async getCampaign(campaignId: string): Promise<CampaignResponse> {
+    const res = await fetchWithAuth(`${BASE_URL}/api/v1/ota/campaigns/${campaignId}`);
+    if (!res.ok) throw new Error('Failed to fetch campaign');
+    return res.json();
+  }
+
+  static async approveCampaign(campaignId: string): Promise<CampaignResponse> {
+    const res = await fetchWithAuth(`${BASE_URL}/api/v1/ota/campaigns/${campaignId}/approve`, {
+      method: 'POST',
+    });
+    if (!res.ok) throw new Error('Failed to approve campaign');
+    return res.json();
+  }
+
+  static async haltCampaign(campaignId: string): Promise<CampaignResponse> {
+    const res = await fetchWithAuth(`${BASE_URL}/api/v1/ota/campaigns/${campaignId}/halt`, {
+      method: 'POST',
+    });
+    if (!res.ok) throw new Error('Failed to halt campaign');
+    return res.json();
+  }
+
+  // ──── Root Cause Analysis API ────
+
+  static async getRcaTimeline(vehicleId: string, from?: string, to?: string): Promise<RcaEvent[]> {
+    const params = new URLSearchParams();
+    if (from) params.append('from', from);
+    if (to) params.append('to', to);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    const res = await fetchWithAuth(`${BASE_URL}/api/v1/rca/${encodeURIComponent(vehicleId)}${query}`);
+    if (!res.ok) throw new Error('Failed to fetch RCA timeline');
+    return res.json();
+  }
+
+  // ──── GenAI Fleet Intelligence API ────
+
+  static async getExplanations(vehicleId: string): Promise<AnomalyExplanation[]> {
+    const res = await fetchWithAuth(`${BASE_URL}/api/v1/ai/explanations/${encodeURIComponent(vehicleId)}`);
+    if (!res.ok) throw new Error('Failed to fetch AI explanations');
+    return res.json();
+  }
 }
+
+
+// ──── OTA Campaign Types ────
+
+export interface CampaignCreateRequest {
+  targetVersion: string;
+  vehicleIds: string[];
+  canaryVehicleIds: string[];
+}
+
+export interface CampaignJobResponse {
+  jobId: string;
+  vehicleId: string;
+  state: string;
+  canary: boolean;
+  startedAt?: string;
+  completedAt?: string;
+}
+
+export interface CampaignResponse {
+  campaignId: string;
+  targetVersion: string;
+  status: string;
+  createdBy?: string;
+  createdAt: string;
+  completedAt?: string;
+  totalJobs: number;
+  successJobs: number;
+  failedJobs: number;
+  pendingJobs: number;
+  progress: number;
+  jobs: CampaignJobResponse[];
+}
+
+export interface RcaEvent {
+  timestamp: string;
+  category: 'TELEMETRY' | 'HEALTH' | 'OTA' | 'ALERT';
+  severity: 'INFO' | 'WARNING' | 'CRITICAL';
+  title: string;
+  detail: string;
+  vehicleId: string;
+}
+
+export interface AnomalyExplanation {
+  id: string;
+  vehicleId: string;
+  createdAt: string;
+  severity: string;
+  summary: string;
+  rootCause: string;
+  recommendedAction: string;
+  confidenceScore: number;
+}
+
+
