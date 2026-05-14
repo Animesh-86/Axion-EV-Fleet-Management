@@ -29,7 +29,7 @@ export function MetricCard({ title, value, subtitle, icon: Icon, trend, gradient
         <div className="text-sm text-gray-400">{title}</div>
         {Icon && (
           <div className="p-2 rounded-lg bg-white/5">
-            <Icon className="w-4 h-4 text-blue-400" />
+            <Icon className="w-4 h-4 text-primary" />
           </div>
         )}
       </div>

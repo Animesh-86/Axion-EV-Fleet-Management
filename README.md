@@ -71,11 +71,13 @@ The system tolerates unreliable connectivity, heterogeneous vendor data formats,
 │                    ▼               ▼                              │
 │            [Digital Twin]   [Health Score                         │
 │             Service]         Engine]                              │
-│                    │                                              │
-│                    ▼                                              │
-│              [Redis 7.0]                                         │
-│              Live State                                          │
-│              120s TTL                                             │
+│                    │               │                              │
+│                    ▼               ▼                              │
+│              [Redis 7.0]      [Spring AI]                         │
+│              Live State       (GenAI/RAG)                         │
+│              120s TTL              │                              │
+│                                    ▼                              │
+│                               [PgVector]                          │
 │                                                                  │
 └──────────────────────────────────────────────────────────────────┘
 ```
@@ -114,6 +116,12 @@ The system tolerates unreliable connectivity, heterogeneous vendor data formats,
 - State machine: `PENDING → IN_PROGRESS → SUCCESS / FAILURE`
 - Canary-style rollout with automatic rollback
 - Campaign tracking via Kafka events
+
+### 🧠 GenAI Fleet Intelligence
+- Spring AI integration for natural language anomaly explanation
+- PgVector RAG (Retrieval-Augmented Generation) knowledge base
+- Autonomous agentic monitoring using Spring AI `@Tool` function calling
+- Streaming SSE fleet assistant for chat-based operations
 
 ### 📊 Premium Dashboard
 - Dark-themed React 18 dashboard with glassmorphism effects
@@ -179,6 +187,7 @@ The system tolerates unreliable connectivity, heterogeneous vendor data formats,
 | **Backend** | Java 21, Spring Boot 3.2, Spring WebFlux |
 | **Messaging** | Apache Kafka (Confluent 7.5), Zookeeper |
 | **MQTT** | Eclipse Mosquitto 2.0 |
+| **GenAI / Vector** | Spring AI, PgVector (pgvector/pgvector:pg16), OpenAI |
 | **State Store** | Redis 7.0 Alpine |
 | **Frontend** | React 18, TypeScript, Vite, Tailwind CSS, Shadcn UI |
 | **Charts** | Recharts, Framer Motion |
@@ -288,6 +297,7 @@ cd Axion-Simulator && python main.py
 | 6 | Root Cause Analysis timeline | Weeks 7–8 |
 | 7 | Prometheus + Grafana observability | Weeks 8–9 |
 | 8 | Polish, docs, load testing (100+ vehicles) | Weeks 9–10 |
+| 9 | GenAI Fleet Intelligence (Spring AI + PgVector) | Weeks 5–9 |
 
 See [MAJOR_PROJECT_PLAN.md](Project%20Docs/MAJOR_PROJECT_PLAN.md) for full details.
 

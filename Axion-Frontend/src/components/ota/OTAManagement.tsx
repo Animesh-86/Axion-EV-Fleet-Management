@@ -35,10 +35,10 @@ export function OTAManagement() {
 
   const getEligibility = (v: FleetVehicle) => {
     const checks = [
-      { label: `Battery > ${HEALTH.SOC_WARNING_PCT}%`, pass: v.battery > HEALTH.SOC_WARNING_PCT },
-      { label: 'Online', pass: v.online },
-      { label: `Temp < ${HEALTH.TEMP_CRITICAL_C}°C`, pass: v.temperature < HEALTH.TEMP_CRITICAL_C },
-      { label: 'Not Critical', pass: v.healthState !== 'CRITICAL' },
+      { label: `BATTERY > ${HEALTH.SOC_WARNING_PCT}%`, pass: v.battery > HEALTH.SOC_WARNING_PCT },
+      { label: 'SYNC_ACTIVE', pass: v.online },
+      { label: `THERMAL < ${HEALTH.TEMP_CRITICAL_C}°C`, pass: v.temperature < HEALTH.TEMP_CRITICAL_C },
+      { label: 'STATE_NOMINAL', pass: v.healthState !== 'CRITICAL' },
     ];
     return { checks, eligible: checks.every(c => c.pass) };
   };
@@ -57,10 +57,10 @@ export function OTAManagement() {
     try {
       await AxionApi.triggerOTA(selectedCampaign, vehicleId);
       setOtaLogs(prev => prev.map(l => l.id === newLog.id ? { ...l, status: 'success' as const } : l));
-      toast.success(`OTA deployed to ${vehicleId}`);
+      toast.success(`DEPLOYMENT_COMPLETE: ${vehicleId}`);
     } catch {
       setOtaLogs(prev => prev.map(l => l.id === newLog.id ? { ...l, status: 'failed' as const } : l));
-      toast.error(`OTA failed for ${vehicleId}`);
+      toast.error(`DEPLOYMENT_FAILED: ${vehicleId}`);
     } finally {
       setTriggering(null);
     }
@@ -69,14 +69,14 @@ export function OTAManagement() {
   const handleRolloutAll = async () => {
     const eligible = vehicles.filter(v => getEligibility(v).eligible);
     if (eligible.length === 0) {
-      toast.error('No eligible vehicles for rollout');
+      toast.error('NO_ELIGIBLE_NODES_DETECTED');
       return;
     }
-    toast.info(`Starting rollout to ${eligible.length} vehicles...`);
+    toast.info(`EXECUTING_ROLLOUT: ${eligible.length} NODES`);
     for (const v of eligible) {
       await handleTrigger(v.vehicleId);
     }
-    toast.success(`Rollout complete: ${eligible.length} vehicles updated`);
+    toast.success(`ROLLOUT_SEQUENCE_COMPLETE`);
   };
 
   const eligibleCount = vehicles.filter(v => getEligibility(v).eligible).length;
@@ -84,168 +84,190 @@ export function OTAManagement() {
   const failCount = otaLogs.filter(l => l.status === 'failed').length;
 
   return (
-    <div className="p-8 pb-16">
-      <div className="mb-8">
-        <h1 className="text-3xl font-semibold mb-2 flex items-center gap-3">
-          <CloudCog className="w-8 h-8 text-primary" /> OTA Campaign Manager
-        </h1>
-        <p className="text-muted-foreground">Over-the-air update orchestration and fleet deployment</p>
+    <div className="p-8 max-w-[1600px] mx-auto space-y-8">
+      {/* Header */}
+      <div className="flex items-end justify-between">
+        <div>
+          <h1 className="text-4xl font-black tracking-tighter uppercase text-precision">OTA_Orchestration</h1>
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground mt-2 opacity-50">
+             FLEET_WIDE_DEPLOYMENT • FIRMWARE_STATE_SYNCHRONIZATION
+          </p>
+        </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          { label: 'Total Vehicles', value: vehicles.length, icon: Rocket, gradient: 'from-cyan-500/10 to-cyan-600/5', border: 'border-cyan-500/20', text: 'text-cyan-400' },
-          { label: 'Eligible', value: eligibleCount, icon: Shield, gradient: 'from-emerald-500/10 to-emerald-600/5', border: 'border-emerald-500/20', text: 'text-emerald-400' },
-          { label: 'Deployed', value: successCount, icon: CheckCircle2, gradient: 'from-purple-500/10 to-purple-600/5', border: 'border-purple-500/20', text: 'text-purple-400' },
-          { label: 'Failed', value: failCount, icon: XCircle, gradient: 'from-red-500/10 to-red-600/5', border: 'border-red-500/20', text: 'text-red-400' },
+          { label: 'NETWORK_NODES', value: vehicles.length, icon: Rocket, color: 'text-primary', border: 'border-primary/20', glow: 'shadow-[0_0_15px_rgba(16,185,129,0.1)]' },
+          { label: 'ELIGIBLE_NODES', value: eligibleCount, icon: Shield, color: 'text-emerald-400', border: 'border-emerald-500/20', glow: 'shadow-[0_0_15px_rgba(16,185,129,0.1)]' },
+          { label: 'DEPLOY_SUCCESS', value: successCount, icon: CheckCircle2, color: 'text-purple-400', border: 'border-purple-500/20', glow: 'shadow-[0_0_15px_rgba(167,139,250,0.1)]' },
+          { label: 'DEPLOY_FAILURE', value: failCount, icon: XCircle, color: 'text-red-400', border: 'border-red-500/20', glow: 'shadow-[0_0_15px_rgba(239,68,68,0.1)]' },
         ].map((kpi, i) => {
           const Icon = kpi.icon;
           return (
-            <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
-              className={`rounded-xl bg-gradient-to-br ${kpi.gradient} p-5 border ${kpi.border}`}
+            <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+              className={`glass-card p-6 ${kpi.border} ${kpi.glow}`}
             >
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm text-muted-foreground">{kpi.label}</span>
-                <Icon className={`w-4 h-4 ${kpi.text}`} />
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">{kpi.label}</span>
+                <Icon className={`w-3.5 h-3.5 ${kpi.color}`} />
               </div>
-              <div className={`text-3xl font-semibold ${kpi.text}`}>{kpi.value}</div>
+              <div className={`text-3xl font-black tracking-tighter text-precision ${kpi.color}`}>{kpi.value}</div>
             </motion.div>
           );
         })}
       </div>
 
-      {/* Campaign Card + Rollout Button */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-        className="rounded-xl bg-gradient-to-br from-primary/5 to-primary/[0.02] border border-primary/20 p-6 mb-8"
-      >
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-medium flex items-center gap-2">
-              <Upload className="w-5 h-5 text-primary" /> Active Campaign
-            </h2>
-            <div className="mt-2 space-y-1 text-sm text-muted-foreground">
-              <p>Campaign ID: <span className="font-mono text-primary">{selectedCampaign}</span></p>
-              <p>Target: All eligible vehicles  |  Pre-flight checks: SOC &gt; 30%, Online, Temp &lt; 55°C, Not Critical</p>
+      {/* Active Campaign Card */}
+      <div className="glass-card p-8 border-primary/20 relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/10 transition-all duration-1000" />
+        
+        <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-6">
+               <div className="p-2 bg-primary/10 rounded border border-primary/20">
+                  <Upload className="w-5 h-5 text-primary" />
+               </div>
+               <h2 className="text-xl font-black uppercase tracking-tighter text-precision">Active_Deployment_Campaign</h2>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+               <div className="space-y-4">
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40 mb-1">Campaign_Reference</p>
+                    <p className="text-sm font-black text-primary font-mono">{selectedCampaign}</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40 mb-1">Deployment_Type</p>
+                    <p className="text-xs font-bold uppercase tracking-tight text-muted-foreground">CRITICAL_FIRMWARE_V3.4_HOTFIX</p>
+                  </div>
+               </div>
+               <div className="p-4 bg-white/5 border border-white/5 rounded-lg">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40 mb-3">Pre-Flight_Constraint_Set</p>
+                  <div className="flex flex-wrap gap-2">
+                     {['SOC_30%_MIN', 'SYNC_REACHABLE', 'THERMAL_NOMINAL', 'HEALTH_OPTIMAL'].map(t => (
+                       <span key={t} className="text-[8px] font-black px-2 py-0.5 bg-white/5 border border-white/5 rounded uppercase tracking-tighter text-muted-foreground opacity-60">{t}</span>
+                     ))}
+                  </div>
+               </div>
             </div>
           </div>
+          
           <button
             onClick={handleRolloutAll}
             disabled={eligibleCount === 0}
-            className="px-6 py-3 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 rounded-lg font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full md:w-auto px-10 py-5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-lg font-black uppercase tracking-widest text-xs transition-all active:scale-[0.98] disabled:opacity-20 disabled:cursor-not-allowed group/btn overflow-hidden relative"
           >
-            <span className="flex items-center gap-2">
-              <Rocket className="w-4 h-4" />
-              Rollout to {eligibleCount} Eligible
-            </span>
+            <div className="flex items-center gap-3 justify-center relative z-10">
+              <Rocket className="w-4 h-4 group-hover/btn:-translate-y-1 transition-transform" />
+              <span>Initialize_Full_Rollout</span>
+            </div>
           </button>
         </div>
-      </motion.div>
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-12 gap-6">
         {/* Vehicle Eligibility Table */}
-        <div className="lg:col-span-2">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-            className="rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 overflow-hidden"
-          >
-            <div className="p-6 border-b border-white/10">
-              <h2 className="text-lg font-medium">Vehicle Eligibility</h2>
+        <div className="col-span-12 lg:col-span-8">
+          <div className="glass-card overflow-hidden">
+            <div className="p-6 border-b border-white/5">
+              <h2 className="text-xs font-black uppercase tracking-widest text-muted-foreground opacity-40">Target_Node_Eligibility</h2>
             </div>
-            <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
-              <table className="w-full text-sm">
-                <thead className="sticky top-0 bg-card">
-                  <tr className="border-b border-white/10 text-muted-foreground">
-                    <th className="text-left p-4">Vehicle</th>
-                    <th className="text-left p-4">Pre-flight Checks</th>
-                    <th className="text-left p-4">Status</th>
-                    <th className="text-left p-4">Action</th>
+            <div className="overflow-x-auto max-h-[700px] overflow-y-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40 border-b border-white/5">
+                    <th className="text-left p-6 font-black">Node_Identity</th>
+                    <th className="text-left p-6 font-black">Pre-Flight_Heuristics</th>
+                    <th className="text-left p-6 font-black">State</th>
+                    <th className="text-right p-6 font-black">Control</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-white/5">
                   {vehicles.map(v => {
                     const { checks, eligible } = getEligibility(v);
                     return (
-                      <tr key={v.vehicleId} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                        <td className="p-4">
-                          <div className="font-mono text-xs">{v.vehicleId}</div>
-                          <div className="text-xs text-muted-foreground mt-1">{v.vendor}</div>
+                      <tr key={v.vehicleId} className="hover:bg-white/[0.02] transition-colors group">
+                        <td className="p-6">
+                          <div className="text-sm font-black uppercase tracking-tight text-precision group-hover:text-primary transition-colors">{v.vehicleId}</div>
+                          <div className="text-[10px] font-bold text-muted-foreground opacity-40 uppercase tracking-wider mt-1">{v.vendor}</div>
                         </td>
-                        <td className="p-4">
-                          <div className="flex flex-wrap gap-1.5">
+                        <td className="p-6">
+                          <div className="flex flex-wrap gap-2">
                             {checks.map((c, i) => (
-                              <span key={i} className={`text-[10px] px-2 py-0.5 rounded-full ${
-                                c.pass ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
+                              <span key={i} className={`text-[8px] font-black px-2 py-0.5 rounded border ${
+                                c.pass ? 'bg-emerald-500/5 text-emerald-400 border-emerald-500/20' : 'bg-red-500/5 text-red-400 border-red-500/20'
                               }`}>
-                                {c.pass ? '✓' : '✗'} {c.label}
+                                {c.label}
                               </span>
                             ))}
                           </div>
                         </td>
-                        <td className="p-4">
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            eligible ? 'bg-emerald-500/10 text-emerald-400' : 'bg-gray-500/10 text-gray-400'
-                          }`}>{eligible ? 'Eligible' : 'Blocked'}</span>
+                        <td className="p-6">
+                          <span className={`text-[9px] font-black px-2 py-1 rounded border uppercase tracking-tighter ${
+                            eligible ? 'bg-emerald-500/5 text-emerald-400 border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.05)]' : 'bg-white/5 text-muted-foreground opacity-40 border-white/5'
+                          }`}>{eligible ? 'READY' : 'BLOCKED'}</span>
                         </td>
-                        <td className="p-4">
+                        <td className="p-6 text-right">
                           <button
                             onClick={() => handleTrigger(v.vehicleId)}
                             disabled={!eligible || triggering === v.vehicleId}
-                            className="px-3 py-1.5 text-xs bg-primary/20 hover:bg-primary/30 text-primary rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                            className="px-4 py-2 text-[10px] font-black uppercase tracking-widest bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 rounded transition-all disabled:opacity-20 disabled:cursor-not-allowed active:scale-[0.95]"
                           >
-                            {triggering === v.vehicleId ? 'Deploying...' : 'Deploy'}
+                            {triggering === v.vehicleId ? 'EXECUTING...' : 'INIT_DEPLOY'}
                           </button>
                         </td>
                       </tr>
                     );
                   })}
                   {vehicles.length === 0 && (
-                    <tr><td colSpan={4} className="p-8 text-center text-muted-foreground">No vehicles connected. Start the simulator.</td></tr>
+                    <tr><td colSpan={4} className="p-12 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-30 italic">No_Network_Nodes_Connected</td></tr>
                   )}
                 </tbody>
               </table>
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Deployment Log */}
-        <div>
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-            className="rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 overflow-hidden"
-          >
-            <div className="p-6 border-b border-white/10">
-              <h2 className="text-lg font-medium">Deployment Log</h2>
+        <div className="col-span-12 lg:col-span-4">
+          <div className="glass-card h-full flex flex-col overflow-hidden">
+            <div className="p-6 border-b border-white/5">
+              <h2 className="text-xs font-black uppercase tracking-widest text-muted-foreground opacity-40">Orchestration_Log</h2>
             </div>
-            <div className="max-h-[600px] overflow-y-auto">
+            <div className="flex-1 overflow-y-auto scrollbar-hide">
               {otaLogs.length === 0 ? (
-                <div className="p-8 text-center text-muted-foreground text-sm">
-                  No deployments yet. Trigger an OTA update to see logs here.
+                <div className="h-full flex items-center justify-center p-12 text-center">
+                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-20 italic">WAITING_FOR_ORCHESTRATION_INPUT...</p>
                 </div>
               ) : (
                 <div className="divide-y divide-white/5">
                   {otaLogs.map(log => (
-                    <motion.div key={log.id} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
-                      className="p-4 hover:bg-white/5 transition-colors"
+                    <motion.div key={log.id} initial={{ opacity: 0, x: 5 }} animate={{ opacity: 1, x: 0 }}
+                      className="p-5 hover:bg-white/[0.02] transition-colors"
                     >
-                      <div className="flex items-center gap-3">
-                        {log.status === 'success' && <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />}
-                        {log.status === 'failed' && <XCircle className="w-4 h-4 text-red-400 flex-shrink-0" />}
-                        {log.status === 'pending' && <Clock className="w-4 h-4 text-amber-400 animate-spin flex-shrink-0" />}
+                      <div className="flex items-center gap-4">
+                        <div className={`w-1.5 h-1.5 rounded-full ${
+                          log.status === 'success' ? 'bg-emerald-500 shadow-[0_0_8px_#10B981]' :
+                          log.status === 'failed' ? 'bg-red-500 shadow-[0_0_8px_#EF4444]' :
+                          'bg-amber-500 animate-pulse'
+                        }`} />
                         <div className="min-w-0 flex-1">
-                          <div className="font-mono text-xs truncate">{log.vehicleId}</div>
-                          <div className="text-[10px] text-muted-foreground">{log.timestamp} • {log.campaignId}</div>
+                          <div className="text-[10px] font-black uppercase tracking-tight text-precision truncate">{log.vehicleId}</div>
+                          <div className="text-[9px] font-bold text-muted-foreground opacity-40 uppercase tracking-widest mt-0.5">{log.timestamp} • {log.campaignId}</div>
                         </div>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-                          log.status === 'success' ? 'bg-emerald-500/10 text-emerald-400' :
-                          log.status === 'failed' ? 'bg-red-500/10 text-red-400' :
-                          'bg-amber-500/10 text-amber-400'
-                        }`}>{log.status}</span>
+                        <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase ${
+                          log.status === 'success' ? 'text-emerald-400' :
+                          log.status === 'failed' ? 'text-red-400' :
+                          'text-amber-400'
+                        }`}>[{log.status}]</span>
                       </div>
                     </motion.div>
                   ))}
                 </div>
               )}
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </div>

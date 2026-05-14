@@ -1,68 +1,77 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @custom-variant dark (&:is(.dark *));
 
 :root {
   --font-size: 16px;
-  --font-outfit: 'Outfit', sans-serif;
-  --font-jetbrains: 'JetBrains Mono', monospace;
-  
-  /* Axion Custom Colors */
-  --axion-obsidian: #0B0E14;
-  --axion-black: #000000;
-  --axion-cyan: #00E5FF;
-  --axion-cyan-glow: rgba(0, 229, 255, 0.5);
-  --axion-amber: #FFC107;
-  --axion-red: #FF3D00;
-  --axion-glass-bg: rgba(11, 14, 20, 0.7);
-  --axion-glass-border: rgba(0, 229, 255, 0.2);
+  /* Display / UI: Inter (updated from Plus Jakarta Sans) */
+  --font-outfit: 'Inter', system-ui, sans-serif;
+  --font-jetbrains: 'JetBrains Mono', ui-monospace, monospace;
 
-  --background: #0B0F14;
-  --foreground: #E5E7EB;
-  --card: #151B23;
-  --card-foreground: #E5E7EB;
-  --popover: #1A2028;
-  --popover-foreground: #E5E7EB;
-  --primary: #00E5FF;
-  --primary-foreground: #0B0F14;
-  --secondary: #6C63FF;
-  --secondary-foreground: #E5E7EB;
-  --muted: #1F2937;
-  --muted-foreground: #9CA3AF;
-  --accent: #1A2028;
-  --accent-foreground: #E5E7EB;
-  --destructive: #EF4444;
+  /* Brand surfaces — Kinetic Obsidian (Deep Black/Green) */
+  --axion-obsidian: #0D0F14;
+  --axion-black: #080809;
+  
+  /* Accent: Vibrant Emerald Green */
+  --axion-cyan: #10B981;
+  --axion-cyan-glow: rgba(16, 185, 129, 0.25);
+  --axion-amber: #f59e0b;
+  --axion-red: #ef4444;
+  
+  /* Glassmorphism Tokens */
+  --axion-glass-bg: rgba(255, 255, 255, 0.03);
+  --axion-glass-border: rgba(255, 255, 255, 0.08);
+  --axion-glass-blur: 20px;
+  
+  --axion-steel: #3b82f6; /* Secondary: Blue */
+
+  --background: #0D0F14;
+  --foreground: #e2e2e9;
+  --card: #14161B;
+  --card-foreground: #e2e2e9;
+  --popover: #1A1C22;
+  --popover-foreground: #e2e2e9;
+  --primary: #10B981;
+  --primary-foreground: #003824;
+  --secondary: #3b82f6;
+  --secondary-foreground: #ffffff;
+  --muted: #1e1f25;
+  --muted-foreground: #bbcabf;
+  --accent: #282a2f;
+  --accent-foreground: #e2e2e9;
+  --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #252D38;
-  --input: #1A2028;
-  --input-background: #1A2028;
-  --switch-background: #374151;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: #1a1b21;
+  --input-background: #1a1b21;
+  --switch-background: #33353a;
   --font-weight-medium: 600;
   --font-weight-normal: 400;
-  --ring: #00E5FF;
-  --chart-1: #00E5FF;
-  --chart-2: #10B981;
-  --chart-3: #F59E0B;
-  --chart-4: #EF4444;
-  --chart-5: #6C63FF;
-  --radius: 0.5rem;
-  --sidebar: #0E1419;
-  --sidebar-foreground: #9CA3AF;
-  --sidebar-primary: #00E5FF;
-  --sidebar-primary-foreground: #0B0F14;
-  --sidebar-accent: #1A2028;
-  --sidebar-accent-foreground: #E5E7EB;
-  --sidebar-border: #1F2937;
-  --sidebar-ring: #00E5FF;
+  --ring: rgba(16, 185, 129, 0.4);
   
-  /* Status colors */
+  --chart-1: #10B981;
+  --chart-2: #3b82f6;
+  --chart-3: #f59e0b;
+  --chart-4: #ef4444;
+  --chart-5: #8b5cf6;
+  
+  --radius: 0.5rem;
+  
+  --sidebar: #0C0E13;
+  --sidebar-foreground: #bbcabf;
+  --sidebar-primary: #10B981;
+  --sidebar-primary-foreground: #003824;
+  --sidebar-accent: #1e1f25;
+  --sidebar-accent-foreground: #e2e2e9;
+  --sidebar-border: rgba(255, 255, 255, 0.05);
+  --sidebar-ring: rgba(16, 185, 129, 0.3);
+
   --status-healthy: #10B981;
-  --status-warning: #F59E0B;
-  --status-critical: #EF4444;
+  --status-warning: #f59e0b;
+  --status-critical: #ef4444;
 }
 
 .dark {
-  --background: #0B0F14;
-  --foreground: #E5E7EB;
+  --background: #0e0e10;
+  --foreground: #ececea;
 }
 
 @theme inline {
@@ -111,10 +120,18 @@
     @apply border-border outline-ring/50;
   }
 
+  html {
+    font-size: var(--font-size);
+  }
+
   body {
-    @apply bg-background text-foreground;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-outfit);
+    background-color: var(--background);
+    background-image:
+      radial-gradient(ellipse 120% 70% at 50% -25%, rgba(16, 185, 129, 0.08), transparent 52%),
+      radial-gradient(ellipse 55% 45% at 0% 100%, rgba(59, 130, 246, 0.06), transparent 50%);
+    background-attachment: fixed;
   }
 }
 
@@ -173,6 +190,37 @@
   }
 }
 
-html {
-  font-size: var(--font-size);
+/* Premium surface: subtle lift on hover (use with group/interactive cards) */
+@layer utilities {
+  .interactive-surface {
+    @apply transition-[transform,box-shadow,border-color] duration-300 ease-out;
+  }
+  .interactive-surface:hover {
+    @apply border-border shadow-lg;
+    box-shadow:
+      0 12px 40px -12px rgba(0, 0, 0, 0.45),
+      0 0 0 1px color-mix(in oklab, var(--primary) 12%, transparent);
+  }
+
+  .glass-card {
+    background: var(--axion-glass-bg);
+    backdrop-filter: blur(var(--axion-glass-blur));
+    border: 1px solid var(--axion-glass-border);
+    @apply rounded-lg;
+  }
+
+  .glass-panel {
+    background: rgba(13, 15, 20, 0.6);
+    backdrop-filter: blur(12px);
+    border-right: 1px solid var(--axion-glass-border);
+  }
+
+  .neon-glow-primary {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+  }
+
+  .text-precision {
+    font-family: var(--font-jetbrains);
+    @apply tracking-tight;
+  }
 }

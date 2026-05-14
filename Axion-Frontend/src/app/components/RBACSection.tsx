@@ -12,7 +12,7 @@ export function RBACSection() {
   return (
     <section className="relative py-32 bg-black px-4 overflow-hidden">
       {/* Background gradient */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(0,229,255,0.1),transparent_50%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(197, 165, 104, 0.1),transparent_50%)]" />
 
       <div className="relative z-10 max-w-7xl mx-auto">
         <motion.div
@@ -29,7 +29,7 @@ export function RBACSection() {
             transition={{ type: "spring", stiffness: 200 }}
             className="inline-block mb-6"
           >
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[var(--axion-cyan)] to-blue-500 flex items-center justify-center shadow-[0_0_50px_rgba(0,229,255,0.5)]">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[var(--axion-cyan)] to-blue-500 flex items-center justify-center shadow-[0_0_50px_rgba(197,165,104,0.22)]">
               <Shield className="w-10 h-10 text-white" />
             </div>
           </motion.div>
@@ -138,7 +138,7 @@ export function RBACSection() {
             transition={{ duration: 0.6 }}
             className="sticky top-8"
           >
-            <div className="rounded-xl overflow-hidden border border-[var(--axion-cyan)]/50 shadow-[0_0_60px_rgba(0,229,255,0.3)]">
+            <div className="rounded-xl overflow-hidden border border-[var(--axion-cyan)]/50 shadow-[0_0_40px_rgba(197,165,104,0.18)]">
               {/* Terminal Header */}
               <div className="bg-[var(--axion-obsidian)] border-b border-[var(--axion-cyan)]/30 px-4 py-3 flex items-center gap-2">
                 <div className="flex gap-2">

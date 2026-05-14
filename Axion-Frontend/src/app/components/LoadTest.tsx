@@ -95,7 +95,7 @@ export function LoadTest() {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
-          className="mb-16 p-8 rounded-2xl bg-gradient-to-br from-[var(--axion-glass-bg)] to-transparent backdrop-blur-md border border-[var(--axion-cyan)]/30 shadow-[0_0_80px_rgba(0,229,255,0.2)]"
+          className="mb-16 p-8 rounded-2xl bg-gradient-to-br from-[var(--axion-glass-bg)] to-transparent backdrop-blur-md border border-[var(--axion-cyan)]/30 shadow-[0_0_80px_rgba(197,165,104,0.2)]"
         >
           <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
             <h3 className="text-2xl font-[var(--font-outfit)] font-bold text-white">
@@ -212,7 +212,7 @@ export function LoadTest() {
                     <div className="absolute -inset-2 bg-[var(--axion-cyan)]/30 rounded-full blur-md" />
                     
                     {/* Car icon */}
-                    <div className="relative bg-gradient-to-r from-[var(--axion-cyan)] to-blue-500 p-2 rounded-lg shadow-[0_0_20px_rgba(0,229,255,0.6)]">
+                    <div className="relative bg-gradient-to-r from-[var(--axion-cyan)] to-blue-500 p-2 rounded-lg shadow-[0_0_20px_rgba(197,165,104,0.6)]">
                       <Car className="w-6 h-6 text-white" />
                       
                       {/* Battery indicator */}
@@ -239,7 +239,7 @@ export function LoadTest() {
 
                   {/* Hover info */}
                   <div className="absolute left-1/2 -translate-x-1/2 -top-16 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-30">
-                    <div className="px-3 py-2 rounded-lg bg-black/95 border border-[var(--axion-cyan)] backdrop-blur-sm shadow-[0_0_20px_rgba(0,229,255,0.4)]">
+                    <div className="px-3 py-2 rounded-lg bg-black/95 border border-[var(--axion-cyan)] backdrop-blur-sm shadow-[0_0_20px_rgba(197,165,104,0.4)]">
                       <div className="text-xs font-[var(--font-jetbrains)] text-[var(--axion-cyan)] font-bold">
                         Vehicle {vehicle.id}
                       </div>
@@ -290,7 +290,7 @@ export function LoadTest() {
                 className="relative"
               >
                 {/* Server tower */}
-                <div className="w-28 h-40 rounded-2xl bg-gradient-to-b from-[var(--axion-cyan)] to-blue-600 shadow-[0_0_80px_rgba(0,229,255,0.9)] border-2 border-[var(--axion-cyan)]/50 flex flex-col items-center justify-center gap-3 relative overflow-hidden">
+                <div className="w-28 h-40 rounded-2xl bg-gradient-to-b from-[var(--axion-cyan)] to-blue-600 shadow-[0_0_80px_rgba(197,165,104,0.9)] border-2 border-[var(--axion-cyan)]/50 flex flex-col items-center justify-center gap-3 relative overflow-hidden">
                   {/* Animated scan lines */}
                   <motion.div
                     className="absolute inset-0 bg-gradient-to-b from-transparent via-white/20 to-transparent"
@@ -347,8 +347,8 @@ export function LoadTest() {
                 <AreaChart data={throughputData}>
                   <defs>
                     <linearGradient id="colorThroughput" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#00E5FF" stopOpacity={0.4}/>
-                      <stop offset="95%" stopColor="#00E5FF" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#c5a568" stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor="#c5a568" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
@@ -373,7 +373,7 @@ export function LoadTest() {
                   <Area 
                     type="monotone" 
                     dataKey="events" 
-                    stroke="#00E5FF" 
+                    stroke="#c5a568" 
                     strokeWidth={2}
                     fill="url(#colorThroughput)" 
                   />
@@ -418,7 +418,7 @@ export function LoadTest() {
                       fontSize: '12px'
                     }}
                   />
-                  <Bar dataKey="ms" fill="#00E5FF" radius={[8, 8, 0, 0]} />
+                  <Bar dataKey="ms" fill="#c5a568" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
               <div className="mt-2 text-center">
