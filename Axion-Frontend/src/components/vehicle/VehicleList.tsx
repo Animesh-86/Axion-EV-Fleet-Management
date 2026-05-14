@@ -24,9 +24,9 @@ export function VehicleList() {
 
   const getDegradationDrivers = (v: FleetVehicle): Array<{ label: string; trend: 'up' | 'down' }> | undefined => {
     const drivers: Array<{ label: string; trend: 'up' | 'down' }> = [];
-    if (v.battery != null && v.battery < HEALTH.SOC_WARNING_PCT) drivers.push({ label: v.battery < HEALTH.SOC_CRITICAL_PCT ? 'SOC Critical' : 'Low Battery', trend: 'down' });
-    if (v.temperature != null && v.temperature > HEALTH.TEMP_WARNING_C) drivers.push({ label: v.temperature > HEALTH.TEMP_CRITICAL_C ? 'Temp Critical' : 'High Temp', trend: 'up' });
-    if (!v.online) drivers.push({ label: 'Offline', trend: 'down' });
+    if (v.battery != null && v.battery < HEALTH.SOC_WARNING_PCT) drivers.push({ label: v.battery < HEALTH.SOC_CRITICAL_PCT ? 'SOC_CRITICAL' : 'LOW_BATT', trend: 'down' });
+    if (v.temperature != null && v.temperature > HEALTH.TEMP_WARNING_C) drivers.push({ label: v.temperature > HEALTH.TEMP_CRITICAL_C ? 'THERMAL_CRIT' : 'HIGH_TEMP', trend: 'up' });
+    if (!v.online) drivers.push({ label: 'OFFLINE', trend: 'down' });
     return drivers.length > 0 ? drivers : undefined;
   };
 
@@ -59,176 +59,143 @@ export function VehicleList() {
 
   const getHealthStatus = (score: number): { label: string; color: string; glow: string } => {
     if (score >= (HEALTH.BASE_SCORE - HEALTH.PENALTY_WARNING)) return {
-      label: 'Healthy',
-      color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-      glow: 'shadow-emerald-500/20'
+      label: 'OPTIMAL',
+      color: 'text-emerald-400 border-emerald-500/20 bg-emerald-500/5',
+      glow: 'shadow-[0_0_15px_rgba(16,185,129,0.1)]'
     };
     if (score >= (HEALTH.BASE_SCORE - HEALTH.PENALTY_CRITICAL)) return {
-      label: 'Warning',
-      color: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-      glow: 'shadow-amber-500/20'
+      label: 'DEGRADED',
+      color: 'text-amber-400 border-amber-500/20 bg-amber-500/5',
+      glow: 'shadow-[0_0_15px_rgba(245,158,11,0.1)]'
     };
     return {
-      label: 'Critical',
-      color: 'bg-red-500/10 text-red-400 border-red-500/20',
-      glow: 'shadow-red-500/30 animate-pulse'
+      label: 'CRITICAL',
+      color: 'text-red-400 border-red-500/20 bg-red-500/5',
+      glow: 'shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-pulse'
     };
-  };
-
-  const getBatteryColor = (battery: number) => {
-    if (battery > HEALTH.SOC_WARNING_PCT) return 'bg-emerald-500';
-    if (battery > HEALTH.SOC_CRITICAL_PCT) return 'bg-amber-500';
-    return 'bg-red-500';
   };
 
   if (loading && vehicles.length === 0) {
-    return <div className="p-8 text-center text-muted-foreground">Loading fleet data...</div>;
+    return (
+      <div className="p-8 text-center">
+        <div className="inline-block animate-spin w-5 h-5 border-2 border-primary border-t-transparent rounded-full mb-4" />
+        <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">Synchronizing Fleet Data...</p>
+      </div>
+    );
   }
 
   return (
-    <div className="p-8">
+    <div className="p-8 max-w-[1400px] mx-auto space-y-8">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Fleet Vehicles</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Monitor and manage all vehicles • {vehicles.filter(v => v.status === 'online').length} online
-        </p>
+      <div className="flex items-end justify-between">
+        <div>
+          <h1 className="text-4xl font-black tracking-tighter uppercase text-precision">Fleet_Inventory</h1>
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground mt-2 opacity-50">
+             Active Orchestration Layer • {vehicles.filter(v => v.status === 'online').length} Nodes Online
+          </p>
+        </div>
       </div>
 
       {/* Vehicle Grid */}
-      <div className="grid grid-cols-1 gap-3">
+      <div className="grid grid-cols-1 gap-4">
         {vehicles.map((vehicle, index) => {
           const healthStatus = getHealthStatus(vehicle.healthScore);
-          const batteryColor = getBatteryColor(vehicle.battery);
 
           return (
             <motion.div
               key={vehicle.id}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05, duration: 0.3 }}
-              whileHover={{
-                scale: 1.005,
-                transition: { duration: 0.2 },
-              }}
+              transition={{ delay: index * 0.03 }}
               onClick={() => {
                 sessionStorage.setItem(LAST_VEHICLE_STORAGE_KEY, vehicle.id);
                 navigate(paths.vehicle(vehicle.id));
               }}
-              className="bg-card border border-border rounded-lg p-5 cursor-pointer transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 group"
+              className="glass-card group cursor-pointer p-0 overflow-hidden hover:border-primary/40 transition-all active:scale-[0.995]"
             >
-              <div className="flex items-center justify-between">
-                {/* Left: Vehicle Info */}
-                <div className="flex items-center gap-6 flex-1">
-                  {/* Vehicle ID */}
-                  <div className="min-w-[100px]">
-                    <p className="text-sm font-mono text-primary font-semibold">{vehicle.id}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{vehicle.vendor}</p>
-                  </div>
+              <div className="flex items-stretch">
+                {/* Status Sidebar Accent */}
+                <div className={`w-1 ${vehicle.status === 'online' ? 'bg-emerald-500' : 'bg-muted opacity-20'}`} />
 
-                  {/* Battery */}
-                  <div className="min-w-[140px]">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Battery className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground uppercase tracking-wider">Battery</span>
+                <div className="flex-1 flex items-center justify-between p-6">
+                  {/* Left: Identity */}
+                  <div className="flex items-center gap-12 flex-1">
+                    <div className="min-w-[140px]">
+                      <p className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-1 opacity-40 text-[9px]">Node_ID</p>
+                      <p className="text-xl font-black tracking-tighter uppercase text-precision group-hover:text-primary transition-colors">{vehicle.id}</p>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase opacity-60 tracking-wider mt-1">{vehicle.vendor}</p>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${vehicle.battery}%` }}
-                          transition={{ delay: index * 0.05 + 0.3, duration: 0.8 }}
-                          className={`h-full ${batteryColor}`}
-                        />
-                      </div>
-                      <span className="text-sm font-semibold w-12 text-right">{vehicle.battery.toFixed(1)}%</span>
-                    </div>
-                  </div>
 
-                  {/* Temperature */}
-                  <div className="min-w-[120px]">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Thermometer className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground uppercase tracking-wider">Temp</span>
-                    </div>
-                    <p className="text-sm font-semibold">
-                      {vehicle.temperature.toFixed(1)}°C
-                    </p>
-                  </div>
-
-                  {/* Health Score */}
-                  <div className="min-w-[200px]">
-                    <span className="text-xs text-muted-foreground uppercase tracking-wider block mb-1">
-                      Health
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold border ${healthStatus.color} ${healthStatus.glow} shadow-lg`}>
-                        {healthStatus.label} • {vehicle.healthScore}
-                      </span>
-                      {vehicle.degradationDrivers && (
-                        <div className="flex items-center gap-1">
-                          {vehicle.degradationDrivers.map((driver, driverIndex) => (
-                            <span
-                              key={driverIndex}
-                              className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded text-xs font-medium"
-                            >
-                              {driver.label}
-                              <TrendingUp className="w-3 h-3" />
-                            </span>
-                          ))}
+                    {/* Stats Group */}
+                    <div className="flex items-center gap-16">
+                      {/* Battery */}
+                      <div className="min-w-[120px]">
+                        <div className="flex items-center gap-2 mb-2">
+                           <Battery className="w-3.5 h-3.5 text-muted-foreground opacity-40" />
+                           <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Energy</span>
                         </div>
-                      )}
+                        <div className="flex items-center gap-3">
+                           <span className="text-lg font-bold text-precision">{vehicle.battery.toFixed(0)}<span className="text-[10px] text-muted-foreground ml-0.5">%</span></span>
+                           <div className="flex-1 w-16 h-1 bg-white/5 rounded-full overflow-hidden">
+                              <div 
+                                className={`h-full ${vehicle.battery > 20 ? 'bg-emerald-500' : 'bg-red-500'}`} 
+                                style={{ width: `${vehicle.battery}%` }}
+                              />
+                           </div>
+                        </div>
+                      </div>
+
+                      {/* Temperature */}
+                      <div className="min-w-[100px]">
+                        <div className="flex items-center gap-2 mb-2">
+                           <Thermometer className="w-3.5 h-3.5 text-muted-foreground opacity-40" />
+                           <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Thermal</span>
+                        </div>
+                        <p className="text-lg font-bold text-precision">
+                          {vehicle.temperature.toFixed(1)}<span className="text-[10px] text-muted-foreground ml-0.5">°C</span>
+                        </p>
+                      </div>
+
+                      {/* Health */}
+                      <div className="min-w-[200px]">
+                        <div className="flex items-center gap-2 mb-2">
+                           <TrendingUp className="w-3.5 h-3.5 text-muted-foreground opacity-40" />
+                           <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40">System_Health</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                           <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-tighter border ${healthStatus.color} ${healthStatus.glow}`}>
+                             {healthStatus.label}
+                           </span>
+                           <span className="text-lg font-bold text-precision">{vehicle.healthScore}</span>
+                           {vehicle.degradationDrivers && (
+                             <div className="flex gap-1">
+                               {vehicle.degradationDrivers.slice(0, 1).map((driver, i) => (
+                                 <span key={i} className="text-[9px] font-bold text-amber-500/60 uppercase tracking-tighter">
+                                   [{driver.label}]
+                                 </span>
+                               ))}
+                             </div>
+                           )}
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Status */}
-                  <div className="min-w-[100px]">
-                    <span className="text-xs text-muted-foreground uppercase tracking-wider block mb-1">
-                      Status
-                    </span>
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold ${vehicle.status === 'online'
-                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                        : 'bg-gray-500/10 text-gray-400 border border-gray-500/20'
-                        }`}
-                    >
-                      {vehicle.status === 'online' ? (
-                        <>
-                          <Activity className="w-3 h-3" />
-                          Online
-                        </>
-                      ) : (
-                        <>
-                          <WifiOff className="w-3 h-3" />
-                          Offline
-                        </>
-                      )}
-                    </span>
+                  {/* Right: Meta & Action */}
+                  <div className="flex items-center gap-8">
+                    <div className="text-right">
+                       <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40 mb-1">Status</p>
+                       <div className={`text-[10px] font-black uppercase tracking-widest ${vehicle.status === 'online' ? 'text-emerald-400' : 'text-muted-foreground opacity-50'}`}>
+                          {vehicle.status === 'online' ? 'SYNC_ACTIVE' : 'SYNC_LOST'}
+                       </div>
+                    </div>
+                    
+                    <div className="opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
+                       <div className="p-2 bg-primary/10 text-primary rounded-lg border border-primary/20">
+                          <ExternalLink className="w-4 h-4" />
+                       </div>
+                    </div>
                   </div>
-
-                  {/* Last Update */}
-                  <div className="min-w-[80px]">
-                    <span className="text-xs text-muted-foreground uppercase tracking-wider block mb-1">
-                      Updated
-                    </span>
-                    <p className="text-xs font-medium text-muted-foreground">{vehicle.lastUpdate}</p>
-                  </div>
-                </div>
-
-                {/* Right: Action */}
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      sessionStorage.setItem(LAST_VEHICLE_STORAGE_KEY, vehicle.id);
-                      navigate(paths.vehicle(vehicle.id));
-                    }}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary border border-primary/20 rounded-lg text-xs font-semibold hover:bg-primary/20 transition-colors"
-                  >
-                    <span>View Digital Twin</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </button>
                 </div>
               </div>
             </motion.div>
@@ -236,30 +203,20 @@ export function VehicleList() {
         })}
       </div>
 
-      {/* Footer Stats */}
-      <div className="mt-6 flex items-center justify-between text-sm">
-        <p className="text-muted-foreground">
-          Showing {vehicles.length} vehicles
+      {/* Footer Info */}
+      <div className="pt-8 border-t border-white/5 flex items-center justify-between">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-30">
+          Showing {vehicles.length} Network Instances
         </p>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-emerald-500 rounded-full" />
-            <span className="text-muted-foreground">
-              {vehicles.filter(v => v.healthScore >= 80).length} Healthy
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-amber-500 rounded-full" />
-            <span className="text-muted-foreground">
-              {vehicles.filter(v => v.healthScore >= 50 && v.healthScore < 80).length} Warning
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-            <span className="text-muted-foreground">
-              {vehicles.filter(v => v.healthScore < 50).length} Critical
-            </span>
-          </div>
+        <div className="flex items-center gap-6">
+           <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10B981]" />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-50">Operational</span>
+           </div>
+           <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_#EF4444]" />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-50">Critical_Fault</span>
+           </div>
         </div>
       </div>
     </div>

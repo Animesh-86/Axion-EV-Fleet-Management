@@ -1,241 +1,162 @@
-import { motion, useScroll, useTransform } from 'motion/react';
-import { Database, Gauge, Lock, Workflow, Zap, Radio, Cpu, Settings, Target } from 'lucide-react';
+import { motion } from 'motion/react';
+import { Database, Gauge, Workflow, Zap, Radio, Cpu, Settings, Target } from 'lucide-react';
 import { useRef } from 'react';
 
 export function CoreFoundation() {
   const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"]
-  });
-
-  const flowProgress = useTransform(scrollYProgress, [0, 1], [0, 100]);
-
+  
   const features = [
     {
       icon: Workflow,
-      title: 'Dual Protocol Ingestion',
+      title: 'DUAL_PROTOCOL_INGESTION',
       description: 'Handling 250 concurrent vehicles seamlessly via asynchronous REST and Eclipse Mosquitto MQTT ingestion.',
-      metrics: ['REST API', 'MQTT Broker', '250 Vehicles'],
+      metrics: ['REST_GATEWAY', 'MQTT_BROKER', 'ASYNC_LOAD'],
     },
     {
       icon: Database,
-      title: 'Authoritative Digital Twins',
+      title: 'AUTHORITATIVE_TWINS',
       description: 'State caching via Redis, providing sub-second reads and instantaneous 120s TTL expiring for stale data protection.',
-      metrics: ['<50ms reads', 'Redis Cache', '120s TTL'],
+      metrics: ['<50MS_READS', 'REDIS_PERSIST', 'TTL_AUTO'],
     },
     {
       icon: Gauge,
-      title: 'Algorithmic Health Engine',
+      title: 'ALGORITHMIC_SCORING',
       description: 'Executing 10,000+ rule evaluations per hour, continuously calculating 0-100 baseline scores against live SOC and thermal profiles.',
-      metrics: ['10K+/hour', 'ML Scoring', '0-100 Scale'],
+      metrics: ['10K+/HOUR', 'ML_HEURISTICS', '0-100_RANGE'],
     },
   ];
 
   return (
-    <section ref={ref} className="relative py-32 bg-[var(--axion-obsidian)] px-4 overflow-hidden">
-      {/* Background pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_48%,var(--axion-cyan)_49%,var(--axion-cyan)_51%,transparent_52%)] bg-[size:20px_20px]" />
+    <section ref={ref} className="relative py-32 bg-black px-4 overflow-hidden">
+      {/* Background Precision Pattern */}
+      <div className="absolute inset-0 opacity-[0.03]">
+        <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_48%,#10B981_49%,#10B981_51%,transparent_52%)] bg-[size:40px_40px]" />
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="text-center mb-24"
         >
-          <h2 className="text-5xl md:text-6xl font-[var(--font-outfit)] font-black text-white mb-4">
-            Built for{' '}
-            <span className="text-[var(--axion-cyan)]">Unforgiving Scale</span>
+          <h2 className="text-6xl md:text-7xl font-black text-precision mb-6 tracking-tighter uppercase leading-[0.9]">
+            Built for<br />
+            <span className="text-primary">Unforgiving_Scale</span>
           </h2>
-          <p className="text-xl text-gray-400 font-[var(--font-outfit)] max-w-3xl mx-auto">
-            A distributed architecture engineered to handle massive telemetry streams without compromise
+          <p className="text-[11px] text-muted-foreground font-black uppercase tracking-[0.4em] max-w-2xl mx-auto opacity-50">
+            DISTRIBUTED_ARCHITECTURE • HIGH_THROUGHPUT • FAULT_TOLERANT
           </p>
         </motion.div>
 
         {/* Architecture Flow Visualization */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          className="mb-20 relative"
-        >
-          {/* Vertical Stack Architecture Cards */}
+        <div className="mb-32 relative">
           <div className="grid md:grid-cols-5 gap-4 max-w-6xl mx-auto">
             {[
-              { label: 'MQTT/REST', desc: 'Dual Ingestion', Icon: Zap },
-              { label: 'Kafka', desc: 'Event Stream', Icon: Radio },
-              { label: 'Processing', desc: 'ML Pipeline', Icon: Cpu },
-              { label: 'Redis', desc: 'State Cache', Icon: Settings },
-              { label: 'Digital Twin', desc: 'Live Mirror', Icon: Target }
+              { label: 'MQTT/REST', desc: 'INGESTION', Icon: Zap },
+              { label: 'KAFKA', desc: 'EVENT_STREAM', Icon: Radio },
+              { label: 'SCORING', desc: 'ML_PIPELINE', Icon: Cpu },
+              { label: 'REDIS', desc: 'STATE_CACHE', Icon: Settings },
+              { label: 'TWIN', desc: 'LIVE_MIRROR', Icon: Target }
             ].map((item, i) => (
               <motion.div
                 key={item.label}
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.5 }}
-                whileHover={{ y: -8, scale: 1.02 }}
+                transition={{ delay: i * 0.05 }}
                 className="relative group"
               >
-                {/* Connector Arrow - show on all except last */}
-                {i < 4 && (
-                  <div className="hidden md:block absolute top-1/2 -right-2 transform -translate-y-1/2 z-20">
-                    <motion.div
-                      initial={{ opacity: 0, x: -10 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.1 + 0.3 }}
-                      className="text-[var(--axion-cyan)] text-2xl"
-                    >
-                      →
-                    </motion.div>
+                <div className="glass-card p-6 border-white/5 group-hover:border-primary/40 transition-all duration-500 h-full text-center">
+                  <div className="flex justify-center mb-6">
+                    <div className="w-12 h-12 rounded border border-primary/20 bg-primary/5 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                      <item.Icon className="w-5 h-5 text-primary" />
+                    </div>
                   </div>
-                )}
-
-                <div className="relative p-6 rounded-xl bg-gradient-to-br from-[var(--axion-glass-bg)] to-black/40 backdrop-blur-md border border-[var(--axion-glass-border)] group-hover:border-[var(--axion-cyan)] transition-all duration-300 h-full">
-                  {/* Animated glow */}
-                  <div className="absolute inset-0 rounded-xl bg-[var(--axion-cyan)] opacity-0 group-hover:opacity-20 blur-2xl transition-opacity duration-300" />
-                  
-                  <div className="relative z-10 text-center">
-                    {/* Icon */}
-                    <div className="flex justify-center mb-4">
-                      <div className="w-14 h-14 rounded-lg bg-[var(--axion-cyan)]/10 border border-[var(--axion-cyan)] flex items-center justify-center group-hover:shadow-[0_0_30px_var(--axion-cyan-glow)] transition-all duration-300 group-hover:scale-110">
-                        <item.Icon className="w-7 h-7 text-[var(--axion-cyan)]" />
-                      </div>
-                    </div>
-                    
-                    {/* Main Label */}
-                    <div className="text-lg font-[var(--font-outfit)] font-bold text-[var(--axion-cyan)] mb-2">
-                      {item.label}
-                    </div>
-                    
-                    {/* Description */}
-                    <div className="text-xs text-gray-400 font-[var(--font-jetbrains)]">
-                      {item.desc}
-                    </div>
-
-                    {/* Pulse indicator */}
-                    <div className="mt-4 flex justify-center">
-                      <div className="w-2 h-2 rounded-full bg-[var(--axion-cyan)] animate-pulse shadow-[0_0_10px_var(--axion-cyan)]" />
-                    </div>
+                  <div className="text-xs font-black font-mono text-precision mb-1 uppercase tracking-tighter">
+                    {item.label}
+                  </div>
+                  <div className="text-[8px] text-muted-foreground font-black uppercase tracking-widest opacity-40">
+                    {item.desc}
+                  </div>
+                  <div className="mt-6 flex justify-center">
+                    <div className="w-1 h-1 rounded-full bg-primary/30 group-hover:bg-primary animate-pulse" />
                   </div>
                 </div>
               </motion.div>
             ))}
           </div>
 
-          {/* Flow Metrics Below */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.6 }}
-            className="mt-8 text-center"
+            className="mt-12 text-center"
           >
-            <div className="inline-flex items-center gap-4 px-6 py-3 rounded-full bg-[var(--axion-glass-bg)] border border-[var(--axion-cyan)]/30 backdrop-blur-md">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                <span className="text-sm font-[var(--font-jetbrains)] text-gray-300">
-                  87 events/sec
-                </span>
+            <div className="inline-flex items-center gap-6 px-6 py-3 rounded border border-white/5 bg-white/[0.02] backdrop-blur-xl">
+              <div className="flex items-center gap-3">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_#10B981]" />
+                <span className="text-[9px] font-black font-mono text-precision uppercase tracking-widest">87_EVENTS/SEC</span>
               </div>
-              <div className="w-px h-4 bg-gray-600" />
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-[var(--font-jetbrains)] text-gray-300">
-                  &lt;84ms latency
-                </span>
-              </div>
-              <div className="w-px h-4 bg-gray-600" />
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-[var(--font-jetbrains)] text-[var(--axion-cyan)]">
-                  99.99% uptime
-                </span>
-              </div>
+              <div className="w-px h-3 bg-white/10" />
+              <span className="text-[9px] font-black font-mono text-precision uppercase tracking-widest opacity-60">&lt;84MS_LATENCY</span>
+              <div className="w-px h-3 bg-white/10" />
+              <span className="text-[9px] font-black font-mono text-primary uppercase tracking-widest">99.99%_UPTIME</span>
             </div>
           </motion.div>
-        </motion.div>
+        </div>
 
         {/* Feature Cards */}
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-3 gap-6">
           {features.map((feature, i) => (
             <motion.div
               key={feature.title}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.15, duration: 0.5 }}
-              whileHover={{ y: -10 }}
-              className="group relative p-8 rounded-xl bg-gradient-to-br from-[var(--axion-glass-bg)] to-transparent backdrop-blur-md border border-[var(--axion-glass-border)] hover:border-[var(--axion-cyan)] transition-all duration-300"
+              transition={{ delay: i * 0.1 }}
+              className="glass-card p-8 border-white/5 hover:border-primary/30 transition-all duration-500"
             >
-              {/* Glow effect on hover */}
-              <div className="absolute inset-0 rounded-xl bg-[var(--axion-cyan)] opacity-0 group-hover:opacity-10 blur-xl transition-opacity duration-300" />
-              
-              <div className="relative z-10">
-                <div className="w-14 h-14 rounded-lg bg-[var(--axion-cyan)]/10 border border-[var(--axion-cyan)] flex items-center justify-center mb-6 group-hover:shadow-[0_0_30px_var(--axion-cyan-glow)] transition-shadow">
-                  <feature.icon className="w-7 h-7 text-[var(--axion-cyan)]" />
-                </div>
+              <div className="w-12 h-12 rounded border border-primary/20 bg-primary/5 flex items-center justify-center mb-8">
+                <feature.icon className="w-5 h-5 text-primary" />
+              </div>
 
-                <h3 className="text-2xl font-[var(--font-outfit)] font-bold text-white mb-3">
-                  {feature.title}
-                </h3>
+              <h3 className="text-xl font-black text-precision mb-4 uppercase tracking-tighter">
+                {feature.title}
+              </h3>
 
-                <p className="text-gray-400 font-[var(--font-outfit)] mb-6 leading-relaxed">
-                  {feature.description}
-                </p>
+              <p className="text-[11px] text-muted-foreground font-bold uppercase tracking-widest mb-8 leading-relaxed opacity-60">
+                {feature.description}
+              </p>
 
-                <div className="flex flex-wrap gap-2">
-                  {feature.metrics.map((metric) => (
-                    <span
-                      key={metric}
-                      className="px-3 py-1 rounded-full bg-[var(--axion-cyan)]/10 border border-[var(--axion-cyan)]/30 text-[var(--axion-cyan)] text-sm font-[var(--font-jetbrains)]"
-                    >
-                      {metric}
-                    </span>
-                  ))}
-                </div>
+              <div className="flex flex-wrap gap-2">
+                {feature.metrics.map((metric) => (
+                  <span
+                    key={metric}
+                    className="px-2 py-1 rounded border border-primary/10 bg-primary/5 text-primary text-[8px] font-black uppercase tracking-widest"
+                  >
+                    {metric}
+                  </span>
+                ))}
               </div>
             </motion.div>
           ))}
         </div>
 
-        {/* Performance Stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mt-20 p-8 rounded-xl bg-gradient-to-r from-[var(--axion-glass-bg)] to-transparent backdrop-blur-md border border-[var(--axion-glass-border)]"
-        >
-          <div className="grid md:grid-cols-3 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-[var(--font-outfit)] font-black text-[var(--axion-cyan)] mb-2">
-                250
+        {/* Technical Footer Metric */}
+        <div className="mt-24 pt-12 border-t border-white/5 grid grid-cols-2 md:grid-cols-4 gap-12">
+            {[
+              { label: 'KAFKA_PARTITIONS', value: '250', color: 'text-precision' },
+              { label: 'AVG_REPLICATION', value: '3', color: 'text-precision' },
+              { label: 'TTL_PURGE_INT', value: '120S', color: 'text-primary' },
+              { label: 'THREAD_POOL', value: 'ASYNC', color: 'text-precision' },
+            ].map((stat, i) => (
+              <div key={i}>
+                <div className={`text-2xl font-black tracking-tighter ${stat.color}`}>{stat.value}</div>
+                <div className="text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40 mt-1">{stat.label}</div>
               </div>
-              <div className="text-sm text-gray-400 font-[var(--font-jetbrains)]">
-                Kafka Partitions
-              </div>
-            </div>
-            <div>
-              <div className="text-4xl font-[var(--font-outfit)] font-black text-[var(--axion-cyan)] mb-2">
-                &lt;84ms
-              </div>
-              <div className="text-sm text-gray-400 font-[var(--font-jetbrains)]">
-                Average Latency
-              </div>
-            </div>
-            <div>
-              <div className="text-4xl font-[var(--font-outfit)] font-black text-[var(--axion-cyan)] mb-2">
-                120s
-              </div>
-              <div className="text-sm text-gray-400 font-[var(--font-jetbrains)]">
-                TTL Auto-Expiry
-              </div>
-            </div>
-          </div>
-        </motion.div>
+            ))}
+        </div>
       </div>
     </section>
   );

@@ -96,143 +96,113 @@ export function Layout({ children }: LayoutProps) {
   };
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
+    <div className="flex h-screen bg-background overflow-hidden selection:bg-primary/30">
+      {/* Sidebar */}
       <motion.aside
         initial={false}
         animate={{ width: sidebarCollapsed ? 80 : 260 }}
         transition={{ type: 'spring', stiffness: 420, damping: 38 }}
-        className="bg-sidebar/95 backdrop-blur-md border-r border-sidebar-border flex flex-col relative shadow-[4px_0_24px_-8px_rgba(0,0,0,0.4)]"
+        className="glass-panel flex flex-col relative z-50 shadow-2xl"
       >
-        <div className="h-16 flex items-center px-6 border-b border-sidebar-border/80 justify-between">
+        <div className="h-16 flex items-center px-6 border-b border-white/5 justify-between">
           {!sidebarCollapsed ? (
-            <div>
-              <h1 className="text-lg font-bold text-foreground tracking-tight">
-                AXION<span className="text-primary">.</span>
-              </h1>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-[0.14em]">Fleet Orchestrator</p>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 bg-primary rounded flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.4)]">
+                <Car className="w-4 h-4 text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-sm font-black text-foreground tracking-tighter uppercase leading-none">
+                  AXION<span className="text-primary">_</span>
+                </h1>
+                <p className="text-[8px] text-muted-foreground uppercase tracking-[0.2em] font-bold mt-0.5 opacity-50">Fleet OS</p>
+              </div>
             </div>
           ) : (
-            <div className="text-foreground text-xl font-bold">
-              A<span className="text-primary">.</span>
+            <div className="w-8 h-8 mx-auto bg-primary rounded flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.4)]">
+               <Car className="w-5 h-5 text-primary-foreground" />
             </div>
           )}
-          <motion.button
-            type="button"
-            onClick={() => navigate(paths.landing)}
-            whileHover={{ scale: 1.06 }}
-            whileTap={{ scale: 0.95 }}
-            className="p-1.5 rounded-md hover:bg-sidebar-accent text-muted-foreground hover:text-foreground transition-colors"
-            title="Back to Landing Page"
-          >
-            <Circle className="w-4 h-4 fill-primary/15 text-primary" />
-          </motion.button>
         </div>
 
-        <nav className="flex-1 py-6 overflow-y-auto">
-          <ul className="space-y-1 px-3">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = navItemActive(item.id, pathname);
-              return (
-                <li key={item.id}>
-                  <motion.button
-                    type="button"
-                    onClick={() => goNav(item.id, item.path)}
-                    whileHover={{ x: 3 }}
-                    whileTap={{ scale: 0.98 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors relative group ${
-                      isActive
-                        ? 'bg-primary/[0.08] text-primary border border-primary/15'
-                        : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-accent-foreground border border-transparent'
-                    }`}
-                  >
-                    {isActive && (
-                      <span
-                        className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-7 rounded-full bg-primary"
-                        aria-hidden
-                      />
-                    )}
-                    <Icon className={`w-5 h-5 flex-shrink-0 transition-transform ${isActive ? 'scale-110' : 'group-hover:scale-105'}`} />
-                    {!sidebarCollapsed && <span className="text-sm font-medium truncate pl-0.5">{item.label}</span>}
-                  </motion.button>
-                </li>
-              );
-            })}
-          </ul>
+        <nav className="flex-1 py-6 overflow-y-auto px-3 space-y-1">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = navItemActive(item.id, pathname);
+            return (
+              <motion.button
+                key={item.id}
+                type="button"
+                onClick={() => goNav(item.id, item.path)}
+                whileHover={{ x: 4 }}
+                whileTap={{ scale: 0.98 }}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all relative group ${
+                  isActive
+                    ? 'bg-primary/10 text-primary border border-primary/20'
+                    : 'text-muted-foreground hover:bg-white/5 hover:text-foreground border border-transparent'
+                }`}
+              >
+                {isActive && (
+                  <motion.div 
+                    layoutId="active-pill"
+                    className="absolute left-0 w-1 h-6 bg-primary rounded-r-full"
+                  />
+                )}
+                <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-primary' : 'group-hover:text-foreground opacity-70 group-hover:opacity-100'}`} />
+                {!sidebarCollapsed && <span className="text-xs font-bold uppercase tracking-wider">{item.label}</span>}
+              </motion.button>
+            );
+          })}
         </nav>
 
+        {/* Sidebar Toggle */}
         <motion.button
           type="button"
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.92 }}
-          className="absolute -right-3 top-20 w-6 h-6 bg-card border border-border rounded-full flex items-center justify-center hover:bg-accent hover:border-primary/25 shadow-md transition-colors"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          className="absolute -right-3 top-20 w-6 h-6 bg-card border border-white/10 rounded-full flex items-center justify-center hover:border-primary/50 shadow-xl transition-colors z-50"
         >
-          <ChevronLeft
-            className={`w-4 h-4 text-muted-foreground transition-transform duration-300 ${sidebarCollapsed ? 'rotate-180' : ''}`}
-          />
+          <ChevronLeft className={`w-3 h-3 text-muted-foreground transition-transform duration-300 ${sidebarCollapsed ? 'rotate-180' : ''}`} />
         </motion.button>
 
-        {!sidebarCollapsed ? (
-          <div className="p-4 border-t border-sidebar-border">
-            <div className="flex items-center justify-between mb-2">
+        {/* User Profile */}
+        <div className="p-4 border-t border-white/5">
+          <div className="flex items-center justify-between">
+            {!sidebarCollapsed && (
               <div className="flex items-center gap-2 min-w-0">
-                <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/5">
                   <span className="text-xs font-bold text-primary">{user?.name?.charAt(0).toUpperCase() || 'U'}</span>
                 </div>
-                <span className="text-sm text-foreground truncate">{user?.name || 'User'}</span>
+                <div className="min-w-0">
+                   <p className="text-[10px] font-bold text-foreground truncate">{user?.name || 'OPERATOR'}</p>
+                   <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold opacity-50">Admin</p>
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  logout();
-                  navigate(paths.login);
-                }}
-                className="text-muted-foreground hover:text-red-400 transition-colors flex-shrink-0"
-                title="Sign out"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
-            <p className="text-xs text-muted-foreground">Version 1.2.0</p>
-          </div>
-        ) : (
-          <div className="p-2 border-t border-sidebar-border flex justify-center">
+            )}
             <button
               type="button"
-              onClick={() => {
-                logout();
-                navigate(paths.login);
-              }}
-              className="text-muted-foreground hover:text-red-400 transition-colors p-2"
+              onClick={() => { logout(); navigate(paths.login); }}
+              className={`text-muted-foreground hover:text-red-400 transition-colors p-2 ${sidebarCollapsed ? 'mx-auto' : ''}`}
               title="Sign out"
             >
               <LogOut className="w-4 h-4" />
             </button>
           </div>
-        )}
+        </div>
       </motion.aside>
 
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 bg-card/85 backdrop-blur-md border-b border-border/80 flex items-center justify-between px-6 z-10">
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="flex items-center gap-2 px-4 py-2 bg-background/80 border border-border rounded-lg hover:border-primary/30 hover:bg-muted/30 transition-colors"
-              >
-                <span className="text-sm font-medium">{selectedFleet}</span>
-                <ChevronDown className="w-4 h-4 text-muted-foreground" />
-              </motion.button>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col overflow-hidden relative">
+        {/* Header */}
+        <header className="h-16 bg-background/50 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-8 z-40">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
+               <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+               <span className="text-[10px] font-bold uppercase tracking-widest text-primary">{selectedFleet}</span>
             </div>
-          </div>
-
-          <div className="flex-1 max-w-md mx-8">
+            
             <form
-              className="relative"
+              className="relative hidden md:block"
               onSubmit={(e) => {
                 e.preventDefault();
                 const q = searchQuery.trim();
@@ -242,50 +212,50 @@ export function Layout({ children }: LayoutProps) {
                 setSearchQuery('');
               }}
             >
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground opacity-50" />
               <input
                 type="text"
-                placeholder="Search vehicle ID..."
+                placeholder="SEARCH VEHICLE ID..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                className="w-64 pl-10 pr-4 py-1.5 bg-white/5 border border-white/5 rounded-full text-[10px] font-bold tracking-widest focus:outline-none focus:border-primary/50 transition-all placeholder:text-muted-foreground/30"
               />
             </form>
           </div>
 
-          <div className="flex items-center gap-4">
-            {user && (
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-foreground font-medium">{user.name}</span>
-                {user.company && <span className="text-muted-foreground text-xs">• {user.company}</span>}
-              </div>
-            )}
+          <div className="flex items-center gap-6">
             {fleetCount.total > 0 && (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Car className="w-3.5 h-3.5" />
-                <span>
-                  {fleetCount.online}/{fleetCount.total} online
-                </span>
+              <div className="hidden lg:flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                  <Car className="w-3.5 h-3.5 opacity-50" />
+                  <span>TOTAL: <span className="text-foreground">{fleetCount.total}</span></span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Wifi className="w-3.5 h-3.5 text-emerald-400 opacity-50" />
+                  <span>ONLINE: <span className="text-emerald-400">{fleetCount.online}</span></span>
+                </div>
               </div>
             )}
-            <div
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${
-                backendLive ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-red-500/10 border-red-500/20'
-              }`}
-            >
-              <Circle
-                className={`w-2 h-2 ${
-                  backendLive ? 'fill-emerald-500 text-emerald-500 animate-pulse' : 'fill-red-500 text-red-500'
-                }`}
-              />
-              <span className={`text-xs font-semibold uppercase tracking-wide ${backendLive ? 'text-emerald-500' : 'text-red-500'}`}>
-                {backendLive ? 'LIVE' : 'OFFLINE'}
+
+            <div className={`flex items-center gap-2 px-3 py-1 rounded-full border ${
+                backendLive ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-red-500/5 border-red-500/20'
+              }`}>
+              <div className={`w-1 h-1 rounded-full ${backendLive ? 'bg-emerald-500 animate-pulse shadow-[0_0_5px_#10B981]' : 'bg-red-500'}`} />
+              <span className={`text-[9px] font-black uppercase tracking-[0.2em] ${backendLive ? 'text-emerald-500' : 'text-red-500'}`}>
+                {backendLive ? 'SYSTEM_ONLINE' : 'CORE_OFFLINE'}
               </span>
             </div>
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        {/* Content */}
+        <main className="flex-1 overflow-y-auto relative bg-[#0D0F14]">
+          {/* Subtle grid background pattern */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+          <div className="relative z-10">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );

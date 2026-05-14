@@ -46,58 +46,42 @@ export function SystemHealth() {
       const backendLatency = Math.round(performance.now() - backendStart);
 
       results.push({
-        name: 'Spring Boot API',
+        name: 'Spring Boot Engine',
         icon: Server,
         status: backendOk ? 'healthy' : 'down',
         latency: backendOk ? backendLatency : null,
-        description: backendOk ? `Responding in ${backendLatency}ms • ${vehicleCount} digital twins active` : 'API unreachable',
+        description: backendOk ? `${vehicleCount} ACTIVE_TWINS` : 'NODE_UNREACHABLE',
         port: String(PORTS.BACKEND),
       });
 
-      // Redis (inferred from backend — if twins exist, Redis is up)
+      // Redis
       results.push({
-        name: 'Redis',
+        name: 'Redis Cluster',
         icon: Database,
         status: backendOk && vehicleCount > 0 ? 'healthy' : backendOk ? 'degraded' : 'down',
         latency: backendOk ? Math.max(1, backendLatency - 10) : null,
-        description: backendOk && vehicleCount > 0
-          ? `${vehicleCount} keys active • TTL ${HEALTH.REDIS_TTL_SECONDS}s`
-          : backendOk ? 'Connected but no data' : 'Unreachable',
+        description: backendOk && vehicleCount > 0 ? 'STATE_STORE_SYNCED' : 'STATE_EMPTY',
         port: String(PORTS.REDIS),
       });
 
-      // Kafka (inferred from backend health — if data flows, Kafka is up)
+      // Kafka
       results.push({
-        name: 'Apache Kafka',
+        name: 'Kafka Broker',
         icon: MessageSquare,
         status: backendOk && vehicleCount > 0 ? 'healthy' : backendOk ? 'degraded' : 'down',
         latency: null,
-        description: backendOk && vehicleCount > 0
-          ? 'Topic: telemetry.normal • Consumer active'
-          : backendOk ? 'Broker connected but idle' : 'Unreachable',
+        description: backendOk && vehicleCount > 0 ? 'TELEMETRY_STREAM_ACTIVE' : 'STREAM_IDLE',
         port: String(PORTS.KAFKA),
       });
 
-      // MQTT Broker
+      // MQTT
       results.push({
         name: 'Mosquitto MQTT',
         icon: Radio,
         status: backendOk && vehicleCount > 0 ? 'healthy' : backendOk ? 'degraded' : 'down',
         latency: null,
-        description: backendOk && vehicleCount > 0
-          ? 'Topic: vehicle/+/telemetry • Subscribed'
-          : 'Broker status inferred from data flow',
+        description: 'INGESTION_LAYER_ACTIVE',
         port: String(PORTS.MQTT),
-      });
-
-      // Zookeeper
-      results.push({
-        name: 'Zookeeper',
-        icon: HardDrive,
-        status: backendOk && vehicleCount > 0 ? 'healthy' : backendOk ? 'degraded' : 'down',
-        latency: null,
-        description: 'Kafka coordination service',
-        port: String(PORTS.ZOOKEEPER),
       });
 
       setServices(results);
@@ -125,8 +109,8 @@ export function SystemHealth() {
 
   const healthyCount = services.filter(s => s.status === 'healthy').length;
   const totalCount = services.length;
-  const overallStatus = healthyCount === totalCount ? 'All Systems Operational' :
-    healthyCount > 0 ? 'Partial Degradation' : 'System Down';
+  const overallStatus = healthyCount === totalCount ? 'SYSTEM_OPTIMAL' :
+    healthyCount > 0 ? 'DEGRADED_STATE' : 'CORE_OFFLINE';
   const overallColor = healthyCount === totalCount ? 'text-emerald-400' :
     healthyCount > 0 ? 'text-amber-400' : 'text-red-400';
 
@@ -134,83 +118,78 @@ export function SystemHealth() {
     const h = Math.floor(s / 3600);
     const m = Math.floor((s % 3600) / 60);
     const sec = s % 60;
-    return h > 0 ? `${h}h ${m}m ${sec}s` : m > 0 ? `${m}m ${sec}s` : `${sec}s`;
-  };
-
-  const tooltipStyle = {
-    contentStyle: { backgroundColor: 'rgba(0,0,0,0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '12px' },
+    return `${h}H ${m}M ${sec}S`;
   };
 
   return (
-    <div className="p-8 pb-16">
-      <div className="mb-8">
-        <h1 className="text-3xl font-semibold mb-2 flex items-center gap-3">
-          <Activity className="w-8 h-8 text-primary" /> System Health
-        </h1>
-        <p className="text-muted-foreground">Infrastructure monitoring and service status</p>
+    <div className="p-8 max-w-[1400px] mx-auto space-y-8">
+      <div className="flex items-end justify-between">
+        <div>
+          <h1 className="text-4xl font-black tracking-tighter uppercase text-precision">Core_Infrastructure</h1>
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground mt-2 opacity-50">
+             Mission Control Monitoring • Real-Time Service Mesh Status
+          </p>
+        </div>
+        <div className="flex items-center gap-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-50">
+            <div className="flex items-center gap-2">
+              <Clock className="w-3 h-3" />
+              <span>Uptime: {formatUptime(uptime)}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <RefreshCw className="w-3 h-3" />
+              <span>Poll: 5.0s</span>
+            </div>
+        </div>
       </div>
 
       {/* Status Banner */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-        className={`rounded-xl p-6 mb-8 border ${
-          healthyCount === totalCount ? 'bg-emerald-500/5 border-emerald-500/20' :
-          healthyCount > 0 ? 'bg-amber-500/5 border-amber-500/20' :
-          'bg-red-500/5 border-red-500/20'
-        }`}
-      >
+      <div className={`glass-card p-8 border-l-4 ${
+          healthyCount === totalCount ? 'border-l-emerald-500' :
+          healthyCount > 0 ? 'border-l-amber-500' :
+          'border-l-red-500'
+        }`}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className={`w-3 h-3 rounded-full animate-pulse ${
-              healthyCount === totalCount ? 'bg-emerald-400' : healthyCount > 0 ? 'bg-amber-400' : 'bg-red-400'
-            }`} />
+          <div className="flex items-center gap-6">
+            <div className={`w-4 h-4 rounded-full ${
+              healthyCount === totalCount ? 'bg-emerald-500 shadow-[0_0_15px_#10B981]' : 
+              healthyCount > 0 ? 'bg-amber-500 shadow-[0_0_15px_#F59E0B]' : 
+              'bg-red-500 shadow-[0_0_15px_#EF4444]'
+            } animate-pulse`} />
             <div>
-              <h2 className={`text-xl font-semibold ${overallColor}`}>{overallStatus}</h2>
-              <p className="text-sm text-muted-foreground">{healthyCount}/{totalCount} services healthy</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              <span>Monitoring: {formatUptime(uptime)}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <RefreshCw className="w-4 h-4" />
-              <span>Polling: 5s</span>
+              <h2 className={`text-3xl font-black tracking-tighter uppercase ${overallColor} text-precision`}>{overallStatus}</h2>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1 opacity-60">
+                 {healthyCount} of {totalCount} network services synchronized
+              </p>
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Service Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {services.map((svc, i) => {
           const Icon = svc.icon;
           return (
-            <motion.div key={svc.name} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
-              className={`rounded-xl p-5 border transition-all hover:scale-[1.02] ${
-                svc.status === 'healthy' ? 'bg-gradient-to-br from-emerald-500/5 to-emerald-600/[0.02] border-emerald-500/20' :
-                svc.status === 'degraded' ? 'bg-gradient-to-br from-amber-500/5 to-amber-600/[0.02] border-amber-500/20' :
-                'bg-gradient-to-br from-red-500/5 to-red-600/[0.02] border-red-500/20'
-              }`}
+            <motion.div key={svc.name} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+              className="glass-card p-6 group hover:border-primary/40 transition-all"
             >
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <Icon className={`w-5 h-5 ${
-                    svc.status === 'healthy' ? 'text-emerald-400' :
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 bg-white/5 rounded-lg border border-white/5 group-hover:border-primary/20 transition-colors">
+                  <Icon className={`w-4 h-4 ${
+                    svc.status === 'healthy' ? 'text-primary' :
                     svc.status === 'degraded' ? 'text-amber-400' : 'text-red-400'
                   }`} />
-                  <h3 className="font-medium text-sm">{svc.name}</h3>
                 </div>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full uppercase font-semibold ${
-                  svc.status === 'healthy' ? 'bg-emerald-500/10 text-emerald-400' :
-                  svc.status === 'degraded' ? 'bg-amber-500/10 text-amber-400' :
-                  'bg-red-500/10 text-red-400'
-                }`}>{svc.status}</span>
+                <div className={`text-[9px] font-black uppercase tracking-widest ${
+                  svc.status === 'healthy' ? 'text-emerald-400' :
+                  svc.status === 'degraded' ? 'text-amber-400' : 'text-red-400'
+                }`}>[{svc.status}]</div>
               </div>
-              <p className="text-xs text-muted-foreground mb-2">{svc.description}</p>
-              <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                <span>Port: {svc.port}</span>
-                {svc.latency !== null && <span>Latency: {svc.latency}ms</span>}
+              <h3 className="text-sm font-black uppercase tracking-tight text-precision group-hover:text-primary transition-colors mb-1">{svc.name}</h3>
+              <p className="text-[10px] text-muted-foreground uppercase font-bold opacity-60 mb-4">{svc.description}</p>
+              <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-30 pt-4 border-t border-white/5">
+                <span>Port {svc.port}</span>
+                {svc.latency !== null && <span>{svc.latency}ms</span>}
               </div>
             </motion.div>
           );
@@ -218,54 +197,47 @@ export function SystemHealth() {
       </div>
 
       {/* Latency Chart + Architecture */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-          className="rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-6"
-        >
-          <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
-            <Cpu className="w-5 h-5 text-primary" /> API Response Latency
-          </h2>
-          {healthHistory.length > 1 ? (
-            <ResponsiveContainer width="100%" height={220}>
-              <LineChart data={healthHistory}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="time" stroke="rgba(255,255,255,0.3)" style={{ fontSize: '10px' }} />
-                <YAxis stroke="rgba(255,255,255,0.3)" style={{ fontSize: '11px' }} unit="ms" />
-                <Tooltip {...tooltipStyle} />
-                <Line type="monotone" dataKey="backend" stroke="#00e5ff" strokeWidth={2} dot={false} name="Backend" />
-                <Line type="monotone" dataKey="redis" stroke="#a78bfa" strokeWidth={1.5} dot={false} name="Redis (est.)" />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-[220px] flex items-center justify-center text-muted-foreground text-sm">Collecting latency data...</div>
-          )}
-        </motion.div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 glass-card p-6">
+          <h2 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground mb-8">Network_Latency_Telemetry</h2>
+          <div className="h-64">
+             <ResponsiveContainer width="100%" height="100%">
+               <LineChart data={healthHistory}>
+                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                 <XAxis dataKey="time" stroke="rgba(255,255,255,0.2)" fontSize={9} axisLine={false} tickLine={false} tickMargin={10} />
+                 <YAxis stroke="rgba(255,255,255,0.2)" fontSize={9} axisLine={false} tickLine={false} unit="ms" />
+                 <Tooltip contentStyle={{ backgroundColor: '#0D0F14', border: '1px solid rgba(255,255,255,0.1)', fontSize: '10px' }} />
+                 <Line type="monotone" dataKey="backend" stroke="#10B981" strokeWidth={2} dot={false} isAnimationActive={false} />
+                 <Line type="monotone" dataKey="redis" stroke="#3b82f6" strokeWidth={1.5} dot={false} strokeDasharray="5 5" isAnimationActive={false} />
+               </LineChart>
+             </ResponsiveContainer>
+          </div>
+          <div className="flex gap-6 mt-4 px-2">
+              <div className="flex items-center gap-2 text-[9px] font-black text-primary"><div className="w-2 h-0.5 bg-primary" /> API_INGESTION</div>
+              <div className="flex items-center gap-2 text-[9px] font-black text-blue-400 opacity-60"><div className="w-2 h-0.5 bg-blue-400 border-dashed" /> STATE_SYNC_DELAY</div>
+          </div>
+        </div>
 
-        {/* Architecture Diagram */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
-          className="rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-6"
-        >
-          <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
-            <Server className="w-5 h-5 text-purple-400" /> System Architecture
-          </h2>
-          <div className="space-y-3 text-sm">
+        <div className="glass-card p-6">
+          <h2 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground mb-8">Node_Topology</h2>
+          <div className="space-y-3">
             {[
-              { from: 'Simulator', to: 'REST + MQTT Ingestion', color: 'text-primary', arrow: '→' },
-              { from: 'Ingestion Layer', to: 'Kafka (telemetry.normal)', color: 'text-amber-400', arrow: '→' },
-              { from: 'Kafka Consumer', to: 'Digital Twin Service', color: 'text-purple-400', arrow: '→' },
-              { from: 'Digital Twin', to: 'Redis (120s TTL)', color: 'text-red-400', arrow: '→' },
-              { from: 'React Frontend', to: 'Fleet API polling (3–5s)', color: 'text-emerald-400', arrow: '←' },
+              { label: 'Edge Nodes', val: 'Telemetry Source', color: 'text-primary' },
+              { label: 'Ingest Layer', val: 'MQTT Broker', color: 'text-blue-400' },
+              { label: 'Bus Layer', val: 'Kafka Cluster', color: 'text-amber-400' },
+              { label: 'State Sync', val: 'Redis Store', color: 'text-purple-400' },
+              { label: 'Client', val: 'Web Frontend', color: 'text-emerald-400' },
             ].map((step, i) => (
-              <motion.div key={i} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 + i * 0.08 }}
-                className="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/5"
-              >
-                <span className={`font-mono text-xs ${step.color}`}>{step.from}</span>
-                <span className="text-muted-foreground">{step.arrow}</span>
-                <span className="text-xs text-muted-foreground">{step.to}</span>
-              </motion.div>
+              <div key={i} className="flex items-center justify-between p-3 bg-white/[0.02] border border-white/5 rounded-lg group hover:border-primary/20 transition-all">
+                <span className={`text-[10px] font-black uppercase tracking-tight ${step.color}`}>{step.label}</span>
+                <span className="text-[10px] font-bold text-muted-foreground opacity-40 uppercase">{step.val}</span>
+              </div>
             ))}
           </div>
-        </motion.div>
+          <div className="mt-8 p-4 bg-primary/5 border border-primary/20 rounded-lg text-center">
+             <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Topology: Synchronized</p>
+          </div>
+        </div>
       </div>
     </div>
   );
