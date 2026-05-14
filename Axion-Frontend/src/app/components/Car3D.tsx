@@ -1,6 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 
+/** Canvas accent — matches design tokens (champagne gold + steel) */
+const ACCENT = '#c5a568';
+const ACCENT_RGB = '197, 165, 104';
+const STEEL_RGB = '92, 122, 140';
+
 export function Car3D() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -31,9 +36,9 @@ export function Car3D() {
 
       // Draw concentric rings
       const drawRing = (radius: number, opacity: number, width: number = 2) => {
-        ctx.strokeStyle = `rgba(0, 229, 255, ${opacity})`;
+        ctx.strokeStyle = `rgba(${ACCENT_RGB}, ${opacity})`;
         ctx.lineWidth = width;
-        ctx.shadowColor = 'rgba(0, 229, 255, 0.5)';
+        ctx.shadowColor = `rgba(${ACCENT_RGB}, 0.45)`;
         ctx.shadowBlur = 10;
         ctx.beginPath();
         ctx.arc(0, 0, radius, 0, Math.PI * 2);
@@ -45,7 +50,7 @@ export function Car3D() {
       drawRing(140, 0.5, 2);
 
       // Horizontal line through center
-      ctx.strokeStyle = 'rgba(0, 229, 255, 0.3)';
+      ctx.strokeStyle = `rgba(${ACCENT_RGB}, 0.28)`;
       ctx.lineWidth = 1;
       ctx.shadowBlur = 5;
       ctx.beginPath();
@@ -60,11 +65,11 @@ export function Car3D() {
 
       // Create gradient for car body
       const gradient = ctx.createLinearGradient(-carWidth/2, 0, carWidth/2, 0);
-      gradient.addColorStop(0, '#00CED1');
-      gradient.addColorStop(0.5, '#4169E1');
-      gradient.addColorStop(1, '#9370DB');
+      gradient.addColorStop(0, '#2c323b');
+      gradient.addColorStop(0.5, '#4a5563');
+      gradient.addColorStop(1, '#1e2329');
 
-      ctx.shadowColor = 'rgba(0, 229, 255, 0.6)';
+      ctx.shadowColor = `rgba(${ACCENT_RGB}, 0.25)`;
       ctx.shadowBlur = 20;
 
       // Car body path - side view of a sedan
@@ -162,9 +167,9 @@ export function Car3D() {
 
       const drawWheel = (x: number, y: number) => {
         // Outer ring
-        ctx.strokeStyle = '#00E5FF';
+        ctx.strokeStyle = ACCENT;
         ctx.lineWidth = 3;
-        ctx.shadowColor = '#00E5FF';
+        ctx.shadowColor = ACCENT;
         ctx.shadowBlur = 15;
         ctx.beginPath();
         ctx.arc(x, y, wheelRadius, 0, Math.PI * 2);
@@ -178,14 +183,14 @@ export function Car3D() {
         ctx.fill();
 
         // Center dot
-        ctx.fillStyle = '#00E5FF';
+        ctx.fillStyle = ACCENT;
         ctx.shadowBlur = 10;
         ctx.beginPath();
         ctx.arc(x, y, 3, 0, Math.PI * 2);
         ctx.fill();
         
         // Spokes
-        ctx.strokeStyle = 'rgba(0, 229, 255, 0.5)';
+        ctx.strokeStyle = `rgba(${ACCENT_RGB}, 0.45)`;
         ctx.lineWidth = 1;
         for (let i = 0; i < 5; i++) {
           const angle = (Math.PI * 2 / 5) * i + rotation;
@@ -212,9 +217,9 @@ export function Car3D() {
         ctx.save();
         ctx.translate(x, y);
         ctx.rotate(rotation);
-        ctx.strokeStyle = `rgba(100, 149, 237, ${opacity})`;
+        ctx.strokeStyle = `rgba(${STEEL_RGB}, ${opacity})`;
         ctx.lineWidth = 2;
-        ctx.shadowColor = 'rgba(100, 149, 237, 0.5)';
+        ctx.shadowColor = `rgba(${STEEL_RGB}, 0.4)`;
         ctx.shadowBlur = 10;
         ctx.beginPath();
         for (let i = 0; i < 6; i++) {
@@ -233,9 +238,9 @@ export function Car3D() {
         ctx.save();
         ctx.translate(x, y);
         ctx.rotate(rotation);
-        ctx.strokeStyle = `rgba(100, 149, 237, ${opacity})`;
+        ctx.strokeStyle = `rgba(${STEEL_RGB}, ${opacity})`;
         ctx.lineWidth = 2;
-        ctx.shadowColor = 'rgba(100, 149, 237, 0.5)';
+        ctx.shadowColor = `rgba(${STEEL_RGB}, 0.4)`;
         ctx.shadowBlur = 10;
         ctx.strokeRect(-width/2, -height/2, width, height);
         ctx.restore();
@@ -250,9 +255,9 @@ export function Car3D() {
       ctx.save();
       ctx.translate(-190, -80);
       ctx.rotate(rotation * 0.2);
-      ctx.strokeStyle = 'rgba(0, 229, 255, 0.7)';
+      ctx.strokeStyle = `rgba(${ACCENT_RGB}, 0.65)`;
       ctx.lineWidth = 2.5;
-      ctx.shadowColor = '#00E5FF';
+      ctx.shadowColor = ACCENT;
       ctx.shadowBlur = 15;
       ctx.beginPath();
       ctx.moveTo(-8, -15);
@@ -283,9 +288,9 @@ export function Car3D() {
       // Wifi/connectivity waves - top right
       ctx.save();
       ctx.translate(140, -70);
-      ctx.strokeStyle = 'rgba(0, 229, 255, 0.8)';
+      ctx.strokeStyle = `rgba(${ACCENT_RGB}, 0.75)`;
       ctx.lineWidth = 2;
-      ctx.shadowColor = '#00E5FF';
+      ctx.shadowColor = ACCENT;
       ctx.shadowBlur = 10;
       for (let i = 0; i < 3; i++) {
         const arcSize = 8 + i * 6;
@@ -296,7 +301,7 @@ export function Car3D() {
         ctx.stroke();
       }
       ctx.globalAlpha = 1;
-      ctx.fillStyle = '#00E5FF';
+      ctx.fillStyle = ACCENT;
       ctx.beginPath();
       ctx.arc(0, 0, 3, 0, Math.PI * 2);
       ctx.fill();
@@ -353,8 +358,8 @@ export function Car3D() {
       streamParticles.forEach((particle, i) => {
         const x = Math.cos(particle.angle) * particle.radius;
         const y = Math.sin(particle.angle) * particle.radius;
-        ctx.fillStyle = `rgba(0, 229, 255, ${0.6 + Math.sin(rotation * 3 + i) * 0.3})`;
-        ctx.shadowColor = '#00E5FF';
+        ctx.fillStyle = `rgba(${ACCENT_RGB}, ${0.55 + Math.sin(rotation * 3 + i) * 0.25})`;
+        ctx.shadowColor = ACCENT;
         ctx.shadowBlur = 8;
         ctx.beginPath();
         ctx.arc(x, y, particle.size, 0, Math.PI * 2);
@@ -385,7 +390,7 @@ export function Car3D() {
         ref={canvasRef}
         className="relative z-10"
         style={{
-          filter: 'drop-shadow(0 0 30px rgba(0, 229, 255, 0.3))',
+          filter: `drop-shadow(0 0 24px rgba(${ACCENT_RGB}, 0.22))`,
         }}
       />
     </motion.div>

@@ -105,7 +105,7 @@ export function Analytics() {
 
   const kpis = [
     { label: 'Fleet Uptime', value: `${onlinePercent}%`, icon: Wifi, gradient: 'from-emerald-500/10 to-emerald-600/5', border: 'border-emerald-500/20', text: 'text-emerald-400' },
-    { label: 'Avg Battery', value: `${avgBattery}%`, icon: Battery, gradient: 'from-cyan-500/10 to-cyan-600/5', border: 'border-cyan-500/20', text: 'text-cyan-400' },
+    { label: 'Avg Battery', value: `${avgBattery}%`, icon: Battery, gradient: 'from-primary/10 to-primary/5', border: 'border-primary/20', text: 'text-primary' },
     { label: 'Avg Temp', value: `${avgTemp}°C`, icon: Thermometer, gradient: 'from-amber-500/10 to-amber-600/5', border: 'border-amber-500/20', text: 'text-amber-400' },
     { label: 'Avg Health', value: avgHealth, icon: Heart, gradient: 'from-purple-500/10 to-purple-600/5', border: 'border-purple-500/20', text: 'text-purple-400' },
   ];
@@ -181,7 +181,7 @@ export function Analytics() {
           className="rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-6"
         >
           <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
-            <Battery className="w-5 h-5 text-cyan-400" /> Battery SOC Distribution
+            <Battery className="w-5 h-5 text-primary" /> Battery SOC Distribution
           </h2>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={batteryBuckets()}>
@@ -290,7 +290,7 @@ export function Analytics() {
           className="rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-6"
         >
           <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
-            <Battery className="w-5 h-5 text-cyan-400" /> Battery SOC Trend
+            <Battery className="w-5 h-5 text-primary" /> Battery SOC Trend
           </h2>
           {batteryHistory.length > 1 ? (
             <ResponsiveContainer width="100%" height={200}>

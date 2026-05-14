@@ -87,7 +87,7 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
             <div className="space-y-6">
               <div>
                 <h3 className="font-semibold mb-3 flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-cyan-400" />
+                  <Activity className="w-4 h-4 text-primary" />
                   States Maintained
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
@@ -239,7 +239,7 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
             {/* Vehicle Silhouette */}
             <div className="relative h-64 flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 rounded-lg border border-primary/10 overflow-hidden">
               {/* Background gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-br from-[#00E5FF]/5 to-[#6C63FF]/5" />
+              <div className="absolute inset-0 bg-gradient-to-br from-[#c5a568]/5 to-[#5c7a8c]/5" />
 
               <motion.div
                 animate={{
@@ -253,8 +253,8 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
                 <svg width="300" height="180" viewBox="0 0 300 180" fill="none">
                   <defs>
                     <linearGradient id="dtCarGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor={isOnline ? '#00E5FF' : '#4B5563'} stopOpacity="0.8" />
-                      <stop offset="100%" stopColor={isOnline ? '#6C63FF' : '#374151'} stopOpacity="0.8" />
+                      <stop offset="0%" stopColor={isOnline ? '#c5a568' : '#4B5563'} stopOpacity="0.8" />
+                      <stop offset="100%" stopColor={isOnline ? '#5c7a8c' : '#374151'} stopOpacity="0.8" />
                     </linearGradient>
                     <filter id="dtGlow">
                       <feGaussianBlur stdDeviation="4" result="coloredBlur" />
@@ -270,9 +270,9 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
                     filter="url(#dtGlow)"
                     opacity="0.9"
                   />
-                  <path d="M 120 85 L 140 70 L 160 70 L 180 85 Z" fill={isOnline ? '#00E5FF' : '#4B5563'} opacity="0.3" />
-                  <circle cx="90" cy="145" r="18" fill="#121821" stroke={isOnline ? '#00E5FF' : '#4B5563'} strokeWidth="3" />
-                  <circle cx="210" cy="145" r="18" fill="#121821" stroke={isOnline ? '#6C63FF' : '#4B5563'} strokeWidth="3" />
+                  <path d="M 120 85 L 140 70 L 160 70 L 180 85 Z" fill={isOnline ? '#c5a568' : '#4B5563'} opacity="0.3" />
+                  <circle cx="90" cy="145" r="18" fill="#121821" stroke={isOnline ? '#c5a568' : '#4B5563'} strokeWidth="3" />
+                  <circle cx="210" cy="145" r="18" fill="#121821" stroke={isOnline ? '#5c7a8c' : '#4B5563'} strokeWidth="3" />
                   <circle cx="240" cy="110" r="6" fill={isOnline ? '#00FF85' : '#4B5563'}>
                     {isOnline && <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" />}
                   </circle>
@@ -285,7 +285,7 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
                     animate={{ y: [-5, 5, -5] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   >
-                    <div className="px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: 'rgba(0, 229, 255, 0.2)', color: '#00E5FF' }}>
+                    <div className="px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: 'rgba(197, 165, 104, 0.22)', color: '#c5a568' }}>
                       {vehicle?.telemetry?.speedKmph?.toFixed(0) || 0} km/h
                     </div>
                   </motion.div>
@@ -299,10 +299,10 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
                         key={i}
                         className="absolute w-1 h-1 rounded-full"
                         style={{
-                          background: i % 2 === 0 ? '#00E5FF' : '#6C63FF',
+                          background: i % 2 === 0 ? '#c5a568' : '#5c7a8c',
                           left: `${15 + (i * 70) % 85}%`,
                           top: `${20 + (i * 50) % 60}%`,
-                          boxShadow: `0 0 8px ${i % 2 === 0 ? '#00E5FF' : '#6C63FF'}`,
+                          boxShadow: `0 0 8px ${i % 2 === 0 ? '#c5a568' : '#5c7a8c'}`,
                         }}
                         animate={{ y: [-15, 15, -15], opacity: [0.2, 1, 0.2], scale: [0.5, 1.5, 0.5] }}
                         transition={{ duration: 3 + (i % 3), repeat: Infinity, delay: i * 0.3 }}
@@ -325,7 +325,7 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
                 className="rounded-lg p-4 border"
                 style={{ backgroundColor: '#0B0F14', borderColor: isOnline ? 'rgba(0, 229, 255, 0.3)' : '#2a3542' }}
               >
-                <Gauge className="w-5 h-5 mb-2" style={{ color: '#00E5FF' }} />
+                <Gauge className="w-5 h-5 mb-2" style={{ color: '#c5a568' }} />
                 <div className="text-xs text-gray-400 mb-1">Speed</div>
                 <motion.div className="text-xl font-bold text-white" key={vehicle?.telemetry?.speedKmph} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                   {vehicle?.telemetry?.speedKmph?.toFixed(0) || 0}
@@ -374,7 +374,7 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
                 className="rounded-lg p-4 border"
                 style={{ backgroundColor: '#0B0F14', borderColor: isOnline ? 'rgba(108, 99, 255, 0.3)' : '#2a3542' }}
               >
-                <Clock className="w-5 h-5 mb-2" style={{ color: '#6C63FF' }} />
+                <Clock className="w-5 h-5 mb-2" style={{ color: '#5c7a8c' }} />
                 <div className="text-xs text-gray-400 mb-1">Last Update</div>
                 <motion.div className="text-sm font-bold text-white">
                   {vehicle?.lastSeen ? new Date(vehicle.lastSeen).toLocaleTimeString() : '--:--'}
@@ -404,14 +404,14 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
                     className={`flex items-center gap-2 px-3 py-1 rounded-md text-xs font-semibold ${syncStatus === 'synced'
                       ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                       : syncStatus === 'syncing'
-                        ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
+                        ? 'bg-primary/10 text-primary border border-primary/20'
                         : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                       }`}
                   >
                     <div className={`w-2 h-2 rounded-full ${syncStatus === 'synced'
                       ? 'bg-emerald-500'
                       : syncStatus === 'syncing'
-                        ? 'bg-cyan-500 animate-pulse'
+                        ? 'bg-primary animate-pulse'
                         : 'bg-amber-500'
                       }`} />
                     {syncStatus === 'synced' ? 'Synced' : syncStatus === 'syncing' ? 'Syncing...' : 'Outdated'}

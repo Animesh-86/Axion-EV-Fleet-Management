@@ -64,7 +64,7 @@ export function TerminalFooter({ onGetStarted }: TerminalFooterProps) {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="max-w-4xl mx-auto mb-16 rounded-xl overflow-hidden border border-[var(--axion-cyan)]/50 shadow-[0_0_80px_rgba(0,229,255,0.3)]"
+          className="max-w-4xl mx-auto mb-16 rounded-xl overflow-hidden border border-[var(--axion-cyan)]/50 shadow-[0_0_80px_rgba(197,165,104,0.3)]"
         >
           {/* Terminal Header */}
           <div className="bg-[var(--axion-obsidian)] border-b border-[var(--axion-cyan)]/30 px-4 py-3 flex items-center justify-between">
@@ -167,7 +167,7 @@ export function TerminalFooter({ onGetStarted }: TerminalFooterProps) {
             onClick={onGetStarted}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="px-8 py-4 bg-[var(--axion-cyan)] text-[#0B0E14] font-[var(--font-outfit)] font-bold rounded-lg hover:bg-[var(--axion-cyan)]/90 transition-colors shadow-[0_0_30px_rgba(0,229,255,0.3)] flex items-center gap-2"
+            className="px-8 py-4 bg-[var(--axion-cyan)] text-[#0B0E14] font-[var(--font-outfit)] font-bold rounded-lg hover:bg-[var(--axion-cyan)]/90 transition-colors shadow-[0_0_30px_rgba(197,165,104,0.3)] flex items-center gap-2"
           >
             Get Started
             <ArrowRight className="w-5 h-5" />

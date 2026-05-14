@@ -37,8 +37,8 @@ export function ThreeDartwork() {
             <svg width="300" height="180" viewBox="0 0 300 180" className="relative z-10">
               <defs>
                 <linearGradient id="vehicleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" style={{ stopColor: '#00E5FF', stopOpacity: 0.8 }} />
-                  <stop offset="100%" style={{ stopColor: '#6C63FF', stopOpacity: 0.8 }} />
+                  <stop offset="0%" style={{ stopColor: '#c5a568', stopOpacity: 0.8 }} />
+                  <stop offset="100%" style={{ stopColor: '#5c7a8c', stopOpacity: 0.8 }} />
                 </linearGradient>
                 <filter id="glow">
                   <feGaussianBlur stdDeviation="4" result="coloredBlur" />
@@ -54,9 +54,9 @@ export function ThreeDartwork() {
                 filter="url(#glow)"
                 opacity="0.9"
               />
-              <path d="M 120 85 L 140 70 L 160 70 L 180 85 Z" fill="#00E5FF" opacity="0.3" />
-              <circle cx="90" cy="145" r="18" fill="#121821" stroke="#00E5FF" strokeWidth="3" />
-              <circle cx="210" cy="145" r="18" fill="#121821" stroke="#6C63FF" strokeWidth="3" />
+              <path d="M 120 85 L 140 70 L 160 70 L 180 85 Z" fill="#c5a568" opacity="0.3" />
+              <circle cx="90" cy="145" r="18" fill="#121821" stroke="#c5a568" strokeWidth="3" />
+              <circle cx="210" cy="145" r="18" fill="#121821" stroke="#5c7a8c" strokeWidth="3" />
               <circle cx="240" cy="110" r="6" fill="#00FF85">
                 <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" />
               </circle>
@@ -69,10 +69,10 @@ export function ThreeDartwork() {
                   key={i}
                   className="absolute w-1 h-1 rounded-full"
                   style={{
-                    background: i % 2 === 0 ? '#00E5FF' : '#6C63FF',
+                    background: i % 2 === 0 ? '#c5a568' : '#5c7a8c',
                     left: `${20 + (i * 60) % 80}%`,
                     top: `${30 + (i * 40) % 60}%`,
-                    boxShadow: `0 0 10px ${i % 2 === 0 ? '#00E5FF' : '#6C63FF'}`,
+                    boxShadow: `0 0 10px ${i % 2 === 0 ? '#c5a568' : '#5c7a8c'}`,
                   }}
                   animate={{ y: [-20, 20, -20], opacity: [0.2, 1, 0.2], scale: [0.5, 1.5, 0.5] }}
                   transition={{ duration: 3 + (i % 3), repeat: Infinity, delay: i * 0.2 }}
@@ -90,8 +90,8 @@ export function ThreeDartwork() {
           transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
         >
           <div className="w-16 h-16 relative" style={{ transformStyle: 'preserve-3d' }}>
-            <div className="absolute inset-0 border-2 rounded-lg" style={{ borderColor: '#00E5FF', backgroundColor: 'rgba(0, 229, 255, 0.1)', transform: 'translateZ(8px)' }} />
-            <div className="absolute inset-0 border-2 rounded-lg" style={{ borderColor: '#00E5FF', backgroundColor: 'rgba(0, 229, 255, 0.05)', transform: 'translateZ(-8px)' }} />
+            <div className="absolute inset-0 border-2 rounded-lg" style={{ borderColor: '#c5a568', backgroundColor: 'rgba(197, 165, 104, 0.12)', transform: 'translateZ(8px)' }} />
+            <div className="absolute inset-0 border-2 rounded-lg" style={{ borderColor: '#c5a568', backgroundColor: 'rgba(197, 165, 104, 0.06)', transform: 'translateZ(-8px)' }} />
           </div>
         </motion.div>
 
@@ -103,8 +103,8 @@ export function ThreeDartwork() {
           transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
         >
           <div className="w-12 h-12 relative" style={{ transformStyle: 'preserve-3d' }}>
-            <div className="absolute inset-0 border-2 rounded-lg" style={{ borderColor: '#6C63FF', backgroundColor: 'rgba(108, 99, 255, 0.1)', transform: 'translateZ(6px)' }} />
-            <div className="absolute inset-0 border-2 rounded-lg" style={{ borderColor: '#6C63FF', backgroundColor: 'rgba(108, 99, 255, 0.05)', transform: 'translateZ(-6px)' }} />
+            <div className="absolute inset-0 border-2 rounded-lg" style={{ borderColor: '#5c7a8c', backgroundColor: 'rgba(92, 122, 140, 0.12)', transform: 'translateZ(6px)' }} />
+            <div className="absolute inset-0 border-2 rounded-lg" style={{ borderColor: '#5c7a8c', backgroundColor: 'rgba(92, 122, 140, 0.06)', transform: 'translateZ(-6px)' }} />
           </div>
         </motion.div>
 
@@ -118,11 +118,11 @@ export function ThreeDartwork() {
           <svg width="60" height="60" viewBox="0 0 60 60">
             <defs>
               <linearGradient id="hexGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style={{ stopColor: '#00E5FF', stopOpacity: 0.6 }} />
-                <stop offset="100%" style={{ stopColor: '#00E5FF', stopOpacity: 0.1 }} />
+                <stop offset="0%" style={{ stopColor: '#c5a568', stopOpacity: 0.6 }} />
+                <stop offset="100%" style={{ stopColor: '#c5a568', stopOpacity: 0.1 }} />
               </linearGradient>
             </defs>
-            <polygon points="30,5 50,15 50,35 30,45 10,35 10,15" fill="url(#hexGrad1)" stroke="#00E5FF" strokeWidth="2" />
+            <polygon points="30,5 50,15 50,35 30,45 10,35 10,15" fill="url(#hexGrad1)" stroke="#c5a568" strokeWidth="2" />
           </svg>
         </motion.div>
 
@@ -136,11 +136,11 @@ export function ThreeDartwork() {
           <svg width="50" height="50" viewBox="0 0 50 50">
             <defs>
               <linearGradient id="hexGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style={{ stopColor: '#6C63FF', stopOpacity: 0.6 }} />
-                <stop offset="100%" style={{ stopColor: '#6C63FF', stopOpacity: 0.1 }} />
+                <stop offset="0%" style={{ stopColor: '#5c7a8c', stopOpacity: 0.6 }} />
+                <stop offset="100%" style={{ stopColor: '#5c7a8c', stopOpacity: 0.1 }} />
               </linearGradient>
             </defs>
-            <polygon points="25,4 42,12 42,29 25,37 8,29 8,12" fill="url(#hexGrad2)" stroke="#6C63FF" strokeWidth="2" />
+            <polygon points="25,4 42,12 42,29 25,37 8,29 8,12" fill="url(#hexGrad2)" stroke="#5c7a8c" strokeWidth="2" />
           </svg>
         </motion.div>
 
@@ -153,13 +153,13 @@ export function ThreeDartwork() {
           <div className="relative w-80 h-80">
             <motion.div
               className="absolute inset-0 rounded-full border-2"
-              style={{ borderColor: '#00E5FF', opacity: 0.2 }}
+              style={{ borderColor: '#c5a568', opacity: 0.2 }}
               animate={{ scale: [1, 1.1, 1], opacity: [0.2, 0.4, 0.2] }}
               transition={{ duration: 4, repeat: Infinity }}
             />
             <motion.div
               className="absolute inset-8 rounded-full border-2"
-              style={{ borderColor: '#6C63FF', opacity: 0.2 }}
+              style={{ borderColor: '#5c7a8c', opacity: 0.2 }}
               animate={{ scale: [1.1, 1, 1.1], opacity: [0.4, 0.2, 0.4] }}
               transition={{ duration: 4, repeat: Infinity }}
             />
@@ -174,7 +174,7 @@ export function ThreeDartwork() {
           transition={{ duration: 2, repeat: Infinity }}
         >
           <svg width="24" height="32" viewBox="0 0 24 32" fill="none">
-            <path d="M13 2L4 18h7l-2 12 11-18h-7l2-12z" fill="#00E5FF" opacity="0.8" />
+            <path d="M13 2L4 18h7l-2 12 11-18h-7l2-12z" fill="#c5a568" opacity="0.8" />
           </svg>
         </motion.div>
 
@@ -183,7 +183,7 @@ export function ThreeDartwork() {
           {[...Array(6)].map((_, i) => (
             <motion.div
               key={`stream-${i}`}
-              className="absolute h-px bg-gradient-to-r from-transparent via-cyan-400 to-transparent"
+              className="absolute h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent"
               style={{ width: '200px', left: `${(i * 20) % 100}%`, top: `${20 + i * 15}%` }}
               animate={{ x: [-300, 300], opacity: [0, 1, 0] }}
               transition={{ duration: 3 + i, repeat: Infinity, delay: i * 0.5, ease: 'linear' }}

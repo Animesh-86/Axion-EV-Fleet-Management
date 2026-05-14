@@ -11,11 +11,10 @@ interface HeroProps {
 export function Hero({ onGetStarted, onViewArchitecture }: HeroProps) {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[var(--axion-black)] px-4 py-20">
-      {/* Animated background grid */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(0,229,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,229,255,0.03)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black,transparent)]" />
-      
-      {/* Radial gradient overlay */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,229,255,0.1),transparent_70%)]" />
+      {/* Refined grid — neutral lines, no neon */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.028)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.028)_1px,transparent_1px)] bg-[size:56px_56px] [mask-image:radial-gradient(ellipse_85%_55%_at_50%_45%,black,transparent)]" />
+
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_20%,rgba(197,165,104,0.09),transparent_55%),radial-gradient(ellipse_at_80%_80%,rgba(92,122,140,0.06),transparent_45%)]" />
 
       <div className="relative z-10 max-w-7xl mx-auto w-full">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -53,18 +52,20 @@ export function Hero({ onGetStarted, onViewArchitecture }: HeroProps) {
             <div className="flex flex-wrap gap-4 pt-4">
               <motion.button
                 onClick={onViewArchitecture}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-8 py-4 border-2 border-[var(--axion-cyan)] text-[var(--axion-cyan)] font-[var(--font-outfit)] font-bold rounded-lg backdrop-blur-md hover:bg-[var(--axion-glass-bg)] transition-colors"
+                whileHover={{ scale: 1.02, y: -1 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: 'spring', stiffness: 420, damping: 22 }}
+                className="px-8 py-4 border border-[var(--axion-glass-border)] text-foreground font-[var(--font-outfit)] font-semibold rounded-xl backdrop-blur-md bg-[var(--axion-glass-bg)] hover:border-[var(--axion-cyan)]/40 hover:bg-[var(--axion-glass-bg)] transition-colors"
               >
                 View Architecture
               </motion.button>
-              
+
               <motion.button
                 onClick={onGetStarted}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-8 py-4 bg-[var(--axion-cyan)] text-[#0B0E14] font-[var(--font-outfit)] font-bold rounded-lg hover:bg-[var(--axion-cyan)]/90 transition-colors shadow-[0_0_30px_rgba(0,229,255,0.3)]"
+                whileHover={{ scale: 1.02, y: -1 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: 'spring', stiffness: 420, damping: 22 }}
+                className="px-8 py-4 bg-[var(--axion-cyan)] text-primary-foreground font-[var(--font-outfit)] font-semibold rounded-xl hover:brightness-110 transition-all shadow-[0_16px_40px_-12px_rgba(0,0,0,0.5)]"
               >
                 Get Started
               </motion.button>

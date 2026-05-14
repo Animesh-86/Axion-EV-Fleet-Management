@@ -223,7 +223,7 @@ export function SystemHealth() {
           className="rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-6"
         >
           <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
-            <Cpu className="w-5 h-5 text-cyan-400" /> API Response Latency
+            <Cpu className="w-5 h-5 text-primary" /> API Response Latency
           </h2>
           {healthHistory.length > 1 ? (
             <ResponsiveContainer width="100%" height={220}>
@@ -250,7 +250,7 @@ export function SystemHealth() {
           </h2>
           <div className="space-y-3 text-sm">
             {[
-              { from: 'Simulator', to: 'REST + MQTT Ingestion', color: 'text-cyan-400', arrow: '→' },
+              { from: 'Simulator', to: 'REST + MQTT Ingestion', color: 'text-primary', arrow: '→' },
               { from: 'Ingestion Layer', to: 'Kafka (telemetry.normal)', color: 'text-amber-400', arrow: '→' },
               { from: 'Kafka Consumer', to: 'Digital Twin Service', color: 'text-purple-400', arrow: '→' },
               { from: 'Digital Twin', to: 'Redis (120s TTL)', color: 'text-red-400', arrow: '→' },

@@ -80,14 +80,17 @@ Python Simulator ──REST/MQTT──► Spring Boot Ingestion
 │                        │         │                                  │
 │                  ┌─────┼─────┐   │                                  │
 │                  ▼     ▼     ▼   ▼                                  │
-│             [Redis] [TimescaleDB] [PostgreSQL]                      │
-│             (live)  (time-series)  (campaigns,                      │
-│                                    users, audit)                    │
+│             [Redis] [TimescaleDB] [PgVector]                        │
+│             (live)  (time-series)  (campaigns, users,               │
+│                                    audit, RAG incident store)       │
 │                        │                                            │
 │                        ▼                                            │
 │              [FastAPI ML Service] ──predictions──► [Spring Boot]    │
 │                                                         │           │
-│                                                    [WebSocket]      │
+│                                                    [Spring AI]      │
+│                                                (Agent + RAG + LLM)  │
+│                                                         │           │
+│                                                    [WebSocket/SSE]  │
 │                                                         │           │
 │                                                         ▼           │
 │                                               [React Dashboard]     │
@@ -203,7 +206,7 @@ CREATE TABLE audit_logs (
 
 ```yaml
 postgres:
-  image: postgres:16-alpine
+  image: pgvector/pgvector:pg16
   ports: ["5432:5432"]
   environment:
     POSTGRES_DB: axion
@@ -557,9 +560,9 @@ grafana:
 
 - **API Documentation**: SpringDoc OpenAPI with request/response examples for every endpoint
 - **README**: Updated architecture diagram, setup instructions, API reference, screenshots
-- **One-command deploy**: `docker-compose up -d` starts ALL 9-10 services:
+- Single `docker-compose up -d` starts ALL 9-10 services:
   - Kafka, Zookeeper, Redis, Mosquitto (existing)
-  - PostgreSQL, TimescaleDB (new)
+  - PgVector (PostgreSQL), TimescaleDB (new)
   - Spring Boot Backend (new containerized)
   - FastAPI ML Service (new)
   - Prometheus, Grafana (new)
@@ -577,15 +580,57 @@ grafana:
 
 ---
 
+## Phase 9 — GenAI Fleet Intelligence (Spring AI) (Weeks 5–9)
+
+**Goal**: Extend the core anomaly detection with a Generative AI layer using Spring AI. This handles reasoning, explanation, RAG-based incident retrieval, and natural language queries, running *complementary* to the FastAPI ML service.
+
+### 9A. Anomaly Explanation Engine (Structured Output)
+
+**What to build**:
+- `AnomalyExplainerService` triggered when a vehicle drops to DEGRADED or CRITICAL.
+- Combines the live `CanonicalTelemetryEnvelope` and the FastAPI predictions to prompt an LLM.
+- Uses Spring AI `@JsonSchemaStructured` output binding to directly return an `AnomalyExplanation` POJO without brittle regex parsing.
+- Outputs stored in PostgreSQL `anomaly_explanations` table.
+
+### 9B. RAG-Based Incident Knowledge Base (PgVector)
+
+**What to build**:
+- Configure Spring AI `PgVectorStore` to connect to the existing PostgreSQL container (now running `pgvector/pgvector:pg16`).
+- Embed historical anomalies using `text-embedding-3-small`.
+- Retrieve top-3 semantically similar past incidents when a new anomaly occurs and inject them into the explainer's prompt for RAG.
+
+### 9C. Agentic Fleet Monitor (Function Calling)
+
+**What to build**:
+- `FleetMonitorTools` component exposing `@Tool` methods for the LLM to call (e.g., `getVehicleStatus`, `getFleetSummary`, `getHistory`, `getFleetRiskRanking`).
+- `FleetMonitorAgent` that runs an autonomous schedule (e.g., every 5 minutes). The LLM determines which tools to call and generates a comprehensive `FleetHealthReport`.
+
+### 9D. Natural Language Fleet Assistant (Streaming SSE)
+
+**What to build**:
+- `FleetAssistantController` exposing a streaming SSE (`Flux<String>`) endpoint using Spring AI `streamingChatClient`.
+- Redis-backed conversation history (30-min TTL) to support multi-turn dialogue.
+- Operator UI in React for plain English queries ("Which vehicles are most at risk?", "What happened to v019?").
+
+### Phase 9 Deliverables
+
+- [ ] Spring AI integration with structured output binding
+- [ ] RAG pipeline with PgVector store setup
+- [ ] Agentic loop using Spring AI `@Tool` functions
+- [ ] SSE streaming endpoint for AI queries
+- [ ] Natural Language Assistant UI in React dashboard
+
+---
+
 ## Technology Stack Comparison
 
 | Component | Minor (Current) | Major (Target) |
 |-----------|-----------------|----------------|
-| **State Management** | Redis only (120s TTL) | Redis + PostgreSQL + TimescaleDB |
+| **State Management** | Redis only (120s TTL) | Redis + PgVector + TimescaleDB |
 | **Authentication** | None | Spring Security + JWT + RBAC |
-| **Frontend Updates** | Polling (3-5s interval) | WebSocket (STOMP) real-time push |
-| **Analytics** | Live snapshot only | 30-day historical trends + ML predictions |
-| **ML / AI** | None | FastAPI + scikit-learn + XGBoost |
+| **Frontend Updates** | Polling (3-5s interval) | WebSocket (STOMP) & SSE push |
+| **Analytics (Stats)** | Live snapshot only | 30-day historical trends + XGBoost predictions |
+| **Fleet Intelligence (GenAI)** | None | Spring AI + RAG + Agentic Function Calling |
 | **OTA Management** | Single trigger, in-memory | Campaign lifecycle, canary, health-gating, rollback |
 | **Monitoring** | None | Prometheus + Grafana + Actuator |
 | **Logging** | Basic SLF4J | Structured JSON + MDC correlation IDs |
@@ -601,13 +646,14 @@ grafana:
 
 | Task | Phase | Description |
 |------|-------|-------------|
-| Database schemas | Phase 1 | TimescaleDB hypertable, PostgreSQL tables, Flyway migrations |
+| Database schemas | Phase 1 | TimescaleDB hypertable, PgVector setup, Flyway migrations |
 | JPA Repositories | Phase 1 | Spring Data JPA for campaigns, users, policies, audit |
 | Spring Security + JWT | Phase 2 | Auth filter chain, token provider, role enforcement |
 | WebSocket Backend | Phase 3 | STOMP config, TelemetryWebSocketPublisher |
 | OTA Campaign Lifecycle | Phase 5 | State machine, health-gating, canary logic, PostgreSQL persistence |
 | Prometheus + Grafana | Phase 7 | Actuator, Micrometer metrics, Grafana dashboard JSON |
 | RCA Query Engine | Phase 6 | Cross-source event merging (TimescaleDB + PostgreSQL) |
+| Spring AI Foundation | Phase 9 | Setup LLM client, PgVector RAG integration, Tool definitions |
 | Docker Compose | Phase 8 | Full platform orchestration |
 
 ### Kajol (Simulation & Analytics Lead)
@@ -620,6 +666,7 @@ grafana:
 | RCA Timeline UI | Phase 6 | Interactive timeline component, event visualization |
 | Campaign Manager UI | Phase 5 | Campaign wizard, rollout progress bar, history table |
 | Analytics Upgrade | Phase 4 | Historical charts (24h/7d/30d), ML prediction widgets |
+| GenAI Assistant UI | Phase 9 | SSE streaming AI chat interface, anomaly explanation widgets |
 | Load Testing | Phase 8 | 100+ vehicle simulation, performance validation |
 
 ---

@@ -397,10 +397,10 @@ export function AlertsAnalytics() {
           </div>
 
           {/* Threshold Reference */}
-          <div className="rounded-xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 p-6">
+          <div className="rounded-xl bg-gradient-to-br from-primary/10 to-secondary/10 border border-primary/15 p-6">
             <div className="flex items-center gap-2 mb-4">
-              <Brain className="w-5 h-5 text-cyan-400" />
-              <h3 className="text-lg text-cyan-400">Health Rules</h3>
+              <Brain className="w-5 h-5 text-primary" />
+              <h3 className="text-lg text-foreground font-semibold">Health Rules</h3>
             </div>
             <div className="space-y-2 text-sm text-gray-300">
               <div className="flex justify-between"><span>Base Health Score</span><span className="font-mono">{HEALTH.BASE_SCORE}</span></div>

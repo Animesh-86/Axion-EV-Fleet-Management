@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Activity, WifiOff, ExternalLink, Battery, Thermometer, TrendingUp } from 'lucide-react';
 import { AxionApi, FleetVehicle } from '../../services/api';
 import { POLL_VEHICLE_LIST, HEALTH } from '../../config';
-
-interface VehicleListProps {
-  onSelectVehicle: (id: string) => void;
-}
+import { LAST_VEHICLE_STORAGE_KEY, paths } from '../../constants/navigation';
 
 interface Vehicle {
   id: string;
@@ -19,7 +17,8 @@ interface Vehicle {
   degradationDrivers?: Array<{ label: string; trend: 'up' | 'down' }>;
 }
 
-export function VehicleList({ onSelectVehicle }: VehicleListProps) {
+export function VehicleList() {
+  const navigate = useNavigate();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -110,10 +109,12 @@ export function VehicleList({ onSelectVehicle }: VehicleListProps) {
               transition={{ delay: index * 0.05, duration: 0.3 }}
               whileHover={{
                 scale: 1.005,
-                backgroundColor: 'rgba(0, 229, 255, 0.03)',
-                transition: { duration: 0.2 }
+                transition: { duration: 0.2 },
               }}
-              onClick={() => onSelectVehicle(vehicle.id)}
+              onClick={() => {
+                sessionStorage.setItem(LAST_VEHICLE_STORAGE_KEY, vehicle.id);
+                navigate(paths.vehicle(vehicle.id));
+              }}
               className="bg-card border border-border rounded-lg p-5 cursor-pointer transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 group"
             >
               <div className="flex items-center justify-between">
@@ -216,7 +217,15 @@ export function VehicleList({ onSelectVehicle }: VehicleListProps) {
 
                 {/* Right: Action */}
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary border border-primary/20 rounded-lg text-xs font-semibold hover:bg-primary/20 transition-colors">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      sessionStorage.setItem(LAST_VEHICLE_STORAGE_KEY, vehicle.id);
+                      navigate(paths.vehicle(vehicle.id));
+                    }}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary border border-primary/20 rounded-lg text-xs font-semibold hover:bg-primary/20 transition-colors"
+                  >
                     <span>View Digital Twin</span>
                     <ExternalLink className="w-3 h-3" />
                   </button>

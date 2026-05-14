@@ -95,7 +95,7 @@ export function OTAManagement() {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {[
-          { label: 'Total Vehicles', value: vehicles.length, icon: Rocket, gradient: 'from-cyan-500/10 to-cyan-600/5', border: 'border-cyan-500/20', text: 'text-cyan-400' },
+          { label: 'Total Vehicles', value: vehicles.length, icon: Rocket, gradient: 'from-primary/10 to-primary/5', border: 'border-primary/20', text: 'text-primary' },
           { label: 'Eligible', value: eligibleCount, icon: Shield, gradient: 'from-emerald-500/10 to-emerald-600/5', border: 'border-emerald-500/20', text: 'text-emerald-400' },
           { label: 'Deployed', value: successCount, icon: CheckCircle2, gradient: 'from-purple-500/10 to-purple-600/5', border: 'border-purple-500/20', text: 'text-purple-400' },
           { label: 'Failed', value: failCount, icon: XCircle, gradient: 'from-red-500/10 to-red-600/5', border: 'border-red-500/20', text: 'text-red-400' },
