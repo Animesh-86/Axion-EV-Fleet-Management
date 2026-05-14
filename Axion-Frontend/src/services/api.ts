@@ -41,34 +41,68 @@ export interface VehicleDetail extends FleetVehicle {
   telemetry: TelemetrySnapshot;
 }
 
+export interface TelemetryHistory {
+  time: string;
+  vehicleId: string;
+  batterySoc: number;
+  batteryTemp: number;
+  motorTemp: number;
+  speed: number;
+  healthScore: number;
+  healthState: string;
+}
+
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+
+async function fetchWithAuth(url: string, options: RequestInit = {}) {
+  const token = localStorage.getItem('axion_token');
+  const headers = new Headers(options.headers || {});
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+  return fetch(url, { ...options, headers });
+}
 
 export class AxionApi {
 
   static async getFleetSummary(): Promise<FleetSummary> {
-    const res = await fetch(`${BASE_URL}/api/v1/fleet/summary`);
+    const res = await fetchWithAuth(`${BASE_URL}/api/v1/fleet/summary`);
     if (!res.ok) throw new Error('Failed to fetch summary');
     return res.json();
   }
 
   static async getFleetVehicles(): Promise<FleetVehicle[]> {
-    const res = await fetch(`${BASE_URL}/api/v1/fleet/vehicles`);
+    const res = await fetchWithAuth(`${BASE_URL}/api/v1/fleet/vehicles`);
     if (!res.ok) throw new Error('Failed to fetch vehicles');
     return res.json();
   }
 
   static async getVehicle(vehicleId: string): Promise<VehicleDetail> {
-    const res = await fetch(`${BASE_URL}/api/v1/fleet/${vehicleId}`);
+    const res = await fetchWithAuth(`${BASE_URL}/api/v1/fleet/${vehicleId}`);
     if (!res.ok) throw new Error('Failed to fetch vehicle');
     return res.json();
   }
 
   static async triggerOTA(campaignId: string, vehicleId: string) {
     const params = new URLSearchParams({ campaignId, vehicleId });
-    const res = await fetch(`${BASE_URL}/api/v1/ota/trigger?${params}`, {
+    const res = await fetchWithAuth(`${BASE_URL}/api/v1/ota/trigger?${params}`, {
       method: 'POST'
     });
     if (!res.ok) throw new Error('Failed to trigger OTA');
+    return res.json();
+  }
+
+  static async getHistory(vehicleId: string, from: string, to: string): Promise<TelemetryHistory[]> {
+    const params = new URLSearchParams({ from, to });
+    const res = await fetchWithAuth(`${BASE_URL}/api/v1/history/${vehicleId}?${params}`);
+    if (!res.ok) throw new Error('Failed to fetch history');
+    return res.json();
+  }
+
+  static async getHistoryAggregates(vehicleId: string, interval: string = '1h'): Promise<TelemetryHistory[]> {
+    const params = new URLSearchParams({ interval });
+    const res = await fetchWithAuth(`${BASE_URL}/api/v1/history/${vehicleId}/aggregates?${params}`);
+    if (!res.ok) throw new Error('Failed to fetch history aggregates');
     return res.json();
   }
 }

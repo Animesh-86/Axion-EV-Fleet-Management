@@ -16,25 +16,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 const USER_KEY = 'axion_user';
-const ACCOUNTS_KEY = 'axion_accounts';
-
-interface StoredAccount {
-  name: string;
-  email: string;
-  passwordHash: string;
-  company?: string;
-}
-
-async function hashPassword(password: string): Promise<string> {
-  const data = new TextEncoder().encode(password);
-  const buf = await crypto.subtle.digest('SHA-256', data);
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-function getAccounts(): StoredAccount[] {
-  try { return JSON.parse(localStorage.getItem(ACCOUNTS_KEY) || '[]'); }
-  catch { return []; }
-}
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
@@ -50,34 +32,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   const loginAsync = async (email: string, password: string) => {
-    const accounts = getAccounts();
-    const account = accounts.find(a => a.email === email.toLowerCase().trim());
-    if (!account) return { success: false, error: 'No account found with this email' };
-
-    const hash = await hashPassword(password);
-    if (hash !== account.passwordHash) return { success: false, error: 'Incorrect password' };
-
-    setUser({ name: account.name, email: account.email, company: account.company });
-    return { success: true };
+    try {
+      const res = await fetch(`${BASE_URL}/api/v1/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: email, password })
+      });
+      if (!res.ok) return { success: false, error: 'Invalid credentials' };
+      
+      const data = await res.json();
+      localStorage.setItem('axion_token', data.token);
+      setUser({ name: data.username, email: data.username });
+      return { success: true };
+    } catch (e) {
+      return { success: false, error: 'Network error' };
+    }
   };
 
   const signupAsync = async (name: string, email: string, password: string, company?: string) => {
-    const accounts = getAccounts();
-    const normalized = email.toLowerCase().trim();
-    if (accounts.find(a => a.email === normalized))
-      return { success: false, error: 'An account with this email already exists' };
-
-    const hash = await hashPassword(password);
-    const trimmedCompany = company?.trim() || undefined;
-    accounts.push({ name: name.trim(), email: normalized, passwordHash: hash, company: trimmedCompany });
-    localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
-
-    setUser({ name: name.trim(), email: normalized, company: trimmedCompany });
-    return { success: true };
+    try {
+      const res = await fetch(`${BASE_URL}/api/v1/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: email, password, role: 'OPERATOR' })
+      });
+      if (!res.ok) return { success: false, error: 'Registration failed or email already in use' };
+      
+      const data = await res.json();
+      localStorage.setItem('axion_token', data.token);
+      setUser({ name: data.username, email: data.username, company });
+      return { success: true };
+    } catch (e) {
+      return { success: false, error: 'Network error' };
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loginAsync, signupAsync, logout: () => setUser(null) }}>
+    <AuthContext.Provider value={{ user, loginAsync, signupAsync, logout: () => { setUser(null); localStorage.removeItem('axion_token'); } }}>
       {children}
     </AuthContext.Provider>
   );
