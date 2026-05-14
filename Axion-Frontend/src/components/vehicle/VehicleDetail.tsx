@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, Battery, Thermometer, Gauge, Clock, Activity, WifiOff, Circle, Zap, Info, Shield, CheckCircle, Upload } from 'lucide-react';
+import { ArrowLeft, Battery, Thermometer, Gauge, Clock, Activity, WifiOff, Circle, Zap, Info, Shield, CheckCircle, Upload, Heart, BrainCircuit, AlertTriangle } from 'lucide-react';
 import { AxionApi, VehicleDetail as ApiVehicleDetail } from '../../services/api';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
 import { POLL_VEHICLE_DETAIL, TELEMETRY_HISTORY_WINDOW, DEFAULT_CAMPAIGN_ID, HEALTH } from '../../config';
+import { useWebSocket } from '../../hooks/useWebSocket';
+import { RcaTimeline } from './RcaTimeline';
 
 interface VehicleDetailProps {
   vehicleId: string | null;
@@ -23,7 +25,8 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
   const [vehicle, setVehicle] = useState<ApiVehicleDetail | null>(null);
   const [isOnline, setIsOnline] = useState(true);
   const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'outdated'>('synced');
-  const [activeTab, setActiveTab] = useState<'live' | 'timeline' | 'policies' | 'ota'>('live');
+  const [activeTab, setActiveTab] = useState<'live' | 'timeline' | 'policies' | 'ota' | 'rca'>('live');
+
   const [telemetryHistory, setTelemetryHistory] = useState<any[]>([]);
   const [historicalData, setHistoricalData] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
@@ -51,6 +54,8 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
       fetchHistory();
     }
   }, [activeTab, vehicleId]);
+
+  const { subscribeToVehicle } = useWebSocket();
 
   useEffect(() => {
     if (!vehicleId) return;
@@ -87,9 +92,38 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
     };
 
     fetchVehicle();
-    const interval = setInterval(fetchVehicle, POLL_VEHICLE_DETAIL);
-    return () => clearInterval(interval);
-  }, [vehicleId]);
+
+    // Subscribe to live WebSocket feed for this vehicle
+    const unsubscribe = subscribeToVehicle(vehicleId, (msg) => {
+      if (msg.type === 'TWIN_UPDATE' && msg.data) {
+        const data = msg.data;
+        setVehicle((prev) => prev ? { ...prev, ...data } : data);
+        setIsOnline(data.online);
+        setSyncStatus('synced');
+
+        if (data.telemetry) {
+          setTelemetryHistory(prev => {
+            const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const newPoint = {
+              time: timeStr,
+              speed: data.telemetry.speedKmph ?? prev[prev.length - 1]?.speed ?? 0,
+              battery: data.telemetry.batterySocPct ?? prev[prev.length - 1]?.battery ?? 0,
+              temp: data.telemetry.batteryTempC ?? prev[prev.length - 1]?.temp ?? 0,
+            };
+            return [...prev, newPoint].slice(-TELEMETRY_HISTORY_WINDOW);
+          });
+        }
+      } else if (msg.type === 'HEALTH_CHANGE') {
+        toast.info(`Vehicle ${vehicleId} health changed to ${msg.to}`, {
+          description: `Previous state was ${msg.from}`,
+        });
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [vehicleId, subscribeToVehicle]);
 
   if (!vehicleId) {
     return (
@@ -274,7 +308,7 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
           </div>
           
           {/* Tabs */}
-          <div className="flex border-b border-white/10 mb-4">
+          <div className="flex border-b border-white/10 mb-4 flex-wrap gap-2">
             <button 
               onClick={() => setActiveTab('live')}
               className={`px-4 py-2 text-xs font-bold uppercase tracking-widest transition-colors ${activeTab === 'live' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground'}`}
@@ -287,47 +321,68 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
             >
               24h History (TimescaleDB)
             </button>
+            <button 
+              onClick={() => setActiveTab('rca')}
+              className={`px-4 py-2 text-xs font-bold uppercase tracking-widest transition-colors ${activeTab === 'rca' ? 'text-purple-400 border-b-2 border-purple-400' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              RCA Timeline Engine
+            </button>
           </div>
 
-          {/* Charts */}
-          <div className="glass-card p-6">
-             <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
-                  {activeTab === 'live' ? 'Telemetry Timeline' : 'Historical Aggregates'}
-                </h3>
-                <div className="flex gap-4">
-                   <div className="flex items-center gap-1.5 text-[9px] font-bold text-primary">
-                      <div className={`w-1 h-1 rounded-full bg-primary ${activeTab === 'live' ? 'animate-pulse' : ''}`} /> 
-                      {activeTab === 'live' ? 'REALTIME' : 'ARCHIVED'}
-                   </div>
-                </div>
-             </div>
-             
-             <div className="h-64 w-full">
-                {activeTab === 'timeline' && loadingHistory ? (
-                  <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground font-mono">LOADING HISTORY...</div>
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={activeTab === 'live' ? telemetryHistory : historicalData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                      <XAxis dataKey="time" stroke="rgba(255,255,255,0.2)" fontSize={9} tickMargin={10} axisLine={false} tickLine={false} />
-                      <YAxis stroke="rgba(255,255,255,0.2)" fontSize={9} width={25} axisLine={false} tickLine={false} />
-                      <RechartsTooltip
-                        contentStyle={{ backgroundColor: 'rgba(13, 15, 20, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', fontSize: '10px' }}
-                      />
-                      <Line type="monotone" dataKey="speed" stroke="#10B981" strokeWidth={2} dot={activeTab === 'timeline'} isAnimationActive={false} />
-                      <Line type="monotone" dataKey="battery" stroke="#3b82f6" strokeWidth={2} dot={activeTab === 'timeline'} isAnimationActive={false} />
-                      <Line type="monotone" dataKey="temp" stroke="#f59e0b" strokeWidth={2} dot={activeTab === 'timeline'} isAnimationActive={false} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                )}
-             </div>
-             <div className="flex justify-center gap-6 mt-4">
-                <div className="flex items-center gap-2 text-[9px] font-bold text-primary opacity-60"><div className="w-2 h-0.5 bg-primary" /> SPEED</div>
-                <div className="flex items-center gap-2 text-[9px] font-bold text-blue-400 opacity-60"><div className="w-2 h-0.5 bg-blue-400" /> BATTERY</div>
-                <div className="flex items-center gap-2 text-[9px] font-bold text-amber-400 opacity-60"><div className="w-2 h-0.5 bg-amber-400" /> TEMP</div>
-             </div>
-          </div>
+          {/* Tab Content Panels */}
+          {activeTab === 'rca' ? (
+            <div className="glass-card p-6">
+               <div className="mb-6">
+                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-purple-400">
+                    Root Cause Event Correlation
+                  </h3>
+                  <p className="text-[10px] text-muted-foreground opacity-60 mt-1">
+                    Multi-storage chronological event integration tracing firmware updates & sensory delta breaches.
+                  </p>
+               </div>
+               <RcaTimeline vehicleId={vehicleId} />
+            </div>
+          ) : (
+            <div className="glass-card p-6">
+               <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+                    {activeTab === 'live' ? 'Telemetry Timeline' : 'Historical Aggregates'}
+                  </h3>
+                  <div className="flex gap-4">
+                     <div className="flex items-center gap-1.5 text-[9px] font-bold text-primary">
+                        <div className={`w-1 h-1 rounded-full bg-primary ${activeTab === 'live' ? 'animate-pulse' : ''}`} /> 
+                        {activeTab === 'live' ? 'REALTIME' : 'ARCHIVED'}
+                     </div>
+                  </div>
+               </div>
+               
+               <div className="h-64 w-full">
+                  {activeTab === 'timeline' && loadingHistory ? (
+                    <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground font-mono">LOADING HISTORY...</div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={activeTab === 'live' ? telemetryHistory : historicalData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                        <XAxis dataKey="time" stroke="rgba(255,255,255,0.2)" fontSize={9} tickMargin={10} axisLine={false} tickLine={false} />
+                        <YAxis stroke="rgba(255,255,255,0.2)" fontSize={9} width={25} axisLine={false} tickLine={false} />
+                        <RechartsTooltip
+                          contentStyle={{ backgroundColor: 'rgba(13, 15, 20, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', fontSize: '10px' }}
+                        />
+                        <Line type="monotone" dataKey="speed" stroke="#10B981" strokeWidth={2} dot={activeTab === 'timeline'} isAnimationActive={false} />
+                        <Line type="monotone" dataKey="battery" stroke="#3b82f6" strokeWidth={2} dot={activeTab === 'timeline'} isAnimationActive={false} />
+                        <Line type="monotone" dataKey="temp" stroke="#f59e0b" strokeWidth={2} dot={activeTab === 'timeline'} isAnimationActive={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
+               </div>
+               <div className="flex justify-center gap-6 mt-4">
+                  <div className="flex items-center gap-2 text-[9px] font-bold text-primary opacity-60"><div className="w-2 h-0.5 bg-primary" /> SPEED</div>
+                  <div className="flex items-center gap-2 text-[9px] font-bold text-blue-400 opacity-60"><div className="w-2 h-0.5 bg-blue-400" /> BATTERY</div>
+                  <div className="flex items-center gap-2 text-[9px] font-bold text-amber-400 opacity-60"><div className="w-2 h-0.5 bg-amber-400" /> TEMP</div>
+               </div>
+            </div>
+          )}
+
         </div>
 
         {/* RIGHT: Status & Controls */}
@@ -376,6 +431,83 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
                 <button className="w-full px-4 py-3 bg-white/5 border border-white/10 text-foreground rounded-lg text-[11px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">
                   Request Diagnostics
                 </button>
+             </div>
+          </div>
+
+          {/* ML Predictive Analytics */}
+          <div className="glass-card p-6">
+             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground mb-6 flex items-center gap-2">
+               <BrainCircuit className="w-3.5 h-3.5 text-purple-400" />
+               Predictive Intelligence
+             </h3>
+             <div className="space-y-4">
+               {/* Battery Depletion Prediction */}
+               <div className="p-4 bg-white/[0.02] border border-white/5 rounded-lg">
+                 <div className="flex items-center gap-2 mb-3">
+                   <Battery className="w-3.5 h-3.5 text-blue-400" />
+                   <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Battery Depletion Forecast</span>
+                 </div>
+                 {(vehicle as any)?.predictions?.batteryDepletion ? (
+                   <>
+                     <div className="flex items-baseline gap-2">
+                       <span className={`text-2xl font-black tracking-tight ${
+                         (vehicle as any).predictions.batteryDepletion.hours < 2 ? 'text-red-400' : 
+                         (vehicle as any).predictions.batteryDepletion.hours < 5 ? 'text-amber-400' : 'text-emerald-400'
+                       }`}>
+                         {(vehicle as any).predictions.batteryDepletion.hours}
+                       </span>
+                       <span className="text-[9px] text-muted-foreground font-mono">hours remaining</span>
+                     </div>
+                     <div className="mt-2 flex items-center gap-2">
+                       <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
+                         <div 
+                           className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all"
+                           style={{ width: `${Math.min(100, (vehicle as any).predictions.batteryDepletion.confidence * 100)}%` }}
+                         />
+                       </div>
+                       <span className="text-[9px] font-black text-muted-foreground">
+                         {((vehicle as any).predictions.batteryDepletion.confidence * 100).toFixed(0)}% conf
+                       </span>
+                     </div>
+                   </>
+                 ) : (
+                   <span className="text-[10px] text-muted-foreground opacity-40 italic">Awaiting prediction data...</span>
+                 )}
+               </div>
+
+               {/* Temperature Anomaly Detection */}
+               <div className="p-4 bg-white/[0.02] border border-white/5 rounded-lg">
+                 <div className="flex items-center gap-2 mb-3">
+                   <Thermometer className="w-3.5 h-3.5 text-amber-400" />
+                   <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Thermal Anomaly Risk</span>
+                 </div>
+                 {(vehicle as any)?.predictions?.tempAnomaly ? (
+                   <>
+                     <div className="flex items-center justify-between">
+                       <div className={`px-3 py-1.5 rounded border text-[10px] font-black uppercase tracking-widest ${
+                         (vehicle as any).predictions.tempAnomaly.risk === 'HIGH' ? 'bg-red-500/10 text-red-400 border-red-500/30' :
+                         (vehicle as any).predictions.tempAnomaly.risk === 'MEDIUM' ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' :
+                         'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                       }`}>
+                         {(vehicle as any).predictions.tempAnomaly.risk === 'HIGH' && <AlertTriangle className="w-3 h-3 inline mr-1" />}
+                         {(vehicle as any).predictions.tempAnomaly.risk}
+                       </div>
+                       <div className="text-right">
+                         <div className="text-lg font-black text-precision">
+                           {(vehicle as any).predictions.tempAnomaly.predictedPeakC}°C
+                         </div>
+                         <div className="text-[8px] text-muted-foreground font-mono uppercase">Predicted Peak</div>
+                       </div>
+                     </div>
+                   </>
+                 ) : (
+                   <span className="text-[10px] text-muted-foreground opacity-40 italic">Awaiting prediction data...</span>
+                 )}
+               </div>
+
+               <div className="p-2 bg-purple-500/5 border border-purple-500/10 rounded text-center">
+                 <span className="text-[8px] font-bold text-purple-400/60 uppercase tracking-widest">XGBoost + Isolation Forest • Redis Cached 60s</span>
+               </div>
              </div>
           </div>
 
