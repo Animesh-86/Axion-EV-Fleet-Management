@@ -41,7 +41,6 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
           setTelemetryHistory(prev => {
             const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-            // Skip only if ALL values are null/undefined (not just falsy — 0 is valid)
             if (data.telemetry.speedKmph == null && data.telemetry.batterySocPct == null && data.telemetry.batteryTempC == null) {
               return prev;
             }
@@ -68,73 +67,61 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
 
   if (!vehicleId) {
     return (
-      <div className="p-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-card border border-border rounded-lg p-8">
-            <div className="flex items-start gap-4 mb-6">
-              <div className="bg-primary/10 p-3 rounded-lg">
-                <Info className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold mb-2">What is a Digital Twin?</h2>
-                <p className="text-muted-foreground leading-relaxed">
-                  A digital twin is a virtual representation of a physical vehicle that mirrors its real-time state,
-                  behavior, and performance. It enables remote monitoring, predictive maintenance, and policy enforcement.
-                </p>
+      <div className="p-8 max-w-[1200px] mx-auto">
+        <div className="glass-card p-8">
+          <div className="flex items-start gap-4 mb-8">
+            <div className="bg-primary/10 p-3 rounded-lg border border-primary/20">
+              <Info className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold tracking-tight mb-2 uppercase">Digital Twin Engine</h2>
+              <p className="text-muted-foreground text-sm leading-relaxed max-w-2xl opacity-70">
+                A high-fidelity virtual representation of vehicle telemetry, enabling real-time diagnostics, 
+                predictive analytics, and remote orchestration via the Axion Fleet OS.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-6">
+              <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-primary flex items-center gap-2">
+                <Activity className="w-4 h-4" /> State Synchronization
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: 'Battery Core', desc: 'Voltage, SOC, Thermal' },
+                  { label: 'Thermal Loop', desc: 'Coolant, Inverter, Motor' },
+                  { label: 'Kinematics', desc: 'Velocity, Vector, GPS' },
+                  { label: 'Operations', desc: 'Odometer, Faults, OTA' },
+                ].map((item, i) => (
+                  <div key={i} className="p-4 bg-white/[0.02] border border-white/5 rounded-lg group hover:border-primary/30 transition-colors">
+                    <p className="text-xs font-bold uppercase tracking-tight mb-1">{item.label}</p>
+                    <p className="text-[10px] text-muted-foreground opacity-60 font-mono">{item.desc}</p>
+                  </div>
+                ))}
               </div>
             </div>
 
             <div className="space-y-6">
-              <div>
-                <h3 className="font-semibold mb-3 flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-primary" />
-                  States Maintained
-                </h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 bg-background/50 border border-border/50 rounded-lg">
-                    <p className="text-sm font-medium">Battery State</p>
-                    <p className="text-xs text-muted-foreground mt-1">SOC, voltage, temperature, health</p>
+              <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-blue-400 flex items-center gap-2">
+                <Shield className="w-4 h-4" /> Governance Layer
+              </h3>
+              <div className="space-y-3">
+                {[
+                  'OTA Eligibility Guardrails',
+                  'Thermal Protection Protocols',
+                  'Predictive Maintenance Scheduling'
+                ].map((policy, i) => (
+                  <div key={i} className="flex items-center gap-3 text-xs font-bold text-muted-foreground group">
+                    <div className="w-1 h-1 rounded-full bg-emerald-500 shadow-[0_0_5px_#10B981]" />
+                    <span className="group-hover:text-foreground transition-colors">{policy}</span>
                   </div>
-                  <div className="p-3 bg-background/50 border border-border/50 rounded-lg">
-                    <p className="text-sm font-medium">Thermal State</p>
-                    <p className="text-xs text-muted-foreground mt-1">Cabin, battery, motor temperature</p>
-                  </div>
-                  <div className="p-3 bg-background/50 border border-border/50 rounded-lg">
-                    <p className="text-sm font-medium">Motion State</p>
-                    <p className="text-xs text-muted-foreground mt-1">Speed, acceleration, location</p>
-                  </div>
-                  <div className="p-3 bg-background/50 border border-border/50 rounded-lg">
-                    <p className="text-sm font-medium">Operational State</p>
-                    <p className="text-xs text-muted-foreground mt-1">Driving, charging, idle, fault</p>
-                  </div>
-                </div>
+                ))}
               </div>
-
-              <div>
-                <h3 className="font-semibold mb-3 flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-violet-400" />
-                  Policy Enforcement
-                </h3>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li className="flex items-start gap-2">
-                    <span className="text-emerald-400 mt-0.5">•</span>
-                    <span>OTA eligibility based on battery, connectivity, and fault state</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-emerald-400 mt-0.5">•</span>
-                    <span>Thermal protection triggers when temperature exceeds thresholds</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-emerald-400 mt-0.5">•</span>
-                    <span>Predictive maintenance scheduling based on degradation trends</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
-                <p className="text-sm text-muted-foreground">
-                  <span className="text-primary font-semibold">Select a vehicle from the fleet list</span> to view its live digital twin state,
-                  telemetry timeline, applied policies, and OTA eligibility status.
+              
+              <div className="mt-8 p-4 bg-primary/5 border border-primary/20 rounded-lg border-dashed">
+                <p className="text-xs text-muted-foreground leading-relaxed italic">
+                  Select a vehicle instance from the fleet list to initialize a live synchronization session with its Digital Twin.
                 </p>
               </div>
             </div>
@@ -154,556 +141,214 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
     }
   };
 
-  // Handle telemetry as snapshot (single object)
   const snapshot = vehicle?.telemetry;
-
-  // Create a pseudo-event list for the timeline if needed, or just show latest
   const telemetryEvents: TelemetryEvent[] = snapshot ? [
-    { timestamp: new Date().toISOString(), type: 'battery', event: 'SOC Update', newValue: `${snapshot.batterySocPct?.toFixed(1)}%` },
-    { timestamp: new Date().toISOString(), type: 'temperature', event: 'Temp Update', newValue: `${snapshot.batteryTempC?.toFixed(1)}°C` }
+    { timestamp: new Date().toISOString(), type: 'battery', event: 'TELEMETRY_SYNC', newValue: `${snapshot.batterySocPct?.toFixed(1)}%` },
+    { timestamp: new Date().toISOString(), type: 'temperature', event: 'THERMAL_SYNC', newValue: `${snapshot.batteryTempC?.toFixed(1)}°C` }
   ] : [];
 
   const handleTriggerOta = async () => {
     try {
       if (vehicleId) {
         await AxionApi.triggerOTA(DEFAULT_CAMPAIGN_ID, vehicleId);
-        toast.success('OTA Update Triggered', {
-          description: `Simulated OTA update initiated for ${vehicleId}`,
+        toast.success('OTA INITIATED', {
+          description: `Orchestration sequence triggered for ${vehicleId}`,
         });
       }
     } catch (e) {
-      toast.error('OTA Trigger Failed', {
-        description: 'Could not reach backend or vehicle not found.',
+      toast.error('OTA_TRIGGER_FAILED', {
+        description: 'System could not reach target node.',
       });
     }
   };
 
   return (
-    <div className="p-8">
-      {/* ... keeping the rest ... */}
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <button
-              onClick={onBack}
-              className="flex items-center gap-2 text-muted-foreground hover:text-primary mb-3 transition-colors group"
-            >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-              <span className="text-sm">Back to Fleet</span>
-            </button>
-            <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold tracking-tight">{vehicleId}</h1>
-              <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-semibold rounded-md border border-primary/20 uppercase tracking-wider">
-                Digital Twin
-              </span>
+    <div className="p-8 max-w-[1400px] mx-auto space-y-8">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <button
+            onClick={onBack}
+            className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-primary mb-4 transition-colors group"
+          >
+            <ArrowLeft className="w-3 h-3 group-hover:-translate-x-1 transition-transform" />
+            <span>Fleet / {vehicleId}</span>
+          </button>
+          <div className="flex items-center gap-4">
+            <h1 className="text-4xl font-black tracking-tighter uppercase text-precision">{vehicleId}</h1>
+            <div className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full">
+               <span className="text-[10px] font-black uppercase tracking-widest text-primary">Instance Sync Active</span>
             </div>
           </div>
-
-          {/* Status Indicator */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={isOnline ? 'online' : 'offline'}
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${isOnline
-                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                : 'bg-gray-500/10 text-gray-400 border-gray-500/20'
-                }`}
-            >
-              {isOnline ? (
-                <>
-                  <Activity className="w-4 h-4 animate-pulse" />
-                  <span className="text-sm font-semibold">ONLINE</span>
-                </>
-              ) : (
-                <>
-                  <WifiOff className="w-4 h-4" />
-                  <span className="text-sm font-semibold">OFFLINE</span>
-                </>
-              )}
-            </motion.div>
-          </AnimatePresence>
         </div>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* LEFT: Vehicle Visualization */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            className="bg-card border border-border rounded-lg p-6 space-y-6"
-          >
-            {/* Vehicle Silhouette */}
-            <div className="relative h-64 flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 rounded-lg border border-primary/10 overflow-hidden">
-              {/* Background gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-br from-[#c5a568]/5 to-[#5c7a8c]/5" />
+        <div className="flex items-center gap-4">
+          <div className={`flex items-center gap-2 px-4 py-2 rounded-full border ${
+            isOnline ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-400' : 'bg-gray-500/5 border-white/10 text-muted-foreground'
+          }`}>
+             <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-gray-500'}`} />
+             <span className="text-[11px] font-black uppercase tracking-widest">{isOnline ? 'SYNC_LIVE' : 'SYNC_LOST'}</span>
+          </div>
+        </div>
+      </div>
 
-              <motion.div
-                animate={{
-                  opacity: isOnline ? 1 : 0.3,
-                  filter: isOnline ? 'none' : 'grayscale(100%)',
-                }}
-                transition={{ duration: 0.5 }}
-                className="relative"
-              >
-                {/* Modern EV SVG */}
-                <svg width="300" height="180" viewBox="0 0 300 180" fill="none">
-                  <defs>
-                    <linearGradient id="dtCarGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor={isOnline ? '#c5a568' : '#4B5563'} stopOpacity="0.8" />
-                      <stop offset="100%" stopColor={isOnline ? '#5c7a8c' : '#374151'} stopOpacity="0.8" />
-                    </linearGradient>
-                    <filter id="dtGlow">
-                      <feGaussianBlur stdDeviation="4" result="coloredBlur" />
-                      <feMerge>
-                        <feMergeNode in="coloredBlur" />
-                        <feMergeNode in="SourceGraphic" />
-                      </feMerge>
-                    </filter>
-                  </defs>
-                  <path
-                    d="M 50 120 L 70 100 L 100 90 L 130 85 L 170 85 L 200 90 L 230 100 L 250 120 L 250 140 L 230 145 L 70 145 L 50 140 Z"
-                    fill="url(#dtCarGradient)"
-                    filter="url(#dtGlow)"
-                    opacity="0.9"
-                  />
-                  <path d="M 120 85 L 140 70 L 160 70 L 180 85 Z" fill={isOnline ? '#c5a568' : '#4B5563'} opacity="0.3" />
-                  <circle cx="90" cy="145" r="18" fill="#121821" stroke={isOnline ? '#c5a568' : '#4B5563'} strokeWidth="3" />
-                  <circle cx="210" cy="145" r="18" fill="#121821" stroke={isOnline ? '#5c7a8c' : '#4B5563'} strokeWidth="3" />
-                  <circle cx="240" cy="110" r="6" fill={isOnline ? '#00FF85' : '#4B5563'}>
-                    {isOnline && <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" />}
-                  </circle>
-                </svg>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* LEFT/CENTER: Visualization & Key Stats */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="glass-card p-6 relative overflow-hidden min-h-[400px] flex flex-col justify-between">
+             {/* Schematic Label */}
+             <div className="absolute top-6 left-6 z-10">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-1">Schematic / v2.4</p>
+                <p className="text-[9px] text-muted-foreground opacity-50 font-mono uppercase">Node Synchronization Active</p>
+             </div>
 
-                {/* Floating speed badge */}
-                {isOnline && (
-                  <motion.div
-                    className="absolute -top-2 left-1/2 -translate-x-1/2"
-                    animate={{ y: [-5, 5, -5] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    <div className="px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: 'rgba(197, 165, 104, 0.22)', color: '#c5a568' }}>
-                      {vehicle?.telemetry?.speedKmph?.toFixed(0) || 0} km/h
-                    </div>
-                  </motion.div>
-                )}
+             <div className="flex-1 flex items-center justify-center relative">
+                {/* SVG Visual */}
+                <motion.div
+                  animate={{ opacity: isOnline ? 1 : 0.2, filter: isOnline ? 'none' : 'grayscale(100%) blur(2px)' }}
+                  className="relative z-10 scale-125"
+                >
+                   <svg width="400" height="200" viewBox="0 0 300 180" fill="none">
+                      <defs>
+                        <linearGradient id="carBodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#10B981" stopOpacity="0.8" />
+                          <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.8" />
+                        </linearGradient>
+                      </defs>
+                      <path d="M 50 120 L 70 100 L 100 90 L 130 85 L 170 85 L 200 90 L 230 100 L 250 120 L 250 140 L 230 145 L 70 145 L 50 140 Z" fill="url(#carBodyGrad)" opacity="0.9" />
+                      <path d="M 120 85 L 140 70 L 160 70 L 180 85 Z" fill="white" opacity="0.1" />
+                      <circle cx="90" cy="145" r="18" fill="#080809" stroke="#10B981" strokeWidth="2" />
+                      <circle cx="210" cy="145" r="18" fill="#080809" stroke="#3b82f6" strokeWidth="2" />
+                   </svg>
+                </motion.div>
+                
+                {/* Visual Glow */}
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(16,185,129,0.05)_0%,transparent_70%)] pointer-events-none" />
+             </div>
 
-                {/* Energy particles */}
-                {isOnline && (
-                  <div className="absolute inset-0 pointer-events-none">
-                    {[...Array(8)].map((_, i) => (
-                      <motion.div
-                        key={i}
-                        className="absolute w-1 h-1 rounded-full"
-                        style={{
-                          background: i % 2 === 0 ? '#c5a568' : '#5c7a8c',
-                          left: `${15 + (i * 70) % 85}%`,
-                          top: `${20 + (i * 50) % 60}%`,
-                          boxShadow: `0 0 8px ${i % 2 === 0 ? '#c5a568' : '#5c7a8c'}`,
-                        }}
-                        animate={{ y: [-15, 15, -15], opacity: [0.2, 1, 0.2], scale: [0.5, 1.5, 0.5] }}
-                        transition={{ duration: 3 + (i % 3), repeat: Infinity, delay: i * 0.3 }}
-                      />
-                    ))}
+             <div className="grid grid-cols-4 gap-4 mt-8">
+                {[
+                  { label: 'Speed', val: vehicle?.telemetry?.speedKmph?.toFixed(0) || 0, unit: 'km/h', icon: Gauge, color: 'text-primary' },
+                  { label: 'Battery', val: vehicle?.battery?.toFixed(0) || 0, unit: '%', icon: Battery, color: (vehicle?.battery ?? 0) > 20 ? 'text-emerald-400' : 'text-red-400' },
+                  { label: 'Thermal', val: vehicle?.temperature?.toFixed(1) || 0, unit: '°C', icon: Thermometer, color: (vehicle?.temperature ?? 0) < 45 ? 'text-amber-400' : 'text-red-400' },
+                  { label: 'Health', val: vehicle?.healthScore || 0, unit: 'pts', icon: Heart, color: 'text-blue-400' },
+                ].map((stat, i) => (
+                  <div key={i} className="bg-white/[0.03] border border-white/5 rounded-lg p-3 group hover:border-primary/20 transition-all">
+                     <div className="flex items-center gap-2 mb-2">
+                        <stat.icon className={`w-3 h-3 ${stat.color}`} />
+                        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">{stat.label}</span>
+                     </div>
+                     <div className="flex items-baseline gap-1">
+                        <span className="text-xl font-bold text-precision">{stat.val}</span>
+                        <span className="text-[9px] text-muted-foreground font-mono">{stat.unit}</span>
+                     </div>
                   </div>
-                )}
-              </motion.div>
+                ))}
+             </div>
+          </div>
+          
+          {/* Live Charts */}
+          <div className="glass-card p-6">
+             <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">Telemetry Timeline</h3>
+                <div className="flex gap-4">
+                   <div className="flex items-center gap-1.5 text-[9px] font-bold text-primary">
+                      <div className="w-1 h-1 rounded-full bg-primary" /> REALTIME
+                   </div>
+                </div>
+             </div>
+             
+             <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={telemetryHistory}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                    <XAxis dataKey="time" stroke="rgba(255,255,255,0.2)" fontSize={9} tickMargin={10} axisLine={false} tickLine={false} />
+                    <YAxis stroke="rgba(255,255,255,0.2)" fontSize={9} width={25} axisLine={false} tickLine={false} />
+                    <RechartsTooltip
+                      contentStyle={{ backgroundColor: 'rgba(13, 15, 20, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', fontSize: '10px' }}
+                    />
+                    <Line type="monotone" dataKey="speed" stroke="#10B981" strokeWidth={2} dot={false} isAnimationActive={false} />
+                    <Line type="monotone" dataKey="battery" stroke="#3b82f6" strokeWidth={2} dot={false} isAnimationActive={false} />
+                    <Line type="monotone" dataKey="temp" stroke="#f59e0b" strokeWidth={2} dot={false} isAnimationActive={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+             </div>
+             <div className="flex justify-center gap-6 mt-4">
+                <div className="flex items-center gap-2 text-[9px] font-bold text-primary opacity-60"><div className="w-2 h-0.5 bg-primary" /> SPEED</div>
+                <div className="flex items-center gap-2 text-[9px] font-bold text-blue-400 opacity-60"><div className="w-2 h-0.5 bg-blue-400" /> BATTERY</div>
+                <div className="flex items-center gap-2 text-[9px] font-bold text-amber-400 opacity-60"><div className="w-2 h-0.5 bg-amber-400" /> TEMP</div>
+             </div>
+          </div>
+        </div>
 
-              {/* Status overlay */}
-              <div className="absolute top-4 right-4">
-                <div className={`w-3 h-3 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-gray-500'}`} />
-              </div>
-            </div>
-
-            {/* Real-time State Indicators */}
-            <div className="grid grid-cols-2 gap-4">
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                className="rounded-lg p-4 border"
-                style={{ backgroundColor: '#0B0F14', borderColor: isOnline ? 'rgba(0, 229, 255, 0.3)' : '#2a3542' }}
-              >
-                <Gauge className="w-5 h-5 mb-2" style={{ color: '#c5a568' }} />
-                <div className="text-xs text-gray-400 mb-1">Speed</div>
-                <motion.div className="text-xl font-bold text-white" key={vehicle?.telemetry?.speedKmph} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                  {vehicle?.telemetry?.speedKmph?.toFixed(0) || 0}
-                </motion.div>
-                <p className="text-xs text-muted-foreground mt-1">km/h</p>
-              </motion.div>
-
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                className="rounded-lg p-4 border"
-                style={{
-                  backgroundColor: '#0B0F14',
-                  borderColor: isOnline
-                    ? (vehicle?.battery ?? 100) > 60 ? 'rgba(0, 255, 133, 0.3)' : (vehicle?.battery ?? 100) > 30 ? 'rgba(255, 184, 0, 0.3)' : 'rgba(255, 61, 113, 0.3)'
-                    : '#2a3542',
-                }}
-              >
-                <Battery className="w-5 h-5 mb-2" style={{ color: (vehicle?.battery ?? 100) > 60 ? '#00FF85' : (vehicle?.battery ?? 100) > 30 ? '#FFB800' : '#FF3D71' }} />
-                <div className="text-xs text-gray-400 mb-1">Battery</div>
-                <motion.div className="text-xl font-bold text-white" key={vehicle?.battery} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                  {vehicle?.battery?.toFixed(0) || 0}
-                </motion.div>
-                <p className="text-xs text-muted-foreground mt-1">%</p>
-              </motion.div>
-
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                className="rounded-lg p-4 border"
-                style={{
-                  backgroundColor: '#0B0F14',
-                  borderColor: isOnline
-                    ? (vehicle?.temperature ?? 0) > 50 ? 'rgba(255, 61, 113, 0.3)' : 'rgba(255, 184, 0, 0.3)'
-                    : '#2a3542',
-                }}
-              >
-                <Thermometer className="w-5 h-5 mb-2" style={{ color: (vehicle?.temperature ?? 0) > 50 ? '#FF3D71' : '#FFB800' }} />
-                <div className="text-xs text-gray-400 mb-1">Temperature</div>
-                <motion.div className="text-xl font-bold text-white" key={vehicle?.temperature} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                  {vehicle?.temperature?.toFixed(1) || 0}
-                </motion.div>
-                <p className="text-xs text-muted-foreground mt-1">°C</p>
-              </motion.div>
-
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                className="rounded-lg p-4 border"
-                style={{ backgroundColor: '#0B0F14', borderColor: isOnline ? 'rgba(108, 99, 255, 0.3)' : '#2a3542' }}
-              >
-                <Clock className="w-5 h-5 mb-2" style={{ color: '#5c7a8c' }} />
-                <div className="text-xs text-gray-400 mb-1">Last Update</div>
-                <motion.div className="text-sm font-bold text-white">
-                  {vehicle?.lastSeen ? new Date(vehicle.lastSeen).toLocaleTimeString() : '--:--'}
-                </motion.div>
-                <p className="text-xs text-muted-foreground mt-1">Live</p>
-              </motion.div>
-            </div>
-          </motion.div>
-
-          {/* RIGHT: Digital Twin State */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            className="space-y-6"
-          >
-            {/* Digital Twin State Card */}
-            <div className="bg-card border border-border rounded-lg p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold">Digital Twin State</h2>
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={syncStatus}
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.8, opacity: 0 }}
-                    className={`flex items-center gap-2 px-3 py-1 rounded-md text-xs font-semibold ${syncStatus === 'synced'
-                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                      : syncStatus === 'syncing'
-                        ? 'bg-primary/10 text-primary border border-primary/20'
-                        : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                      }`}
-                  >
-                    <div className={`w-2 h-2 rounded-full ${syncStatus === 'synced'
-                      ? 'bg-emerald-500'
-                      : syncStatus === 'syncing'
-                        ? 'bg-primary animate-pulse'
-                        : 'bg-amber-500'
-                      }`} />
-                    {syncStatus === 'synced' ? 'Synced' : syncStatus === 'syncing' ? 'Syncing...' : 'Outdated'}
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4 p-4 bg-background/50 rounded-lg border border-border/50">
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Health State</p>
-                    <p className="font-semibold text-primary">{vehicle?.healthState || 'Unknown'}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Status</p>
-                    <p className="font-semibold">{vehicle?.online ? 'Online' : 'Offline'}</p>
-                  </div>
+        {/* RIGHT: Status & Controls */}
+        <div className="space-y-6">
+          <div className="glass-card p-6">
+             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground mb-6">Synchronization State</h3>
+             
+             <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-lg">
+                   <div>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">Health State</p>
+                      <p className={`text-sm font-bold uppercase ${vehicle?.healthState === 'CRITICAL' ? 'text-red-400' : 'text-primary'}`}>
+                        {vehicle?.healthState || 'OFFLINE'}
+                      </p>
+                   </div>
+                   <div className="text-right">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">Sync Index</p>
+                      <p className="text-sm font-bold text-precision">{syncStatus === 'synced' ? 'STABLE' : 'PENDING'}</p>
+                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <div className="flex justify-between p-3 bg-background/30 rounded-lg">
-                    <span className="text-sm text-muted-foreground">Vehicle ID</span>
-                    <span className="text-sm font-semibold">{vehicleId}</span>
-                  </div>
-                  <div className="flex justify-between p-3 bg-background/30 rounded-lg">
-                    <span className="text-sm text-muted-foreground">Simulation Profile</span>
-                    <span className="text-sm font-semibold">Standard EV Profile</span>
-                  </div>
-                  <div className="flex justify-between p-3 bg-background/30 rounded-lg">
-                    <span className="text-sm text-muted-foreground">Health Score</span>
-                    <span className="text-sm font-semibold text-emerald-400">{vehicle?.healthScore || 0}/100</span>
-                  </div>
+                <div className="space-y-2">
+                   {[
+                     { label: 'V-ID', val: vehicleId },
+                     { label: 'PROFILE', val: 'AXION-EV-PLATFORM' },
+                     { label: 'SCORE', val: `${vehicle?.healthScore || 0}/100`, color: 'text-primary' }
+                   ].map((row, i) => (
+                     <div key={i} className="flex justify-between items-center px-2 py-1">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase">{row.label}</span>
+                        <span className={`text-[10px] font-black uppercase ${row.color || 'text-foreground'}`}>{row.val}</span>
+                     </div>
+                   ))}
                 </div>
-              </div>
-            </div>
+             </div>
+          </div>
 
-            {/* Quick Actions */}
-            <div className="bg-card border border-border rounded-lg p-6">
-              <h3 className="text-sm font-semibold mb-4 text-muted-foreground uppercase tracking-wider">
-                Quick Actions
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
+          <div className="glass-card p-6">
+             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground mb-6">Orchestration</h3>
+             <div className="grid grid-cols-1 gap-3">
                 <button
                   onClick={handleTriggerOta}
-                  className="flex items-center justify-center gap-2 px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-lg text-sm font-semibold hover:bg-primary/20 transition-all">
-                  <Upload className="w-4 h-4" /> Trigger OTA
+                  className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-primary text-primary-foreground rounded-lg text-[11px] font-black uppercase tracking-widest hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all active:scale-95"
+                >
+                  <Upload className="w-4 h-4" /> Initialize OTA Sync
                 </button>
-                <button className="px-4 py-2 bg-secondary/10 text-secondary border border-secondary/20 rounded-lg text-sm font-semibold hover:bg-secondary/20 transition-all">
-                  View History
+                <button className="w-full px-4 py-3 bg-white/5 border border-white/10 text-foreground rounded-lg text-[11px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">
+                  Request Diagnostics
                 </button>
-              </div>
-            </div>
-          </motion.div>
+             </div>
+          </div>
+
+          {/* Policy Guardrails */}
+          <div className="glass-card p-6">
+             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground mb-6">Policy Guardrails</h3>
+             <div className="space-y-3">
+                {[
+                  { rule: 'Voltage Critical', pass: (vehicle?.battery ?? 100) > 10 },
+                  { label: 'Thermal Safety', pass: (vehicle?.temperature ?? 0) < 55 },
+                  { label: 'Sync Integrity', pass: isOnline }
+                ].map((rule, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 bg-white/[0.02] border border-white/5 rounded-lg">
+                    <span className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground">{rule.rule || rule.label}</span>
+                    <div className={`text-[9px] font-black uppercase ${rule.pass ? 'text-emerald-400' : 'text-red-400'}`}>
+                       {rule.pass ? 'SECURE' : 'BREACH'}
+                    </div>
+                  </div>
+                ))}
+             </div>
+          </div>
         </div>
-
-        {/* Tabs Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="bg-card border border-border rounded-lg overflow-hidden"
-        >
-          {/* Tab Headers */}
-          <div className="flex border-b border-border">
-            {[
-              { id: 'live' as const, label: 'Live State', icon: Activity },
-              { id: 'timeline' as const, label: 'State Timeline', icon: Clock },
-              { id: 'policies' as const, label: 'Policies Applied', icon: Shield },
-              { id: 'ota' as const, label: 'OTA Eligibility', icon: CheckCircle },
-            ].map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 font-semibold transition-all relative ${activeTab === tab.id
-                    ? 'text-primary bg-primary/5'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
-                    }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span className="text-sm">{tab.label}</span>
-                  {activeTab === tab.id && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
-                      transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Tab Content */}
-          <div className="p-6">
-            <AnimatePresence mode="wait">
-              {activeTab === 'live' && (
-                <motion.div
-                  key="live"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="space-y-4"
-                >
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="p-4 bg-background/50 border border-border/50 rounded-lg">
-                      <p className="text-xs text-muted-foreground mb-1">Battery SOC</p>
-                      <p className="text-2xl font-bold text-emerald-400">{vehicle?.battery?.toFixed(1) || 0}%</p>
-                    </div>
-                    <div className="p-4 bg-background/50 border border-border/50 rounded-lg">
-                      <p className="text-xs text-muted-foreground mb-1">Temperature</p>
-                      <p className="text-2xl font-bold text-amber-400">{vehicle?.temperature?.toFixed(1) || 0}°C</p>
-                    </div>
-                    <div className="p-4 bg-background/50 border border-border/50 rounded-lg">
-                      <p className="text-xs text-muted-foreground mb-1">Health Score</p>
-                      <p className="text-2xl font-bold text-primary">{vehicle?.healthScore || 0}</p>
-                    </div>
-                  </div>
-
-                  {/* Realtime Telemetry Charts */}
-                  <div className="space-y-4 pt-4">
-                    <h3 className="font-semibold px-1">Live Telemetry Trends</h3>
-
-                    <div className="grid grid-cols-1 gap-4">
-                      {/* Battery Chart */}
-                      <div className="h-[200px] w-full p-4 bg-background/50 border border-border/50 rounded-lg">
-                        <p className="text-xs text-muted-foreground mb-4">Battery SOC (%)</p>
-                        <ResponsiveContainer width="100%" height={120}>
-                          <LineChart data={telemetryHistory}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
-                            <XAxis dataKey="time" stroke="#666" fontSize={10} tickMargin={10} />
-                            <YAxis domain={[0, 100]} stroke="#666" fontSize={10} width={30} />
-                            <RechartsTooltip
-                              contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px', fontSize: '12px' }}
-                              itemStyle={{ color: '#34d399' }}
-                            />
-                            <Line type="monotone" dataKey="battery" stroke="#34d399" strokeWidth={2} dot={false} isAnimationActive={false} />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-
-                      {/* Temperature & Speed Dual Chart */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="h-[200px] w-full p-4 bg-background/50 border border-border/50 rounded-lg">
-                          <p className="text-xs text-muted-foreground mb-4">Temperature (°C)</p>
-                          <ResponsiveContainer width="100%" height={120}>
-                            <LineChart data={telemetryHistory}>
-                              <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
-                              <XAxis dataKey="time" stroke="#666" fontSize={10} tickMargin={10} />
-                              <YAxis domain={['auto', 'auto']} stroke="#666" fontSize={10} width={30} />
-                              <RechartsTooltip
-                                contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px', fontSize: '12px' }}
-                                itemStyle={{ color: '#fbbf24' }}
-                              />
-                              <Line type="monotone" dataKey="temp" stroke="#fbbf24" strokeWidth={2} dot={false} isAnimationActive={false} />
-                            </LineChart>
-                          </ResponsiveContainer>
-                        </div>
-
-                        <div className="h-[200px] w-full p-4 bg-background/50 border border-border/50 rounded-lg">
-                          <p className="text-xs text-muted-foreground mb-4">Speed (km/h)</p>
-                          <ResponsiveContainer width="100%" height={120}>
-                            <LineChart data={telemetryHistory}>
-                              <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
-                              <XAxis dataKey="time" stroke="#666" fontSize={10} tickMargin={10} />
-                              <YAxis domain={[0, 'auto']} stroke="#666" fontSize={10} width={30} />
-                              <RechartsTooltip
-                                contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px', fontSize: '12px' }}
-                                itemStyle={{ color: '#22d3ee' }}
-                              />
-                              <Line type="monotone" dataKey="speed" stroke="#22d3ee" strokeWidth={2} dot={false} isAnimationActive={false} />
-                            </LineChart>
-                          </ResponsiveContainer>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {activeTab === 'timeline' && (
-                <motion.div
-                  key="timeline"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="space-y-3"
-                >
-                  <h3 className="font-semibold mb-4">Telemetry Events Timeline</h3>
-                  {telemetryEvents.map((event: TelemetryEvent, index: number) => {
-                    const EventIcon = getEventIcon(event.type);
-                    return (
-                      <div
-                        key={index}
-                        className="flex items-center gap-4 p-4 bg-background/50 border border-border/50 rounded-lg"
-                      >
-                        <div className="bg-primary/10 p-2 rounded-lg">
-                          <EventIcon className="w-4 h-4 text-primary" />
-                        </div>
-                        <div className="text-xs font-mono text-muted-foreground w-24">
-                          {new Date(event.timestamp).toLocaleTimeString()}
-                        </div>
-                        <div className="flex items-center gap-2 flex-1">
-                          <span className="px-2 py-1 bg-muted/50 text-sm font-medium rounded">{event.event}</span>
-                        </div>
-                        <div className="text-sm text-primary font-semibold">{event.newValue}</div>
-                      </div>
-                    )
-                  })}
-                  {telemetryEvents.length === 0 && <p className="text-muted-foreground">No events recorded.</p>}
-                </motion.div>
-              )}
-              {/* Policies and OTA tabs omitted for brevity but should be kept if needed or mocked */}
-              {activeTab === 'policies' && (
-                <motion.div
-                  key="policies"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="space-y-3"
-                >
-                  <h3 className="font-semibold mb-4">Active Policy Rules</h3>
-                  {[
-                    { rule: `Battery SOC < ${HEALTH.SOC_CRITICAL_PCT}%`, action: `Mark CRITICAL, -${HEALTH.PENALTY_CRITICAL} health`, active: (vehicle?.battery ?? 100) < HEALTH.SOC_CRITICAL_PCT },
-                    { rule: `Battery SOC < ${HEALTH.SOC_WARNING_PCT}%`, action: `Mark DEGRADED, -${HEALTH.PENALTY_WARNING} health`, active: (vehicle?.battery ?? 100) < HEALTH.SOC_WARNING_PCT && (vehicle?.battery ?? 100) >= HEALTH.SOC_CRITICAL_PCT },
-                    { rule: `Battery Temp > ${HEALTH.TEMP_CRITICAL_C}°C`, action: `Mark CRITICAL, -${HEALTH.PENALTY_CRITICAL} health`, active: (vehicle?.temperature ?? 0) > HEALTH.TEMP_CRITICAL_C },
-                    { rule: `Battery Temp > ${HEALTH.TEMP_WARNING_C}°C`, action: `Mark DEGRADED, -${HEALTH.PENALTY_WARNING} health`, active: (vehicle?.temperature ?? 0) > HEALTH.TEMP_WARNING_C && (vehicle?.temperature ?? 0) <= HEALTH.TEMP_CRITICAL_C },
-                    { rule: 'Vehicle Offline', action: `Mark CRITICAL, -${HEALTH.PENALTY_CRITICAL} health`, active: !isOnline },
-                  ].map((policy, i) => (
-                    <div key={i} className={`flex items-center justify-between p-4 rounded-lg border ${
-                      policy.active
-                        ? 'bg-red-500/5 border-red-500/30'
-                        : 'bg-background/50 border-border/50'
-                    }`}>
-                      <div className="flex items-center gap-3">
-                        <div className={`w-2 h-2 rounded-full ${policy.active ? 'bg-red-500 animate-pulse' : 'bg-emerald-500'}`} />
-                        <span className="text-sm font-medium">{policy.rule}</span>
-                      </div>
-                      <span className={`text-xs font-semibold ${policy.active ? 'text-red-400' : 'text-muted-foreground'}`}>
-                        {policy.active ? 'TRIGGERED' : 'Passing'} — {policy.action}
-                      </span>
-                    </div>
-                  ))}
-                </motion.div>
-              )}
-              {activeTab === 'ota' && (
-                <motion.div
-                  key="ota"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="space-y-4"
-                >
-                  <h3 className="font-semibold mb-4">OTA Eligibility Check</h3>
-                  <div className="grid grid-cols-1 gap-3">
-                    {[
-                      { check: `Battery SOC > ${HEALTH.SOC_WARNING_PCT}%`, pass: (vehicle?.battery ?? 0) > HEALTH.SOC_WARNING_PCT },
-                      { check: 'Vehicle Online', pass: isOnline },
-                      { check: `Battery Temp < ${HEALTH.TEMP_CRITICAL_C}°C`, pass: (vehicle?.temperature ?? 100) < HEALTH.TEMP_CRITICAL_C },
-                      { check: 'Health State not CRITICAL', pass: vehicle?.healthState !== 'CRITICAL' },
-                    ].map((item, i) => (
-                      <div key={i} className={`flex items-center justify-between p-3 rounded-lg border ${
-                        item.pass ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-red-500/5 border-red-500/20'
-                      }`}>
-                        <span className="text-sm">{item.check}</span>
-                        <span className={`text-xs font-bold ${item.pass ? 'text-emerald-400' : 'text-red-400'}`}>
-                          {item.pass ? 'PASS' : 'FAIL'}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className={`p-4 rounded-lg border text-center ${
-                    (vehicle?.battery ?? 0) > HEALTH.SOC_WARNING_PCT && isOnline && (vehicle?.temperature ?? 100) < HEALTH.TEMP_CRITICAL_C && vehicle?.healthState !== 'CRITICAL'
-                      ? 'bg-emerald-500/10 border-emerald-500/30'
-                      : 'bg-red-500/10 border-red-500/30'
-                  }`}>
-                    <p className={`text-sm font-bold ${
-                      (vehicle?.battery ?? 0) > HEALTH.SOC_WARNING_PCT && isOnline && (vehicle?.temperature ?? 100) < HEALTH.TEMP_CRITICAL_C && vehicle?.healthState !== 'CRITICAL'
-                        ? 'text-emerald-400'
-                        : 'text-red-400'
-                    }`}>
-                      {(vehicle?.battery ?? 0) > HEALTH.SOC_WARNING_PCT && isOnline && (vehicle?.temperature ?? 100) < HEALTH.TEMP_CRITICAL_C && vehicle?.healthState !== 'CRITICAL'
-                        ? 'ELIGIBLE — Vehicle can receive OTA updates'
-                        : 'NOT ELIGIBLE — One or more checks failed'}
-                    </p>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </motion.div>
       </div>
     </div>
   );

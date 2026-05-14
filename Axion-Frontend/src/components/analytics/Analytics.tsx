@@ -49,18 +49,18 @@ export function Analytics() {
   }, []);
 
   const healthDist = summary ? [
-    { name: 'Healthy', value: summary.healthy, color: HEALTH_COLORS.HEALTHY },
-    { name: 'Degraded', value: summary.degraded, color: HEALTH_COLORS.DEGRADED },
-    { name: 'Critical', value: summary.critical, color: HEALTH_COLORS.CRITICAL },
+    { name: 'HEALTHY', value: summary.healthy, color: '#10B981' },
+    { name: 'DEGRADED', value: summary.degraded, color: '#F59E0B' },
+    { name: 'CRITICAL', value: summary.critical, color: '#EF4444' },
   ].filter(d => d.value > 0) : [];
 
   const batteryBuckets = () => {
     const buckets = [
-      { range: '0-20%', count: 0, color: '#ef4444' },
-      { range: '21-40%', count: 0, color: '#f97316' },
-      { range: '41-60%', count: 0, color: '#eab308' },
-      { range: '61-80%', count: 0, color: '#22c55e' },
-      { range: '81-100%', count: 0, color: '#10b981' },
+      { range: '0-20%', count: 0, color: '#EF4444' },
+      { range: '21-40%', count: 0, color: '#F97316' },
+      { range: '41-60%', count: 0, color: '#EAB308' },
+      { range: '61-80%', count: 0, color: '#22C55E' },
+      { range: '81-100%', count: 0, color: '#10B981' },
     ];
     vehicles.forEach(v => {
       const b = v.battery;
@@ -76,11 +76,11 @@ export function Analytics() {
 
   const tempBuckets = () => {
     const buckets = [
-      { range: '<25°C', count: 0, color: '#3b82f6' },
-      { range: '25-35°C', count: 0, color: '#10b981' },
-      { range: `35-${HEALTH.TEMP_WARNING_C}°C`, count: 0, color: '#f59e0b' },
-      { range: `${HEALTH.TEMP_WARNING_C}-${HEALTH.TEMP_CRITICAL_C}°C`, count: 0, color: '#f97316' },
-      { range: `>${HEALTH.TEMP_CRITICAL_C}°C`, count: 0, color: '#ef4444' },
+      { range: '<25°C', count: 0, color: '#3B82F6' },
+      { range: '25-35°C', count: 0, color: '#10B981' },
+      { range: `35-${HEALTH.TEMP_WARNING_C}°C`, count: 0, color: '#F59E0B' },
+      { range: `${HEALTH.TEMP_WARNING_C}-${HEALTH.TEMP_CRITICAL_C}°C`, count: 0, color: '#F97316' },
+      { range: `>${HEALTH.TEMP_CRITICAL_C}°C`, count: 0, color: '#EF4444' },
     ];
     vehicles.forEach(v => {
       const t = v.temperature;
@@ -104,275 +104,306 @@ export function Analytics() {
     ? (vehicles.reduce((a, v) => a + v.healthScore, 0) / vehicles.length).toFixed(0) : '0';
 
   const kpis = [
-    { label: 'Fleet Uptime', value: `${onlinePercent}%`, icon: Wifi, gradient: 'from-emerald-500/10 to-emerald-600/5', border: 'border-emerald-500/20', text: 'text-emerald-400' },
-    { label: 'Avg Battery', value: `${avgBattery}%`, icon: Battery, gradient: 'from-primary/10 to-primary/5', border: 'border-primary/20', text: 'text-primary' },
-    { label: 'Avg Temp', value: `${avgTemp}°C`, icon: Thermometer, gradient: 'from-amber-500/10 to-amber-600/5', border: 'border-amber-500/20', text: 'text-amber-400' },
-    { label: 'Avg Health', value: avgHealth, icon: Heart, gradient: 'from-purple-500/10 to-purple-600/5', border: 'border-purple-500/20', text: 'text-purple-400' },
+    { label: 'FLEET_UPTIME', value: `${onlinePercent}%`, icon: Wifi, color: 'text-emerald-400' },
+    { label: 'AVG_SOC_RESERVE', value: `${avgBattery}%`, icon: Battery, color: 'text-primary' },
+    { label: 'AVG_THERMAL_LOAD', value: `${avgTemp}°C`, icon: Thermometer, color: 'text-amber-400' },
+    { label: 'FLEET_INTEGRITY', value: avgHealth, icon: Heart, color: 'text-purple-400' },
   ];
 
   const tooltipStyle = {
-    contentStyle: { backgroundColor: 'rgba(0,0,0,0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '12px', color: '#e5e7eb' },
-    wrapperStyle: { outline: 'none' },
-    itemStyle: { color: '#e5e7eb' },
+    contentStyle: { backgroundColor: 'rgba(6, 7, 9, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase' as const, color: '#E5E7EB', backdropFilter: 'blur(8px)' },
+    itemStyle: { padding: '2px 0' },
+    cursor: { stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1 }
   };
-  const pieTooltipStyle = { ...tooltipStyle, cursor: false as const };
 
   return (
-    <div className="p-8 pb-16">
-      <div className="mb-8">
-        <h1 className="text-3xl font-semibold mb-2 flex items-center gap-3">
-          <BarChart3 className="w-8 h-8 text-primary" /> Fleet Analytics
-        </h1>
-        <p className="text-muted-foreground">Real-time fleet performance monitoring and distribution analysis</p>
+    <div className="p-8 max-w-[1600px] mx-auto space-y-8">
+      {/* Header */}
+      <div className="flex items-end justify-between">
+        <div>
+          <h1 className="text-4xl font-black tracking-tighter uppercase text-precision">Fleet_Analytics</h1>
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground mt-2 opacity-50">
+             AGGREGATE_PERFORMANCE_METRICS • TELEMETRY_DISTRIBUTION
+          </p>
+        </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {kpis.map((kpi, i) => {
           const Icon = kpi.icon;
           return (
-            <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
-              className={`rounded-xl bg-gradient-to-br ${kpi.gradient} p-5 border ${kpi.border}`}
+            <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+              className="glass-card p-6 border-white/5"
             >
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm text-muted-foreground">{kpi.label}</span>
-                <Icon className={`w-4 h-4 ${kpi.text}`} />
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">{kpi.label}</span>
+                <Icon className={`w-3.5 h-3.5 ${kpi.color}`} />
               </div>
-              <div className={`text-3xl font-semibold ${kpi.text}`}>{kpi.value}</div>
+              <div className={`text-3xl font-black tracking-tighter text-precision ${kpi.color}`}>{kpi.value}</div>
             </motion.div>
           );
         })}
       </div>
 
-      {/* Row 1: Health Distribution + Battery Distribution */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-          className="rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-6"
-        >
-          <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
-            <Heart className="w-5 h-5 text-purple-400" /> Health Distribution
-          </h2>
-          {healthDist.length > 0 ? (
-            <div className="flex items-center gap-6">
-              <ResponsiveContainer width="50%" height={200}>
-                <PieChart>
-                  <Pie data={healthDist} cx="50%" cy="50%" innerRadius={55} outerRadius={80} paddingAngle={4} dataKey="value" stroke="none">
-                    {healthDist.map((d, i) => <Cell key={i} fill={d.color} />)}
-                  </Pie>
-                  <Tooltip {...pieTooltipStyle} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="space-y-3">
-                {healthDist.map((d, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: d.color }} />
-                    <span className="text-sm text-muted-foreground">{d.name}</span>
-                    <span className="text-sm font-semibold">{d.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">No fleet data available</div>
-          )}
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-          className="rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-6"
-        >
-          <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
-            <Battery className="w-5 h-5 text-primary" /> Battery SOC Distribution
-          </h2>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={batteryBuckets()}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="range" stroke="rgba(255,255,255,0.3)" style={{ fontSize: '11px' }} />
-              <YAxis stroke="rgba(255,255,255,0.3)" style={{ fontSize: '11px' }} allowDecimals={false} />
-              <Tooltip {...tooltipStyle} />
-              <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                {batteryBuckets().map((b, i) => <Cell key={i} fill={b.color} />)}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </motion.div>
-      </div>
-
-      {/* Row 2: Temperature Distribution + Online/Offline Ratio */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-          className="rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-6"
-        >
-          <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
-            <Thermometer className="w-5 h-5 text-amber-400" /> Temperature Distribution
-          </h2>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={tempBuckets()}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="range" stroke="rgba(255,255,255,0.3)" style={{ fontSize: '11px' }} />
-              <YAxis stroke="rgba(255,255,255,0.3)" style={{ fontSize: '11px' }} allowDecimals={false} />
-              <Tooltip {...tooltipStyle} />
-              <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                {tempBuckets().map((b, i) => <Cell key={i} fill={b.color} />)}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
-          className="rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-6"
-        >
-          <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-emerald-400" /> Connectivity Status
-          </h2>
-          {summary && summary.totalVehicles > 0 ? (
-            <div className="flex items-center gap-6">
-              <ResponsiveContainer width="50%" height={200}>
-                <PieChart>
-                  <Pie data={[
-                    { name: 'Online', value: summary.onlineVehicles, color: '#10b981' },
-                    { name: 'Offline', value: summary.totalVehicles - summary.onlineVehicles, color: '#6b7280' },
-                  ]} cx="50%" cy="50%" innerRadius={55} outerRadius={80} paddingAngle={4} dataKey="value" stroke="none">
-                    <Cell fill="#10b981" />
-                    <Cell fill="#6b7280" />
-                  </Pie>
-                  <Tooltip {...pieTooltipStyle} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <Wifi className="w-4 h-4 text-emerald-400" />
-                  <div>
-                    <div className="text-2xl font-semibold text-emerald-400">{summary.onlineVehicles}</div>
-                    <div className="text-xs text-muted-foreground">Online</div>
-                  </div>
+      <div className="grid grid-cols-12 gap-6">
+        {/* Health Distribution */}
+        <div className="col-span-12 lg:col-span-4">
+          <div className="glass-card p-6 h-full border-white/5">
+            <h2 className="text-xs font-black uppercase tracking-widest text-muted-foreground opacity-40 mb-8 flex items-center gap-2">
+              <Heart className="w-3.5 h-3.5 text-purple-400" />
+              Integrity_Distribution
+            </h2>
+            {healthDist.length > 0 ? (
+              <div className="flex flex-col items-center">
+                <div className="w-full h-[220px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={healthDist} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={8} dataKey="value" stroke="none">
+                        {healthDist.map((d, i) => <Cell key={i} fill={d.color} fillOpacity={0.8} />)}
+                      </Pie>
+                      <Tooltip {...tooltipStyle} />
+                    </PieChart>
+                  </ResponsiveContainer>
                 </div>
-                <div className="flex items-center gap-3">
-                  <WifiOff className="w-4 h-4 text-gray-400" />
-                  <div>
-                    <div className="text-2xl font-semibold text-gray-400">{summary.totalVehicles - summary.onlineVehicles}</div>
-                    <div className="text-xs text-muted-foreground">Offline</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">No fleet data available</div>
-          )}
-        </motion.div>
-      </div>
-
-      {/* Row 3: Health Trend + Battery Trend */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
-          className="rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-6"
-        >
-          <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-purple-400" /> Health State Trend
-          </h2>
-          {healthHistory.length > 1 ? (
-            <ResponsiveContainer width="100%" height={200}>
-              <AreaChart data={healthHistory}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="time" stroke="rgba(255,255,255,0.3)" style={{ fontSize: '10px' }} />
-                <YAxis stroke="rgba(255,255,255,0.3)" style={{ fontSize: '11px' }} allowDecimals={false} />
-                <Tooltip {...tooltipStyle} />
-                <Area type="monotone" dataKey="healthy" stackId="1" stroke="#10b981" fill="#10b98133" />
-                <Area type="monotone" dataKey="degraded" stackId="1" stroke="#f59e0b" fill="#f59e0b33" />
-                <Area type="monotone" dataKey="critical" stackId="1" stroke="#ef4444" fill="#ef444433" />
-              </AreaChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">Collecting trend data...</div>
-          )}
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}
-          className="rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 p-6"
-        >
-          <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
-            <Battery className="w-5 h-5 text-primary" /> Battery SOC Trend
-          </h2>
-          {batteryHistory.length > 1 ? (
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={batteryHistory}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="time" stroke="rgba(255,255,255,0.3)" style={{ fontSize: '10px' }} />
-                <YAxis stroke="rgba(255,255,255,0.3)" style={{ fontSize: '11px' }} domain={[0, 100]} />
-                <Tooltip {...tooltipStyle} />
-                <Line type="monotone" dataKey="avg" stroke="#00e5ff" strokeWidth={2} dot={false} name="Average" />
-                <Line type="monotone" dataKey="min" stroke="#ef4444" strokeWidth={1} strokeDasharray="4 4" dot={false} name="Min" />
-                <Line type="monotone" dataKey="max" stroke="#10b981" strokeWidth={1} strokeDasharray="4 4" dot={false} name="Max" />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">Collecting trend data...</div>
-          )}
-        </motion.div>
-      </div>
-
-      {/* Vehicle Performance Table */}
-      {vehicles.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}
-          className="mt-6 rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 overflow-hidden"
-        >
-          <div className="p-6 border-b border-white/10">
-            <h2 className="text-lg font-medium">Vehicle Performance Ranking</h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-white/10 text-muted-foreground">
-                  <th className="text-left p-4">Vehicle</th>
-                  <th className="text-left p-4">Status</th>
-                  <th className="text-left p-4">Health</th>
-                  <th className="text-left p-4">Battery</th>
-                  <th className="text-left p-4">Temperature</th>
-                  <th className="text-left p-4">Score</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[...vehicles].sort((a, b) => a.healthScore - b.healthScore).map(v => (
-                  <tr key={v.vehicleId} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                    <td className="p-4 font-mono text-xs">{v.vehicleId}</td>
-                    <td className="p-4">
-                      <span className={`inline-flex items-center gap-1.5 text-xs ${v.online ? 'text-emerald-400' : 'text-gray-500'}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${v.online ? 'bg-emerald-400 animate-pulse' : 'bg-gray-500'}`} />
-                        {v.online ? 'Online' : 'Offline'}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        v.healthState === 'HEALTHY' ? 'bg-emerald-500/10 text-emerald-400' :
-                        v.healthState === 'DEGRADED' ? 'bg-amber-500/10 text-amber-400' :
-                        'bg-red-500/10 text-red-400'
-                      }`}>{v.healthState}</span>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-16 h-1.5 bg-white/10 rounded-full overflow-hidden">
-                          <div className={`h-full rounded-full ${v.battery > HEALTH.SOC_WARNING_PCT ? 'bg-emerald-400' : v.battery > HEALTH.SOC_CRITICAL_PCT ? 'bg-amber-400' : 'bg-red-400'}`}
-                            style={{ width: `${v.battery}%` }} />
-                        </div>
-                        <span className="text-xs text-muted-foreground">{v.battery?.toFixed(0)}%</span>
+                <div className="grid grid-cols-1 w-full gap-2 mt-4">
+                  {healthDist.map((d, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 bg-white/5 border border-white/5 rounded">
+                      <div className="flex items-center gap-3">
+                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: d.color, boxShadow: `0 0 10px ${d.color}` }} />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">{d.name}</span>
                       </div>
-                    </td>
-                    <td className="p-4">
-                      <span className={`text-xs ${v.temperature > HEALTH.TEMP_CRITICAL_C ? 'text-red-400' : v.temperature > HEALTH.TEMP_WARNING_C ? 'text-amber-400' : 'text-muted-foreground'}`}>
-                        {v.temperature?.toFixed(1)}°C
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <span className={`text-sm font-semibold ${
-                        v.healthScore >= (HEALTH.BASE_SCORE - HEALTH.PENALTY_WARNING) ? 'text-emerald-400' : v.healthScore >= (HEALTH.BASE_SCORE - HEALTH.PENALTY_CRITICAL) ? 'text-amber-400' : 'text-red-400'
-                      }`}>{v.healthScore}</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      <span className="text-xs font-black text-precision">{d.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="h-[220px] flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-20 italic">No_Telemetry_Data</div>
+            )}
           </div>
-        </motion.div>
-      )}
+        </div>
+
+        {/* Battery SOC Distribution */}
+        <div className="col-span-12 lg:col-span-8">
+          <div className="glass-card p-6 h-full border-white/5">
+            <h2 className="text-xs font-black uppercase tracking-widest text-muted-foreground opacity-40 mb-8 flex items-center gap-2">
+              <Battery className="w-3.5 h-3.5 text-primary" />
+              SOC_Reserve_Density
+            </h2>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={batteryBuckets()}>
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="range" stroke="rgba(255,255,255,0.2)" axisLine={false} tickLine={false} tick={{ fontSize: 9, fontWeight: 900 }} />
+                  <YAxis stroke="rgba(255,255,255,0.2)" axisLine={false} tickLine={false} tick={{ fontSize: 9, fontWeight: 900 }} allowDecimals={false} />
+                  <Tooltip {...tooltipStyle} />
+                  <Bar dataKey="count" radius={[2, 2, 0, 0]} barSize={40}>
+                    {batteryBuckets().map((b, i) => <Cell key={i} fill={b.color} fillOpacity={0.6} stroke={b.color} strokeWidth={1} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* Temperature Distribution */}
+        <div className="col-span-12 lg:col-span-6">
+          <div className="glass-card p-6 border-white/5">
+            <h2 className="text-xs font-black uppercase tracking-widest text-muted-foreground opacity-40 mb-8 flex items-center gap-2">
+              <Thermometer className="w-3.5 h-3.5 text-amber-400" />
+              Thermal_Load_Variance
+            </h2>
+            <div className="h-[240px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={tempBuckets()} layout="vertical">
+                  <CartesianGrid horizontal={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <XAxis type="number" stroke="rgba(255,255,255,0.2)" axisLine={false} tickLine={false} tick={{ fontSize: 9, fontWeight: 900 }} hide />
+                  <YAxis type="category" dataKey="range" stroke="rgba(255,255,255,0.2)" axisLine={false} tickLine={false} tick={{ fontSize: 9, fontWeight: 900 }} width={80} />
+                  <Tooltip {...tooltipStyle} />
+                  <Bar dataKey="count" radius={[0, 2, 2, 0]} barSize={24}>
+                    {tempBuckets().map((b, i) => <Cell key={i} fill={b.color} fillOpacity={0.6} stroke={b.color} strokeWidth={1} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* Connectivity Ratio */}
+        <div className="col-span-12 lg:col-span-6">
+          <div className="glass-card p-6 border-white/5">
+            <h2 className="text-xs font-black uppercase tracking-widest text-muted-foreground opacity-40 mb-8 flex items-center gap-2">
+              <Activity className="w-3.5 h-3.5 text-emerald-400" />
+              Connectivity_Sync_Ratio
+            </h2>
+            {summary && summary.totalVehicles > 0 ? (
+              <div className="flex items-center justify-around h-[240px]">
+                <div className="w-[180px] h-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={[
+                        { name: 'ONLINE', value: summary.onlineVehicles, color: '#10B981' },
+                        { name: 'OFFLINE', value: summary.totalVehicles - summary.onlineVehicles, color: '#374151' },
+                      ]} cx="50%" cy="50%" innerRadius={50} outerRadius={75} paddingAngle={4} dataKey="value" stroke="none">
+                        <Cell fill="#10B981" fillOpacity={0.8} />
+                        <Cell fill="#1F2937" />
+                      </Pie>
+                      <Tooltip {...tooltipStyle} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4">
+                    <div className="p-2 bg-emerald-500/5 border border-emerald-500/20 rounded">
+                       <Wifi className="w-4 h-4 text-emerald-400" />
+                    </div>
+                    <div>
+                      <div className="text-2xl font-black text-precision leading-none">{summary.onlineVehicles}</div>
+                      <div className="text-[9px] font-black text-emerald-400/60 uppercase tracking-widest mt-1">NODES_ONLINE</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="p-2 bg-white/5 border border-white/10 rounded">
+                       <WifiOff className="w-4 h-4 text-muted-foreground opacity-40" />
+                    </div>
+                    <div>
+                      <div className="text-2xl font-black text-precision leading-none opacity-40">{summary.totalVehicles - summary.onlineVehicles}</div>
+                      <div className="text-[9px] font-black text-muted-foreground opacity-40 uppercase tracking-widest mt-1">NODES_OFFLINE</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="h-[240px] flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-20 italic">No_Telemetry_Data</div>
+            )}
+          </div>
+        </div>
+
+        {/* Health Trend */}
+        <div className="col-span-12 lg:col-span-6">
+          <div className="glass-card p-6 border-white/5">
+            <h2 className="text-xs font-black uppercase tracking-widest text-muted-foreground opacity-40 mb-8 flex items-center gap-2">
+              <TrendingUp className="w-3.5 h-3.5 text-purple-400" />
+              State_Propagation_Trend
+            </h2>
+            <div className="h-[240px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={healthHistory}>
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="time" stroke="rgba(255,255,255,0.2)" axisLine={false} tickLine={false} tick={{ fontSize: 8, fontWeight: 900 }} />
+                  <YAxis stroke="rgba(255,255,255,0.2)" axisLine={false} tickLine={false} tick={{ fontSize: 9, fontWeight: 900 }} allowDecimals={false} />
+                  <Tooltip {...tooltipStyle} />
+                  <Area type="monotone" dataKey="healthy" stackId="1" stroke="#10B981" fill="url(#colorHealthy)" fillOpacity={1} strokeWidth={2} />
+                  <Area type="monotone" dataKey="degraded" stackId="1" stroke="#F59E0B" fill="url(#colorDegraded)" fillOpacity={1} strokeWidth={2} />
+                  <Area type="monotone" dataKey="critical" stackId="1" stroke="#EF4444" fill="url(#colorCritical)" fillOpacity={1} strokeWidth={2} />
+                  <defs>
+                    <linearGradient id="colorHealthy" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.2}/>
+                      <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorDegraded" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#F59E0B" stopOpacity={0.2}/>
+                      <stop offset="95%" stopColor="#F59E0B" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorCritical" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#EF4444" stopOpacity={0.2}/>
+                      <stop offset="95%" stopColor="#EF4444" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* Battery SOC Trend */}
+        <div className="col-span-12 lg:col-span-6">
+          <div className="glass-card p-6 border-white/5">
+            <h2 className="text-xs font-black uppercase tracking-widest text-muted-foreground opacity-40 mb-8 flex items-center gap-2">
+              <Battery className="w-3.5 h-3.5 text-primary" />
+              Mean_SOC_Historical_Delta
+            </h2>
+            <div className="h-[240px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={batteryHistory}>
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="time" stroke="rgba(255,255,255,0.2)" axisLine={false} tickLine={false} tick={{ fontSize: 8, fontWeight: 900 }} />
+                  <YAxis stroke="rgba(255,255,255,0.2)" axisLine={false} tickLine={false} tick={{ fontSize: 9, fontWeight: 900 }} domain={[0, 100]} />
+                  <Tooltip {...tooltipStyle} />
+                  <Line type="monotone" dataKey="avg" stroke="#00E5FF" strokeWidth={3} dot={false} name="AVG_RESERVE" shadow="0 0 10px #00E5FF" />
+                  <Line type="step" dataKey="min" stroke="#EF4444" strokeWidth={1} strokeDasharray="4 4" dot={false} name="MIN_NODE" />
+                  <Line type="step" dataKey="max" stroke="#10B981" strokeWidth={1} strokeDasharray="4 4" dot={false} name="MAX_NODE" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* Vehicle Performance Ranking */}
+        <div className="col-span-12">
+          <div className="glass-card overflow-hidden">
+            <div className="p-6 border-b border-white/5">
+              <h2 className="text-xs font-black uppercase tracking-widest text-muted-foreground opacity-40">System_Integrity_Ranking</h2>
+            </div>
+            <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-40 border-b border-white/5 bg-white/[0.02]">
+                    <th className="text-left p-6 font-black">Node_Identity</th>
+                    <th className="text-left p-6 font-black">Sync_State</th>
+                    <th className="text-left p-6 font-black">Integrity_Class</th>
+                    <th className="text-left p-6 font-black">SOC_Level</th>
+                    <th className="text-left p-6 font-black">Thermal_State</th>
+                    <th className="text-right p-6 font-black">Integrity_Score</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {[...vehicles].sort((a, b) => a.healthScore - b.healthScore).map(v => (
+                    <tr key={v.vehicleId} className="hover:bg-white/[0.02] transition-colors group">
+                      <td className="p-6">
+                        <div className="text-xs font-black font-mono text-precision group-hover:text-primary transition-colors">{v.vehicleId}</div>
+                      </td>
+                      <td className="p-6">
+                        <div className={`flex items-center gap-2 text-[9px] font-black uppercase tracking-widest ${v.online ? 'text-emerald-400' : 'text-muted-foreground opacity-30'}`}>
+                          <div className={`w-1 h-1 rounded-full ${v.online ? 'bg-emerald-400 shadow-[0_0_8px_#10B981]' : 'bg-white/20'}`} />
+                          {v.online ? 'SYNCED' : 'OFFLINE'}
+                        </div>
+                      </td>
+                      <td className="p-6">
+                        <span className={`text-[9px] font-black px-2 py-1 rounded border uppercase tracking-tighter ${
+                          v.healthState === 'HEALTHY' ? 'bg-emerald-500/5 text-emerald-400 border-emerald-500/20' :
+                          v.healthState === 'DEGRADED' ? 'bg-amber-500/5 text-amber-400 border-amber-500/20' :
+                          'bg-red-500/5 text-red-400 border-red-500/20'
+                        }`}>{v.healthState}</span>
+                      </td>
+                      <td className="p-6">
+                        <div className="flex items-center gap-3">
+                          <div className="w-20 h-1 bg-white/5 rounded-full overflow-hidden">
+                            <div className={`h-full ${v.battery > HEALTH.SOC_WARNING_PCT ? 'bg-emerald-400' : v.battery > HEALTH.SOC_CRITICAL_PCT ? 'bg-amber-400' : 'bg-red-400'}`}
+                              style={{ width: `${v.battery}%` }} />
+                          </div>
+                          <span className="text-[10px] font-black font-mono text-precision">{v.battery?.toFixed(0)}%</span>
+                        </div>
+                      </td>
+                      <td className="p-6">
+                        <div className={`text-[10px] font-black font-mono ${v.temperature > HEALTH.TEMP_CRITICAL_C ? 'text-red-400' : v.temperature > HEALTH.TEMP_WARNING_C ? 'text-amber-400' : 'text-precision opacity-60'}`}>
+                          {v.temperature?.toFixed(1)}°C
+                        </div>
+                      </td>
+                      <td className="p-6 text-right">
+                        <div className={`text-sm font-black tracking-tighter ${
+                          v.healthScore >= (HEALTH.BASE_SCORE - HEALTH.PENALTY_WARNING) ? 'text-emerald-400' : v.healthScore >= (HEALTH.BASE_SCORE - HEALTH.PENALTY_CRITICAL) ? 'text-amber-400' : 'text-red-400'
+                        }`}>{v.healthScore}</div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
