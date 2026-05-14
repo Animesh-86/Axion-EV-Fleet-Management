@@ -13,5 +13,6 @@ export const paths = {
   analytics: '/analytics',
   alerts: '/alerts',
   system: '/system',
+  auditLogs: '/audit-logs',
   settings: '/settings',
 } as const;
