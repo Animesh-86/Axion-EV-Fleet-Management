@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, Battery, Thermometer, Gauge, Clock, Activity, WifiOff, Circle, Zap, Info, Shield, CheckCircle, Upload } from 'lucide-react';
+import { ArrowLeft, Battery, Thermometer, Gauge, Clock, Activity, WifiOff, Circle, Zap, Info, Shield, CheckCircle, Upload, Heart, BrainCircuit, AlertTriangle } from 'lucide-react';
 import { AxionApi, VehicleDetail as ApiVehicleDetail } from '../../services/api';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
 import { POLL_VEHICLE_DETAIL, TELEMETRY_HISTORY_WINDOW, DEFAULT_CAMPAIGN_ID, HEALTH } from '../../config';
+import { useWebSocket } from '../../hooks/useWebSocket';
 
 interface VehicleDetailProps {
   vehicleId: string | null;
@@ -52,6 +53,8 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
     }
   }, [activeTab, vehicleId]);
 
+  const { subscribeToVehicle } = useWebSocket();
+
   useEffect(() => {
     if (!vehicleId) return;
 
@@ -87,9 +90,38 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
     };
 
     fetchVehicle();
-    const interval = setInterval(fetchVehicle, POLL_VEHICLE_DETAIL);
-    return () => clearInterval(interval);
-  }, [vehicleId]);
+
+    // Subscribe to live WebSocket feed for this vehicle
+    const unsubscribe = subscribeToVehicle(vehicleId, (msg) => {
+      if (msg.type === 'TWIN_UPDATE' && msg.data) {
+        const data = msg.data;
+        setVehicle((prev) => prev ? { ...prev, ...data } : data);
+        setIsOnline(data.online);
+        setSyncStatus('synced');
+
+        if (data.telemetry) {
+          setTelemetryHistory(prev => {
+            const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const newPoint = {
+              time: timeStr,
+              speed: data.telemetry.speedKmph ?? prev[prev.length - 1]?.speed ?? 0,
+              battery: data.telemetry.batterySocPct ?? prev[prev.length - 1]?.battery ?? 0,
+              temp: data.telemetry.batteryTempC ?? prev[prev.length - 1]?.temp ?? 0,
+            };
+            return [...prev, newPoint].slice(-TELEMETRY_HISTORY_WINDOW);
+          });
+        }
+      } else if (msg.type === 'HEALTH_CHANGE') {
+        toast.info(`Vehicle ${vehicleId} health changed to ${msg.to}`, {
+          description: `Previous state was ${msg.from}`,
+        });
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [vehicleId, subscribeToVehicle]);
 
   if (!vehicleId) {
     return (
@@ -376,6 +408,83 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
                 <button className="w-full px-4 py-3 bg-white/5 border border-white/10 text-foreground rounded-lg text-[11px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">
                   Request Diagnostics
                 </button>
+             </div>
+          </div>
+
+          {/* ML Predictive Analytics */}
+          <div className="glass-card p-6">
+             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground mb-6 flex items-center gap-2">
+               <BrainCircuit className="w-3.5 h-3.5 text-purple-400" />
+               Predictive Intelligence
+             </h3>
+             <div className="space-y-4">
+               {/* Battery Depletion Prediction */}
+               <div className="p-4 bg-white/[0.02] border border-white/5 rounded-lg">
+                 <div className="flex items-center gap-2 mb-3">
+                   <Battery className="w-3.5 h-3.5 text-blue-400" />
+                   <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Battery Depletion Forecast</span>
+                 </div>
+                 {(vehicle as any)?.predictions?.batteryDepletion ? (
+                   <>
+                     <div className="flex items-baseline gap-2">
+                       <span className={`text-2xl font-black tracking-tight ${
+                         (vehicle as any).predictions.batteryDepletion.hours < 2 ? 'text-red-400' : 
+                         (vehicle as any).predictions.batteryDepletion.hours < 5 ? 'text-amber-400' : 'text-emerald-400'
+                       }`}>
+                         {(vehicle as any).predictions.batteryDepletion.hours}
+                       </span>
+                       <span className="text-[9px] text-muted-foreground font-mono">hours remaining</span>
+                     </div>
+                     <div className="mt-2 flex items-center gap-2">
+                       <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
+                         <div 
+                           className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all"
+                           style={{ width: `${Math.min(100, (vehicle as any).predictions.batteryDepletion.confidence * 100)}%` }}
+                         />
+                       </div>
+                       <span className="text-[9px] font-black text-muted-foreground">
+                         {((vehicle as any).predictions.batteryDepletion.confidence * 100).toFixed(0)}% conf
+                       </span>
+                     </div>
+                   </>
+                 ) : (
+                   <span className="text-[10px] text-muted-foreground opacity-40 italic">Awaiting prediction data...</span>
+                 )}
+               </div>
+
+               {/* Temperature Anomaly Detection */}
+               <div className="p-4 bg-white/[0.02] border border-white/5 rounded-lg">
+                 <div className="flex items-center gap-2 mb-3">
+                   <Thermometer className="w-3.5 h-3.5 text-amber-400" />
+                   <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Thermal Anomaly Risk</span>
+                 </div>
+                 {(vehicle as any)?.predictions?.tempAnomaly ? (
+                   <>
+                     <div className="flex items-center justify-between">
+                       <div className={`px-3 py-1.5 rounded border text-[10px] font-black uppercase tracking-widest ${
+                         (vehicle as any).predictions.tempAnomaly.risk === 'HIGH' ? 'bg-red-500/10 text-red-400 border-red-500/30' :
+                         (vehicle as any).predictions.tempAnomaly.risk === 'MEDIUM' ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' :
+                         'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                       }`}>
+                         {(vehicle as any).predictions.tempAnomaly.risk === 'HIGH' && <AlertTriangle className="w-3 h-3 inline mr-1" />}
+                         {(vehicle as any).predictions.tempAnomaly.risk}
+                       </div>
+                       <div className="text-right">
+                         <div className="text-lg font-black text-precision">
+                           {(vehicle as any).predictions.tempAnomaly.predictedPeakC}°C
+                         </div>
+                         <div className="text-[8px] text-muted-foreground font-mono uppercase">Predicted Peak</div>
+                       </div>
+                     </div>
+                   </>
+                 ) : (
+                   <span className="text-[10px] text-muted-foreground opacity-40 italic">Awaiting prediction data...</span>
+                 )}
+               </div>
+
+               <div className="p-2 bg-purple-500/5 border border-purple-500/10 rounded text-center">
+                 <span className="text-[8px] font-bold text-purple-400/60 uppercase tracking-widest">XGBoost + Isolation Forest • Redis Cached 60s</span>
+               </div>
              </div>
           </div>
 

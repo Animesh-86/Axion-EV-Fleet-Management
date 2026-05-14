@@ -7,9 +7,11 @@ import com.axion.ingestion.model.DigitalTwinState;
 import com.axion.ingestion.model.TelemetrySnapshot;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import com.axion.ingestion.model.dto.WebSocketMessage;
 
 @Slf4j
 @Service
@@ -19,13 +21,17 @@ public class DigitalTwinService {
 
     private final HealthScoreEngine healthScoringEngine;
 
+    private final SimpMessagingTemplate messagingTemplate;
+
     private final Duration ttl;
 
     public DigitalTwinService(RedisTemplate<String, DigitalTwinState> redisTemplate,
             HealthScoreEngine healthScoreEngine,
+            SimpMessagingTemplate messagingTemplate,
             @org.springframework.beans.factory.annotation.Value("${axion.redis.ttl-seconds}") int ttlSeconds) {
         this.redisTemplate = redisTemplate;
         this.healthScoringEngine = healthScoreEngine;
+        this.messagingTemplate = messagingTemplate;
         this.ttl = Duration.ofSeconds(ttlSeconds);
     }
 
@@ -66,5 +72,28 @@ public class DigitalTwinService {
 
         redisTemplate.opsForValue().set(key, updated, ttl);
         log.debug("Digital twin updated in Redis: {} | health={} state={}", key, result.getScore(), result.getState());
+
+        // Broadcast TWIN_UPDATE
+        WebSocketMessage twinUpdateMsg = WebSocketMessage.builder()
+                .type("TWIN_UPDATE")
+                .vehicleId(updated.getVehicleId())
+                .data(updated)
+                .build();
+        messagingTemplate.convertAndSend("/topic/fleet/updates", twinUpdateMsg);
+        messagingTemplate.convertAndSend("/topic/vehicle/" + updated.getVehicleId(), twinUpdateMsg);
+
+        // Check if health state changed
+        if (existing != null && existing.getHealthState() != null &&
+            !existing.getHealthState().equals(result.getState().name())) {
+            
+            WebSocketMessage healthChangeMsg = WebSocketMessage.builder()
+                    .type("HEALTH_CHANGE")
+                    .vehicleId(updated.getVehicleId())
+                    .from(existing.getHealthState())
+                    .to(result.getState().name())
+                    .build();
+            messagingTemplate.convertAndSend("/topic/fleet/updates", healthChangeMsg);
+            messagingTemplate.convertAndSend("/topic/vehicle/" + updated.getVehicleId(), healthChangeMsg);
+        }
     }
 }

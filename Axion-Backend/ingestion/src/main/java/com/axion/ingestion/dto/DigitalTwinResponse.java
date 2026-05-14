@@ -19,4 +19,5 @@ public class DigitalTwinResponse {
     private String healthState;
 
     private Object telemetry;
+    private Object predictions;
 }
