@@ -18,7 +18,7 @@ public class TelemetryConsumer {
 
     @KafkaListener(topics = "${axion.kafka.topic.telemetry}", groupId = "${axion.kafka.consumer.group-id}")
     public void consume(CanonicalTelemetryEnvelope event) {
-        log.debug("Consumed telemetry event for vehicle: {}", event.getVehicleId());
+        log.info("Consumed telemetry event for vehicle: {}", event.getVehicleId());
         digitalTwinService.update(event);
     }
 }

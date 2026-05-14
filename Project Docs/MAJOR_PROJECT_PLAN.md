@@ -543,12 +543,12 @@ grafana:
 
 ### Phase 7 Deliverables
 
-- [ ] Spring Actuator + Prometheus metrics endpoint
-- [ ] Custom Axion business metrics
-- [ ] Prometheus scrape configuration
-- [ ] Grafana dashboard with 8+ panels
-- [ ] Structured JSON logging with correlation IDs
-- [ ] Grafana accessible at `http://localhost:3001`
+- [x] Spring Actuator + Prometheus metrics endpoint
+- [x] Custom Axion business metrics
+- [x] Prometheus scrape configuration
+- [x] Grafana dashboard with 8+ panels
+- [x] Structured JSON logging with correlation IDs
+- [x] Grafana accessible at `http://localhost:3001`
 
 ---
 
@@ -571,12 +571,12 @@ grafana:
 
 ### Phase 8 Deliverables
 
-- [ ] Complete OpenAPI/Swagger documentation
-- [ ] Updated README with architecture diagram
-- [ ] Single `docker-compose up -d` starts everything
-- [ ] Load test results (100+ vehicles)
-- [ ] 10-minute demo script
-- [ ] Screenshots of all major features
+- [x] Complete OpenAPI/Swagger documentation
+- [x] Updated README with architecture diagram
+- [x] Single `docker-compose up -d` starts everything
+- [x] Load test results (100+ vehicles)
+- [x] 10-minute demo script
+- [x] Screenshots of all major features
 
 ---
 

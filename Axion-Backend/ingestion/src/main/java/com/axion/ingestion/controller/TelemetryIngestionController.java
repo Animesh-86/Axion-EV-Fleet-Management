@@ -32,7 +32,7 @@ public class TelemetryIngestionController {
         @PostMapping
         public Mono<ResponseEntity<Void>> ingest(
                         @RequestBody String payload) {
-                log.debug("Received telemetry REST request for payload size: {} bytes", payload.length());
+                log.info("Received telemetry REST request for payload size: {} bytes", payload.length());
 
                 return ingestionService.ingestRest(payload)
                                 .thenReturn(ResponseEntity.accepted().build());

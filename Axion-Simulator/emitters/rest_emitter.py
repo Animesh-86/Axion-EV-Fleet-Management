@@ -20,7 +20,7 @@ def _get_client(timeout: float):
 
 
 class RestEmitter:
-    def __init__(self, endpoint_url: str, timeout: float = 1.0):
+    def __init__(self, endpoint_url: str, timeout: float = 5.0):
         self.url = endpoint_url
         self.timeout = timeout
 
@@ -31,7 +31,7 @@ class RestEmitter:
         try:
             await client.post(self.url, json=payload)
             _emit_count += 1
-            if _emit_count % 5000 == 0:
+            if _emit_count % 50 == 0:
                 print(f"[EMIT] {_emit_count} events sent")
-        except (httpx.ConnectError, httpx.ConnectTimeout, httpx.ReadTimeout, httpx.HTTPStatusError, httpx.ReadError):
-            pass
+        except Exception as e:
+            print(f"[REST EMITTER ERROR] {self.url} - {e}")

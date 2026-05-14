@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 import pandas as pd
 from typing import List
@@ -13,6 +14,14 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/docs",
     openapi_url="/openapi.json"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 class BatteryPredictionResponse(BaseModel):
