@@ -11,6 +11,7 @@ C:\CipherVault\Code\Projects\Major Project\Axion-EV-Fleet-Management\Axion-Backe
 C:\CipherVault\Code\Projects\Major Project\Axion-EV-Fleet-Management\Axion-Backend\ingestion\src\main\java\com\axion\ingestion\dto\DigitalTwinResponse.java
 C:\CipherVault\Code\Projects\Major Project\Axion-EV-Fleet-Management\Axion-Backend\ingestion\src\main\java\com\axion\ingestion\api\TelemetryIngestionRequest.java
 C:\CipherVault\Code\Projects\Major Project\Axion-EV-Fleet-Management\Axion-Backend\ingestion\src\main\java\com\axion\ingestion\model\DigitalTwinState.java
+C:\CipherVault\Code\Projects\Major Project\Axion-EV-Fleet-Management\Axion-Backend\ingestion\src\main\java\com\axion\ingestion\config\WebSocketConfig.java
 C:\CipherVault\Code\Projects\Major Project\Axion-EV-Fleet-Management\Axion-Backend\ingestion\src\main\java\com\axion\ingestion\controller\AuthController.java
 C:\CipherVault\Code\Projects\Major Project\Axion-EV-Fleet-Management\Axion-Backend\ingestion\src\main\java\com\axion\ota\AxionOtaApplication.java
 C:\CipherVault\Code\Projects\Major Project\Axion-EV-Fleet-Management\Axion-Backend\ingestion\src\main\java\com\axion\ingestion\consumer\TelemetryHistoryConsumer.java
@@ -60,5 +61,6 @@ C:\CipherVault\Code\Projects\Major Project\Axion-EV-Fleet-Management\Axion-Backe
 C:\CipherVault\Code\Projects\Major Project\Axion-EV-Fleet-Management\Axion-Backend\ingestion\src\main\java\com\axion\ingestion\consumer\TelemetryConsumer.java
 C:\CipherVault\Code\Projects\Major Project\Axion-EV-Fleet-Management\Axion-Backend\ingestion\src\main\java\com\axion\ingestion\security\JwtUtils.java
 C:\CipherVault\Code\Projects\Major Project\Axion-EV-Fleet-Management\Axion-Backend\ingestion\src\main\java\com\axion\ingestion\config\TsdbDataSourceConfig.java
+C:\CipherVault\Code\Projects\Major Project\Axion-EV-Fleet-Management\Axion-Backend\ingestion\src\main\java\com\axion\ingestion\model\dto\WebSocketMessage.java
 C:\CipherVault\Code\Projects\Major Project\Axion-EV-Fleet-Management\Axion-Backend\ingestion\src\main\java\com\axion\ingestion\service\TelemetryIngestionService.java
 C:\CipherVault\Code\Projects\Major Project\Axion-EV-Fleet-Management\Axion-Backend\ingestion\src\main\java\com\axion\ingestion\health\HealthState.java

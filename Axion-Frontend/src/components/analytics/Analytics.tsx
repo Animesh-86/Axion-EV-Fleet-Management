@@ -1,12 +1,12 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion } from 'motion/react';
-import { BarChart3, Battery, Thermometer, Heart, Wifi, WifiOff, TrendingUp, Activity } from 'lucide-react';
+import { BarChart3, Battery, Thermometer, Heart, Wifi, WifiOff, TrendingUp, Activity, BrainCircuit, AlertTriangle } from 'lucide-react';
 import { POLL_ANALYTICS, TELEMETRY_HISTORY_WINDOW, HEALTH } from '../../config';
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis,
   CartesianGrid, LineChart, Line, AreaChart, Area,
 } from 'recharts';
-import { AxionApi, FleetSummary, FleetVehicle } from '../../services/api';
+import { AxionApi, FleetSummary, FleetVehicle, FleetRiskItem } from '../../services/api';
 
 const HEALTH_COLORS = { HEALTHY: '#10b981', DEGRADED: '#f59e0b', CRITICAL: '#ef4444' };
 
@@ -15,6 +15,7 @@ export function Analytics() {
   const [vehicles, setVehicles] = useState<FleetVehicle[]>([]);
   const [healthHistory, setHealthHistory] = useState<{ time: string; healthy: number; degraded: number; critical: number }[]>([]);
   const [batteryHistory, setBatteryHistory] = useState<{ time: string; avg: number; min: number; max: number }[]>([]);
+  const [riskRanking, setRiskRanking] = useState<FleetRiskItem[]>([]);
   const historyRef = useRef({ health: [] as typeof healthHistory, battery: [] as typeof batteryHistory });
 
   useEffect(() => {
@@ -41,6 +42,12 @@ export function Analytics() {
           historyRef.current.battery = newB;
           setBatteryHistory(newB);
         }
+
+        // Fetch ML risk ranking
+        try {
+          const ranking = await AxionApi.getFleetRiskRanking();
+          setRiskRanking(ranking);
+        } catch { /* ML service may be unavailable */ }
       } catch { /* offline */ }
     };
     fetch();
@@ -337,6 +344,56 @@ export function Analytics() {
                 </LineChart>
               </ResponsiveContainer>
             </div>
+          </div>
+        </div>
+
+        {/* Fleet Risk Heatmap (ML-Powered) */}
+        <div className="col-span-12">
+          <div className="glass-card p-6 border-white/5">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-xs font-black uppercase tracking-widest text-muted-foreground opacity-40 flex items-center gap-2">
+                <BrainCircuit className="w-3.5 h-3.5 text-purple-400" />
+                ML_Fleet_Risk_Heatmap
+              </h2>
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+                <span className="text-[8px] font-black text-purple-400/60 uppercase tracking-widest">XGBoost + Isolation Forest</span>
+              </div>
+            </div>
+            {riskRanking.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-2">
+                {riskRanking.map((item) => {
+                  const riskPct = Math.round(item.riskScore * 100);
+                  const riskColor = item.riskScore >= 0.7 ? 'from-red-500/30 to-red-900/20 border-red-500/40' :
+                    item.riskScore >= 0.4 ? 'from-amber-500/20 to-amber-900/10 border-amber-500/30' :
+                    'from-emerald-500/10 to-emerald-900/5 border-emerald-500/20';
+                  const textColor = item.riskScore >= 0.7 ? 'text-red-400' :
+                    item.riskScore >= 0.4 ? 'text-amber-400' : 'text-emerald-400';
+                  return (
+                    <motion.div
+                      key={item.vehicleId}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className={`relative p-3 rounded-lg border bg-gradient-to-br ${riskColor} group hover:scale-105 transition-transform cursor-default`}
+                    >
+                      {item.riskScore >= 0.7 && (
+                        <AlertTriangle className="absolute top-1.5 right-1.5 w-3 h-3 text-red-400 animate-pulse" />
+                      )}
+                      <div className="text-[10px] font-black font-mono text-precision mb-1 truncate">{item.vehicleId}</div>
+                      <div className={`text-lg font-black ${textColor} leading-none`}>{riskPct}%</div>
+                      <div className="mt-1.5 h-1 bg-black/30 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${item.riskScore >= 0.7 ? 'bg-red-500' : item.riskScore >= 0.4 ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                          style={{ width: `${riskPct}%` }}
+                        />
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="h-[120px] flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-20 italic">Awaiting_ML_Risk_Data</div>
+            )}
           </div>
         </div>
 

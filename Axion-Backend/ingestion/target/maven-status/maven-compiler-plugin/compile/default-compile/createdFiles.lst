@@ -9,6 +9,7 @@ com\axion\ingestion\config\KafkaProducerConfig.class
 com\axion\ingestion\security\SecurityConfig.class
 com\axion\ota\service\OtaOrchestratorService.class
 com\axion\ingestion\health\HealthState.class
+com\axion\ingestion\model\dto\WebSocketMessage.class
 com\axion\ingestion\model\primary\User.class
 com\axion\ingestion\model\TelemetrySnapshot.class
 com\axion\ingestion\service\ThroughputTracker.class
@@ -18,6 +19,7 @@ com\axion\ingestion\service\DigitalTwinService.class
 com\axion\ota\model\OtaState.class
 com\axion\ingestion\dto\FleetVehicleResponse.class
 com\axion\ingestion\model\primary\User$UserBuilder.class
+com\axion\ingestion\model\dto\WebSocketMessage$WebSocketMessageBuilder.class
 com\axion\ota\model\OtaJob.class
 com\axion\ingestion\api\VehicleController.class
 com\axion\ingestion\model\DigitalTwinState.class
@@ -58,6 +60,7 @@ com\axion\ingestion\validation\TelemetryValidator.class
 com\axion\ingestion\config\MqttConfig.class
 com\axion\ingestion\model\TelemetryPayload.class
 com\axion\ota\producer\OtaEventProducer.class
+com\axion\ingestion\config\WebSocketConfig.class
 com\axion\ingestion\controller\AuthController.class
 com\axion\ingestion\model\TelemetryHistory$TelemetryHistoryBuilder.class
 com\axion\ota\config\KafkaConfig.class

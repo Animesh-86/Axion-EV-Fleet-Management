@@ -1,5 +1,6 @@
 package com.axion.ingestion.model.primary;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -23,11 +24,14 @@ public class User {
 
     private String username;
 
+    @Column(name = "password_hash")
     private String passwordHash;
 
     private String role;
 
+    @Column(name = "created_at")
     private Instant createdAt;
 
+    @Column(name = "last_login")
     private Instant lastLogin;
 }

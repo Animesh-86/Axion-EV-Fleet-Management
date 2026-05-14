@@ -37,8 +37,29 @@ export interface TelemetrySnapshot {
   odometerKm?: number;
 }
 
+export interface BatteryPrediction {
+  hours: number;
+  confidence: number;
+}
+
+export interface TempAnomalyPrediction {
+  risk: string;
+  predictedPeakC: number;
+}
+
+export interface VehiclePredictions {
+  batteryDepletion: BatteryPrediction;
+  tempAnomaly: TempAnomalyPrediction;
+}
+
+export interface FleetRiskItem {
+  vehicleId: string;
+  riskScore: number;
+}
+
 export interface VehicleDetail extends FleetVehicle {
   telemetry: TelemetrySnapshot;
+  predictions?: VehiclePredictions;
 }
 
 export interface TelemetryHistory {
@@ -103,6 +124,20 @@ export class AxionApi {
     const params = new URLSearchParams({ interval });
     const res = await fetchWithAuth(`${BASE_URL}/api/v1/history/${vehicleId}/aggregates?${params}`);
     if (!res.ok) throw new Error('Failed to fetch history aggregates');
+    return res.json();
+  }
+
+  static async getFleetRiskRanking(): Promise<FleetRiskItem[]> {
+    const ML_BASE = import.meta.env.VITE_ML_BASE_URL || 'http://localhost:8000';
+    const res = await fetch(`${ML_BASE}/ml/v1/fleet/risk-ranking`);
+    if (!res.ok) throw new Error('Failed to fetch risk ranking');
+    return res.json();
+  }
+
+  static async triggerRetraining(): Promise<{ status: string }> {
+    const ML_BASE = import.meta.env.VITE_ML_BASE_URL || 'http://localhost:8000';
+    const res = await fetch(`${ML_BASE}/ml/v1/retrain`, { method: 'POST' });
+    if (!res.ok) throw new Error('Failed to trigger retraining');
     return res.json();
   }
 }

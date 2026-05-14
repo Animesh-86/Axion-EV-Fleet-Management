@@ -10,6 +10,7 @@ import {
 } from 'recharts';
 import { AxionApi, FleetSummary, FleetVehicle } from '../../services/api';
 import { POLL_DASHBOARD, COUNTER_ANIMATION_DURATION } from '../../config';
+import { useWebSocket } from '../../hooks/useWebSocket';
 
 function AnimatedCounter({ value, suffix = '' }: { value: number; suffix?: string }) {
   const [count, setCount] = useState(0);
@@ -43,6 +44,7 @@ function AnimatedCounter({ value, suffix = '' }: { value: number; suffix?: strin
 export function FleetDashboard() {
   const [summary, setSummary] = useState<FleetSummary | null>(null);
   const [vehicles, setVehicles] = useState<FleetVehicle[]>([]);
+  const { status, subscribeToFleet } = useWebSocket();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -59,9 +61,49 @@ export function FleetDashboard() {
     };
 
     fetchData();
-    const interval = setInterval(fetchData, POLL_DASHBOARD);
-    return () => clearInterval(interval);
-  }, []);
+
+    // Subscribe to real-time updates via WebSocket instead of polling
+    const unsubscribe = subscribeToFleet((msg) => {
+      if (msg.type === 'TWIN_UPDATE' && msg.data) {
+        const twin = msg.data;
+        setVehicles((prev) => {
+          const idx = prev.findIndex(v => v.vehicleId === twin.vehicleId);
+          const updatedVehicle: FleetVehicle = {
+            vehicleId: twin.vehicleId,
+            vendor: twin.vendor || 'Axion',
+            online: twin.online,
+            healthScore: twin.healthScore,
+            healthState: twin.healthState,
+            lastSeen: twin.lastSeen,
+            battery: twin.telemetry?.batterySocPct || 0,
+            temperature: twin.telemetry?.batteryTempC || 0,
+          };
+
+          if (idx >= 0) {
+            const next = [...prev];
+            next[idx] = updatedVehicle;
+            return next;
+          } else {
+            return [...prev, updatedVehicle];
+          }
+        });
+
+        // Optionally update summary counts dynamically
+        setSummary((prevSum) => {
+          if (!prevSum) return prevSum;
+          // Simple live increment simulation
+          return {
+            ...prevSum,
+            totalEventsProcessed: prevSum.totalEventsProcessed + 1,
+          };
+        });
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [subscribeToFleet]);
 
   // Derive Health Distribution
   const healthDistribution = [
@@ -265,9 +307,9 @@ export function FleetDashboard() {
               <p className="text-[10px] text-muted-foreground opacity-60">Synchronized via Kafka & MQTT</p>
             </div>
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-400">
-                <Circle className="w-1.5 h-1.5 fill-emerald-400 animate-pulse" />
-                STREAMING
+              <div className={`flex items-center gap-1.5 text-[10px] font-bold ${status === 'CONNECTED' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                <Circle className={`w-1.5 h-1.5 ${status === 'CONNECTED' ? 'fill-emerald-400 animate-pulse' : 'fill-amber-400'}`} />
+                {status === 'CONNECTED' ? 'WS_CONNECTED' : status}
               </div>
             </div>
           </div>

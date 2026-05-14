@@ -118,10 +118,13 @@ services:
       AXION_MQTT_BROKER_URL: tcp://mosquitto:1883
       AXION_CORS_ALLOWED_ORIGINS: http://localhost,http://localhost:80
       SPRING_DATA_REDIS_HOST: redis
+      AXION_POSTGRES_URL: jdbc:postgresql://postgres:5432/axion
+      AXION_TSDB_URL: jdbc:postgresql://timescaledb:5432/axion_ts
+      AXION_ML_URL: http://ml:8000
     ports:
       - "8080:8080"
     healthcheck:
-      test: wget -qO- http://localhost:8080/api/v1/fleet/summary || exit 1
+      test: wget -qO- http://localhost:8080/api/v1/health || exit 1
       interval: 15s
       timeout: 5s
       retries: 10
@@ -157,6 +160,26 @@ services:
     environment:
       AXION_MQTT_BROKER: mosquitto
       AXION_BACKEND_URL: http://backend:8080/api/v1/telemetry
+
+  # ── ML Predictive Analytics (FastAPI) ──────────────
+
+  ml:
+    build:
+      context: ./Axion-ML
+      dockerfile: Dockerfile
+    container_name: axion-ml
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    environment:
+      AXION_TSDB_URL: postgresql://axion:password@timescaledb:5432/axion_ts
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
+      interval: 15s
+      timeout: 5s
+      retries: 5
 
 volumes:
   pgdata:
