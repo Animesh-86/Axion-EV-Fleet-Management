@@ -12,6 +12,7 @@ import { LandingPage } from './pages/LandingPage';
 import { ArchitecturePage } from './pages/ArchitecturePage';
 import { SettingsPage } from './pages/SettingsPage';
 import { VehicleTwinPage } from './pages/VehicleTwinPage';
+import { AuditLogsPage } from '../pages/AuditLogsPage';
 import { AppShellLayout } from './layouts/AppShellLayout';
 import { AuthRequired } from './guards/AuthRequired';
 import { GuestOnly } from './guards/GuestOnly';
@@ -50,6 +51,7 @@ export function AppRoutes() {
             <Route path={paths.analytics} element={<Analytics />} />
             <Route path={paths.alerts} element={<AlertsAnalytics />} />
             <Route path={paths.system} element={<SystemHealth />} />
+            <Route path={paths.auditLogs} element={<AuditLogsPage />} />
             <Route path={paths.settings} element={<SettingsPage />} />
           </Route>
         </Route>

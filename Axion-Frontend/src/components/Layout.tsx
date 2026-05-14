@@ -17,11 +17,13 @@ import {
   AlertTriangle,
   Server,
   LogOut,
+  Wifi,
+  FileText,
 } from 'lucide-react';
 import { AxionApi } from '../services/api';
 import { LAST_VEHICLE_STORAGE_KEY, paths } from '../constants/navigation';
 
-type NavId = 'dashboard' | 'vehicles' | 'digital-twin' | 'ota' | 'analytics' | 'alerts' | 'system' | 'settings';
+type NavId = 'dashboard' | 'vehicles' | 'digital-twin' | 'ota' | 'analytics' | 'alerts' | 'system' | 'audit' | 'settings';
 
 interface LayoutProps {
   children: ReactNode;
@@ -43,6 +45,8 @@ function navItemActive(id: NavId, pathname: string): boolean {
       return !!matchPath({ path: paths.alerts, end: true }, pathname);
     case 'system':
       return !!matchPath({ path: paths.system, end: true }, pathname);
+    case 'audit':
+      return !!matchPath({ path: paths.auditLogs, end: true }, pathname);
     case 'settings':
       return !!matchPath({ path: paths.settings, end: true }, pathname);
     default:
@@ -83,6 +87,7 @@ export function Layout({ children }: LayoutProps) {
     { id: 'analytics', label: 'Analytics', icon: BarChart3, path: paths.analytics },
     { id: 'alerts', label: 'Alerts', icon: AlertTriangle, path: paths.alerts },
     { id: 'system', label: 'System Health', icon: Server, path: paths.system },
+    { id: 'audit', label: 'Audit Logs', icon: FileText, path: paths.auditLogs },
     { id: 'settings', label: 'Settings', icon: Settings, path: paths.settings },
   ];
 
