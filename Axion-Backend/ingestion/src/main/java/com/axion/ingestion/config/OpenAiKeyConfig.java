@@ -37,6 +37,17 @@ public class OpenAiKeyConfig {
                 if (!environment.getPropertySources().contains(PROPERTY_SOURCE_NAME)) {
                     environment.getPropertySources().addFirst(ps);
                 }
+            } else {
+                // No key file found; if OPENAI_API_KEY env var is also empty, set a sentinel value
+                String envKey = environment.getProperty("OPENAI_API_KEY");
+                if (envKey == null || envKey.isBlank()) {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("spring.ai.openai.api-key", "disabled");
+                    MapPropertySource ps = new MapPropertySource(PROPERTY_SOURCE_NAME, map);
+                    if (!environment.getPropertySources().contains(PROPERTY_SOURCE_NAME)) {
+                        environment.getPropertySources().addFirst(ps);
+                    }
+                }
             }
         } catch (Exception e) {
             // Do not fail startup if secret file not present

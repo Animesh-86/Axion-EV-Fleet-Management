@@ -105,70 +105,7 @@ public class FleetController {
                 }
             }
 
-            // Optional auto-escalation: mark twins CRITICAL only after consecutive high-risk reads.
-            if (autoEscalate && !escalateIds.isEmpty()) {
-                for (String vId : escalateIds) {
-                    try {
-                        String streakKey = "ml:escalation_streak:" + vId;
-                        Integer streak = readInt(genericRedisTemplate.opsForValue().get(streakKey));
-                        int nextStreak = streak + 1;
-                        genericRedisTemplate.opsForValue().set(streakKey, nextStreak, escalationStreakTtlSeconds, TimeUnit.SECONDS);
-
-                        if (nextStreak >= escalationHysteresis) {
-                            String key = "digital_twin:" + vId;
-                            DigitalTwinState state = redisTemplate.opsForValue().get(key);
-                            if (state != null && !"CRITICAL".equalsIgnoreCase(state.getHealthState())) {
-                                String previousState = state.getHealthState();
-                                state.setHealthState("CRITICAL");
-                                Integer currentScore = state.getHealthScore();
-                                state.setHealthScore(currentScore == null ? 49 : Math.min(currentScore, 49));
-                                redisTemplate.opsForValue().set(key, state);
-                                escalatedStates.add(state);
-
-                                WebSocketMessage twinUpdateMsg = WebSocketMessage.builder()
-                                        .type("TWIN_UPDATE")
-                                        .vehicleId(state.getVehicleId())
-                                        .data(state)
-                                        .build();
-                                messagingTemplate.convertAndSend("/topic/fleet/updates", twinUpdateMsg);
-                                messagingTemplate.convertAndSend("/topic/vehicle/" + state.getVehicleId(), twinUpdateMsg);
-
-                                WebSocketMessage healthChangeMsg = WebSocketMessage.builder()
-                                        .type("HEALTH_CHANGE")
-                                        .vehicleId(state.getVehicleId())
-                                        .from(previousState)
-                                        .to("CRITICAL")
-                                        .message("Auto-escalated from ML risk threshold")
-                                        .build();
-                                messagingTemplate.convertAndSend("/topic/fleet/updates", healthChangeMsg);
-                                messagingTemplate.convertAndSend("/topic/vehicle/" + state.getVehicleId(), healthChangeMsg);
-                            }
-                        }
-                    } catch (Exception ignored) {
-                    }
-                }
-
-                // Reset streaks for vehicles that fell below the threshold in this polling cycle.
-                if (list != null) {
-                    for (java.util.Map<String, Object> m : list) {
-                        Object rs = m.get("riskScore");
-                        double val = 0.0;
-                        if (rs instanceof Number) val = ((Number) rs).doubleValue();
-                        else if (rs instanceof String) {
-                            try { val = Double.parseDouble((String) rs); } catch (Exception ignored) {}
-                        }
-                        Object vid = m.get("vehicleId");
-                        if (vid != null && val < escalationThreshold) {
-                            try {
-                                genericRedisTemplate.opsForValue().set("ml:escalation_streak:" + vid, 0, escalationStreakTtlSeconds, TimeUnit.SECONDS);
-                            } catch (Exception ignored) {
-                            }
-                        }
-                    }
-                }
-            }
-
-            summary.setPredictedCritical(predicted);
+                summary.setPredictedCritical(predicted);
         } catch (Exception ignored) {
             summary.setPredictedCritical(0);
         }

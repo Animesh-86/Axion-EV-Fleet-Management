@@ -71,7 +71,7 @@ services:
     environment:
       POSTGRES_DB: axion
       POSTGRES_USER: axion
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -88,7 +88,7 @@ services:
     environment:
       POSTGRES_DB: axion_ts
       POSTGRES_USER: axion
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: ${TIMESCALEDB_PASSWORD:-change_me}
     volumes:
       - tsdata:/var/lib/postgresql/data
     healthcheck:
@@ -117,15 +117,15 @@ services:
       AXION_KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
       AXION_MQTT_BROKER_URL: "tcp://mosquitto:1883"
       AXION_CORS_ALLOWED_ORIGINS: "http://localhost,http://localhost:80"
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-fake-demo-key-for-axion-platform-testing}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       AXION_OPENAI_KEY_FILE: ${AXION_OPENAI_KEY_FILE:-/run/secrets/OPENAI_API_KEY}
       SPRING_DATA_REDIS_HOST: "redis"
-      AXION_POSTGRES_URL: "jdbc:postgresql://postgres:5432/axion"
-      AXION_TSDB_URL: "jdbc:postgresql://timescaledb:5432/axion_ts"
+      AXION_POSTGRES_URL: ${AXION_POSTGRES_URL:-jdbc:postgresql://postgres:5432/axion}
+      AXION_TSDB_URL: ${AXION_TSDB_URL:-jdbc:postgresql://timescaledb:5432/axion_ts}
       AXION_ML_URL: "http://ml:8000"
       AXION_AGENT_MONITOR_ENABLED: "true"
       AXION_BOOTSTRAP_ADMIN_USERNAME: "demo_admin"
-      AXION_BOOTSTRAP_ADMIN_PASSWORD: "demo"
+      AXION_BOOTSTRAP_ADMIN_PASSWORD: ${AXION_BOOTSTRAP_ADMIN_PASSWORD:-change_me}
       AXION_API_PUBLICSUMMARY: "false"
     ports:
       - "8080:8080"
@@ -178,7 +178,7 @@ services:
       timescaledb:
         condition: service_healthy
     environment:
-      AXION_TSDB_URL: postgresql://axion:password@timescaledb:5432/axion_ts
+      AXION_TSDB_URL: ${AXION_TSDB_URL:-postgresql://axion:change_me@timescaledb:5432/axion_ts}
     ports:
       - "8000:8000"
     healthcheck:
