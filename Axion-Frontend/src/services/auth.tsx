@@ -16,7 +16,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 const USER_KEY = 'axion_user';
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
@@ -35,13 +35,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const res = await fetch(`${BASE_URL}/api/v1/auth/login`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: email, password })
       });
       if (!res.ok) return { success: false, error: 'Invalid credentials' };
       
       const data = await res.json();
-      localStorage.setItem('axion_token', data.token);
+      // Server sets HttpOnly cookie with JWT; do not store token in localStorage.
       setUser({ name: data.username, email: data.username });
       return { success: true };
     } catch (e) {
@@ -53,13 +54,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const res = await fetch(`${BASE_URL}/api/v1/auth/register`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: email, password, role: 'OPERATOR' })
       });
       if (!res.ok) return { success: false, error: 'Registration failed or email already in use' };
       
       const data = await res.json();
-      localStorage.setItem('axion_token', data.token);
+      // Server sets HttpOnly cookie with JWT; do not store token in localStorage.
       setUser({ name: data.username, email: data.username, company });
       return { success: true };
     } catch (e) {

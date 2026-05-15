@@ -1,3 +1,26 @@
+# Demo script: Create templated vehicle and verify ML predictions
+
+1. Start the whole stack with Docker Compose:
+
+   docker compose up --build -d
+
+2. Run the smoke test to create a demo vehicle and wait for predictions:
+
+   python scripts/create_vehicle_and_verify.py
+
+3. What it does:
+   - Registers a demo admin user (if not already present)
+   - Calls `POST /api/v1/admin/vehicles` to create `demo-001`
+   - The backend writes a `digital_twin:demo-001` key into Redis
+   - The simulator (listening on redis pub/sub) receives a register command and starts emitting telemetry for `demo-001`
+   - The backend queries the ML service and `GET /api/v1/vehicles/demo-001` will include `predictions`
+
+4. Troubleshooting:
+   - If predictions never appear, check:
+     - Simulator logs: `docker compose logs simulator --follow`
+     - Backend logs: `docker compose logs backend --follow`
+     - ML service: `docker compose logs ml --follow` and `http://localhost:8000/health`
+     - Redis keys: `docker compose exec redis redis-cli keys 'digital_twin:*'`
 # Axion EV Fleet Management — 10-Minute Demo Walkthrough
 
 This demo walkthrough is structured for senior engineering evaluators, highlighting the production-grade architecture, dual-database ingestion engine, anomaly RCA engine, observability suite, and GenAI intelligence capabilities.

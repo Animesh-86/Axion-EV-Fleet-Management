@@ -29,7 +29,9 @@ cd Axion-EV-Fleet-Management
 docker compose up --build -d
 ```
 
-Open **http://localhost** — 250 simulated EVs streaming live telemetry.
+Open **http://127.0.0.1** — 250 simulated EVs streaming live telemetry.
+
+If `localhost` resets on your machine, use `127.0.0.1` directly. On some Windows setups the browser prefers IPv6 for `localhost`, while the Docker ports here are reachable on IPv4 loopback.
 
 ---
 

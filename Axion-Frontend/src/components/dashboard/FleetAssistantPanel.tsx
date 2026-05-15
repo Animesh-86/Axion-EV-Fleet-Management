@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { AxionApi, AnomalyExplanation } from '../../services/api';
 
-const BASE_URL = 'http://localhost:8080';
+const BASE_URL = '';
 
 export const FleetAssistantPanel: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -39,18 +39,12 @@ export const FleetAssistantPanel: React.FC = () => {
     // Initialize AI response placeholder
     setMessages(prev => [...prev, { sender: 'ai', text: '', id: aiMsgId }]);
 
-    try {
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
+      try {
+      // Rely on HttpOnly cookie for auth; include credentials so cookie is sent.
       const response = await fetch(`${BASE_URL}/api/v1/ai/chat/stream`, {
         method: 'POST',
-        headers,
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt: promptToSend,
           sessionId: sessionIdRef.current,

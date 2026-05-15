@@ -228,13 +228,13 @@ timescaledb:
 
 ### Phase 1 Deliverables
 
-- [ ] TimescaleDB hypertable storing all telemetry
-- [ ] PostgreSQL schemas for users, campaigns, policies, audit
-- [ ] Flyway migration scripts
-- [ ] Historical telemetry API endpoints
-- [ ] Frontend: Historical charts showing 24h / 7d / 30d trends
-- [ ] OTA campaigns persisted across restarts
-- [ ] Audit log page in frontend
+- [x] TimescaleDB hypertable storing all telemetry
+- [x] PostgreSQL schemas for users, campaigns, policies, audit
+- [x] Flyway migration scripts
+- [x] Historical telemetry API endpoints
+- [x] Frontend: Historical charts showing 24h / 7d / 30d trends
+- [x] OTA campaigns persisted across restarts
+- [x] Audit log page in frontend
 
 ---
 
@@ -279,12 +279,12 @@ timescaledb:
 
 ### Phase 2 Deliverables
 
-- [ ] Spring Security filter chain with JWT
-- [ ] Login / Register API endpoints
-- [ ] BCrypt password hashing
-- [ ] Frontend login page
-- [ ] Role-based UI (Admin vs Operator)
-- [ ] Audit log records "who did what"
+- [x] Spring Security filter chain with JWT
+- [x] Login / Register API endpoints
+- [x] BCrypt password hashing
+- [x] Frontend login page
+- [x] Role-based UI (Admin vs Operator)
+- [x] Audit log records "who did what"
 
 ---
 
@@ -322,12 +322,12 @@ timescaledb:
 
 ### Phase 3 Deliverables
 
-- [ ] STOMP WebSocket server configuration
-- [ ] TelemetryWebSocketPublisher broadcasting twin updates
-- [ ] Frontend STOMP.js client with auto-reconnect
-- [ ] Zero-polling dashboard
-- [ ] Instant OTA status updates
-- [ ] Live alert feed via WebSocket
+- [x] STOMP WebSocket server configuration
+- [x] TelemetryWebSocketPublisher broadcasting twin updates
+- [x] Frontend STOMP.js client with auto-reconnect
+- [x] Zero-polling dashboard
+- [x] Instant OTA status updates
+- [x] Live alert feed via WebSocket
 
 ---
 
@@ -393,15 +393,15 @@ POST /ml/v1/retrain
 
 ### Phase 4 Deliverables
 
-- [ ] FastAPI microservice with two trained ML models
-- [ ] Battery depletion prediction endpoint
-- [ ] Temperature anomaly detection endpoint
-- [ ] Fleet risk ranking endpoint
-- [ ] Model retraining endpoint
-- [ ] Spring Boot ML client with Redis caching
-- [ ] Frontend prediction widgets on Vehicle Detail page
-- [ ] Risk heatmap on Analytics page
-- [ ] ML-driven auto-alerts
+- [x] FastAPI microservice with two trained ML models
+- [x] Battery depletion prediction endpoint
+- [x] Temperature anomaly detection endpoint
+- [x] Fleet risk ranking endpoint
+- [x] Model retraining endpoint
+- [x] Spring Boot ML client with Redis caching
+- [x] Frontend prediction widgets on Vehicle Detail page
+- [x] Risk heatmap on Analytics page
+- [x] ML-driven auto-alerts
 
 ---
 
@@ -442,13 +442,13 @@ DRAFT ──► CANARY ──► ROLLOUT ──► COMPLETED
 
 ### Phase 5 Deliverables
 
-- [ ] Campaign lifecycle state machine (PostgreSQL-backed)
-- [ ] Canary deployment logic
-- [ ] Health-gated rollout enforcement
-- [ ] Automatic rollback on high failure rate
-- [ ] Campaign creation wizard UI
-- [ ] Live rollout progress visualization
-- [ ] Campaign history & audit trail
+- [x] Campaign lifecycle state machine (PostgreSQL-backed)
+- [x] Canary deployment logic
+- [x] Health-gated rollout enforcement
+- [x] Automatic rollback on high failure rate
+- [x] Campaign creation wizard UI
+- [x] Live rollout progress visualization
+- [x] Campaign history & audit trail
 
 ---
 

@@ -7,6 +7,7 @@ export interface FleetSummary {
   critical: number;
   eventsPerSecond: number;
   totalEventsProcessed: number;
+  predictedCritical?: number;
 }
 
 export interface FleetVehicle {
@@ -73,15 +74,12 @@ export interface TelemetryHistory {
   healthState: string;
 }
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 async function fetchWithAuth(url: string, options: RequestInit = {}) {
-  const token = localStorage.getItem('axion_token');
+  // Use HttpOnly cookie for auth; include credentials so cookie is sent.
   const headers = new Headers(options.headers || {});
-  if (token) {
-    headers.set('Authorization', `Bearer ${token}`);
-  }
-  return fetch(url, { ...options, headers });
+  return fetch(url, { ...options, headers, credentials: 'include' });
 }
 
 export class AxionApi {
@@ -99,7 +97,7 @@ export class AxionApi {
   }
 
   static async getVehicle(vehicleId: string): Promise<VehicleDetail> {
-    const res = await fetchWithAuth(`${BASE_URL}/api/v1/fleet/${vehicleId}`);
+    const res = await fetchWithAuth(`${BASE_URL}/api/v1/vehicles/${vehicleId}`);
     if (!res.ok) throw new Error('Failed to fetch vehicle');
     return res.json();
   }
@@ -128,14 +126,14 @@ export class AxionApi {
   }
 
   static async getFleetRiskRanking(): Promise<FleetRiskItem[]> {
-    const ML_BASE = import.meta.env.VITE_ML_BASE_URL || 'http://localhost:8000';
+    const ML_BASE = import.meta.env.VITE_ML_BASE_URL || 'http://127.0.0.1:8000';
     const res = await fetch(`${ML_BASE}/ml/v1/fleet/risk-ranking`);
     if (!res.ok) throw new Error('Failed to fetch risk ranking');
     return res.json();
   }
 
   static async triggerRetraining(): Promise<{ status: string }> {
-    const ML_BASE = import.meta.env.VITE_ML_BASE_URL || 'http://localhost:8000';
+    const ML_BASE = import.meta.env.VITE_ML_BASE_URL || 'http://127.0.0.1:8000';
     const res = await fetch(`${ML_BASE}/ml/v1/retrain`, { method: 'POST' });
     if (!res.ok) throw new Error('Failed to trigger retraining');
     return res.json();

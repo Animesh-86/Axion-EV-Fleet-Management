@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 export type ConnectionStatus = 'CONNECTING' | 'CONNECTED' | 'DISCONNECTED' | 'RECONNECTING';
 
@@ -25,12 +25,11 @@ export function useWebSocket() {
   const vehicleUpdatesCallbacks = useRef<Map<string, Set<(msg: WebSocketMessage) => void>>>(new Map());
 
   useEffect(() => {
-    const token = localStorage.getItem('axion_token');
-    
+    // Rely on HttpOnly cookie for auth; do not send Authorization header from client
     const client = new Client({
       // Provide SockJS factory
       webSocketFactory: () => new SockJS(`${BASE_URL}/ws`),
-      connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
+      connectHeaders: {},
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,

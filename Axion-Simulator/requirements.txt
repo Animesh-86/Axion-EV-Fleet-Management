@@ -2,3 +2,4 @@ pyyaml
 requests
 paho-mqtt
 httpx
+redis>=4.6.0

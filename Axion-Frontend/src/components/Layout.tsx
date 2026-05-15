@@ -11,7 +11,6 @@ import {
   BarChart3,
   Settings,
   ChevronLeft,
-  Search,
   ChevronDown,
   Circle,
   AlertTriangle,
@@ -23,7 +22,7 @@ import {
 import { AxionApi } from '../services/api';
 import { LAST_VEHICLE_STORAGE_KEY, paths } from '../constants/navigation';
 
-type NavId = 'dashboard' | 'vehicles' | 'digital-twin' | 'ota' | 'analytics' | 'alerts' | 'system' | 'audit' | 'settings';
+type NavId = 'dashboard' | 'vehicles' | 'digital-twin' | 'ota' | 'analytics' | 'alerts' | 'system' | 'audit' | 'settings' | 'admin';
 
 interface LayoutProps {
   children: ReactNode;
@@ -60,7 +59,6 @@ export function Layout({ children }: LayoutProps) {
   const { user, logout } = useAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedFleet] = useState('Global Fleet');
-  const [searchQuery, setSearchQuery] = useState('');
   const [backendLive, setBackendLive] = useState(false);
   const [fleetCount, setFleetCount] = useState({ total: 0, online: 0 });
 
@@ -83,6 +81,7 @@ export function Layout({ children }: LayoutProps) {
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: paths.dashboard },
     { id: 'vehicles', label: 'Vehicles', icon: Car, path: paths.vehicles },
     { id: 'digital-twin', label: 'Digital Twin', icon: Layers, path: null },
+    { id: 'admin', label: 'Admin', icon: FileText, path: paths.adminAddVehicle },
     { id: 'ota', label: 'OTA Campaigns', icon: Upload, path: paths.ota },
     { id: 'analytics', label: 'Analytics', icon: BarChart3, path: paths.analytics },
     { id: 'alerts', label: 'Alerts', icon: AlertTriangle, path: paths.alerts },
@@ -205,27 +204,6 @@ export function Layout({ children }: LayoutProps) {
                <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
                <span className="text-[10px] font-bold uppercase tracking-widest text-primary">{selectedFleet}</span>
             </div>
-            
-            <form
-              className="relative hidden md:block"
-              onSubmit={(e) => {
-                e.preventDefault();
-                const q = searchQuery.trim();
-                if (!q) return;
-                sessionStorage.setItem(LAST_VEHICLE_STORAGE_KEY, q);
-                navigate(paths.vehicle(q));
-                setSearchQuery('');
-              }}
-            >
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground opacity-50" />
-              <input
-                type="text"
-                placeholder="SEARCH VEHICLE ID..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-64 pl-10 pr-4 py-1.5 bg-white/5 border border-white/5 rounded-full text-[10px] font-bold tracking-widest focus:outline-none focus:border-primary/50 transition-all placeholder:text-muted-foreground/30"
-              />
-            </form>
           </div>
 
           <div className="flex items-center gap-6">

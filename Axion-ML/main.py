@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 import pandas as pd
 from typing import List
 from pydantic import BaseModel
@@ -81,10 +82,25 @@ def predict_temperature(vehicleId: str, db: Session = Depends(get_db)):
 @app.get("/ml/v1/fleet/risk-ranking", response_model=List[FleetRiskItem])
 def get_fleet_risk_ranking(db: Session = Depends(get_db)):
     """Aggregates all active vehicles across the fleet and returns an ordered list ranked by absolute risk score."""
-    # Find distinct vehicles with their latest metrics
-    # Since sqlite/timescaledb dialect query strategies might differ, let's query the latest records generally
-    latest_records = db.query(TelemetryHistory).order_by(TelemetryHistory.time.desc()).limit(500).all()
-    
+    latest_per_vehicle = (
+        db.query(
+            TelemetryHistory.vehicle_id.label("vehicle_id"),
+            func.max(TelemetryHistory.time).label("max_time"),
+        )
+        .group_by(TelemetryHistory.vehicle_id)
+        .subquery()
+    )
+
+    latest_records = (
+        db.query(TelemetryHistory)
+        .join(
+            latest_per_vehicle,
+            (TelemetryHistory.vehicle_id == latest_per_vehicle.c.vehicle_id)
+            & (TelemetryHistory.time == latest_per_vehicle.c.max_time),
+        )
+        .all()
+    )
+
     v_map = {}
     for r in latest_records:
         if r.vehicle_id not in v_map:

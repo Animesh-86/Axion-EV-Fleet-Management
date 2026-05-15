@@ -9,10 +9,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class FleetMonitorAgent {
 
-    private final ChatClient chatClient;
+    private final ChatClient.Builder chatClientBuilder;
 
     public FleetMonitorAgent(ChatClient.Builder chatClientBuilder) {
-        this.chatClient = chatClientBuilder.build();
+        this.chatClientBuilder = chatClientBuilder;
     }
 
     /**
@@ -21,9 +21,15 @@ public class FleetMonitorAgent {
      */
     @Scheduled(fixedRateString = "${axion.agent.monitor.rate-ms:300000}", initialDelay = 60000)
     public void runAutonomousFleetAudit() {
+        boolean enabled = Boolean.parseBoolean(System.getenv().getOrDefault("AXION_AGENT_MONITOR_ENABLED", "false"));
+        if (!enabled) {
+            log.debug("FleetMonitorAgent skipped because AXION_AGENT_MONITOR_ENABLED=false");
+            return;
+        }
+
         log.info("Initiating scheduled agentic loop audit sequence using Spring AI Function Calling execution callbacks");
         try {
-            String reportText = chatClient.prompt()
+                String reportText = chatClientBuilder.build().prompt()
                     .user("Evaluate the health state of the entire fleet by invoking your available status query tools. Summarize key risks, list critical vehicle IDs, and outline high-priority infrastructure actions required.")
                     .functions("getVehicleStatus", "getFleetSummary")
                     .call()

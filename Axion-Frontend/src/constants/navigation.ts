@@ -15,4 +15,5 @@ export const paths = {
   system: '/system',
   auditLogs: '/audit-logs',
   settings: '/settings',
+  adminAddVehicle: '/admin/add-vehicle',
 } as const;
