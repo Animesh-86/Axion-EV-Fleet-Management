@@ -104,6 +104,13 @@ Override these in `docker-compose.yml` or pass via `-e`:
 
 ---
 
+## Secrets & OpenAI
+
+- Use `.env.local` for developer secrets (copy from `.env.local.example`). Do NOT commit `.env` files.
+- For production, inject secrets via a secrets manager or Docker/Kubernetes secrets. The backend will attempt to read an OpenAI key from the path in `AXION_OPENAI_KEY_FILE` (defaults to `/run/secrets/OPENAI_API_KEY`).
+- If no OpenAI key is provided, the backend sets a sentinel value and disables AI features safely; other services continue to start.
+
+
 ## Development Mode (Without Docker)
 
 For local development with hot-reload, run services individually:

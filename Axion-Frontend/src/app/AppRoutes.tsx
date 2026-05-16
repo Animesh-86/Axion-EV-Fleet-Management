@@ -3,6 +3,7 @@ import { Toaster } from 'sonner';
 import { FleetDashboard } from '../components/dashboard/FleetDashboard';
 import { VehicleList } from '../components/vehicle/VehicleList';
 import { OTAManagement } from '../components/ota/OTAManagement';
+import { AddVehicleForm } from '../components/admin/AddVehicleForm';
 import { Analytics } from '../components/analytics/Analytics';
 import { AlertsAnalytics } from '../components/alerts/AlertsAnalytics';
 import { SystemHealth } from '../components/system/SystemHealth';
@@ -46,6 +47,7 @@ export function AppRoutes() {
           <Route element={<AppShellLayout />}>
             <Route path={paths.dashboard} element={<FleetDashboard />} />
             <Route path={paths.vehicles} element={<VehicleList />} />
+            <Route path={paths.adminAddVehicle} element={<AddVehicleForm />} />
             <Route path="/vehicles/:vehicleId" element={<VehicleTwinPage />} />
             <Route path={paths.ota} element={<OTAManagement />} />
             <Route path={paths.analytics} element={<Analytics />} />

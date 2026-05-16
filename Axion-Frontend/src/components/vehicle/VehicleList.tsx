@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { Activity, WifiOff, ExternalLink, Battery, Thermometer, TrendingUp } from 'lucide-react';
+import { Activity, WifiOff, ExternalLink, Battery, Thermometer, TrendingUp, Search, X } from 'lucide-react';
 import { AxionApi, FleetVehicle } from '../../services/api';
 import { POLL_VEHICLE_LIST, HEALTH } from '../../config';
 import { LAST_VEHICLE_STORAGE_KEY, paths } from '../../constants/navigation';
@@ -21,6 +21,7 @@ export function VehicleList() {
   const navigate = useNavigate();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const getDegradationDrivers = (v: FleetVehicle): Array<{ label: string; trend: 'up' | 'down' }> | undefined => {
     const drivers: Array<{ label: string; trend: 'up' | 'down' }> = [];
@@ -84,21 +85,61 @@ export function VehicleList() {
     );
   }
 
+  const normalizedSearch = searchQuery.trim().toLowerCase();
+  const filteredVehicles = normalizedSearch
+    ? vehicles.filter((vehicle) => {
+        return [vehicle.id, vehicle.vendor, vehicle.status, vehicle.healthScore.toString()]
+          .some((value) => value.toLowerCase().includes(normalizedSearch));
+      })
+    : vehicles;
+
   return (
     <div className="p-8 max-w-[1400px] mx-auto space-y-8">
       {/* Header */}
-      <div className="flex items-end justify-between">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="text-4xl font-black tracking-tighter uppercase text-precision">Fleet_Inventory</h1>
           <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground mt-2 opacity-50">
              Active Orchestration Layer • {vehicles.filter(v => v.status === 'online').length} Nodes Online
           </p>
         </div>
+
+        <div className="w-full max-w-xl">
+          <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.22em] text-muted-foreground/50">
+            Search vehicles
+          </label>
+          <div className="flex items-center gap-3 rounded-2xl border border-white/8 bg-white/5 px-4 py-3 shadow-lg shadow-black/10 backdrop-blur-xl">
+            <Search className="h-4 w-4 text-muted-foreground/50" />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by ID, vendor, status, or score"
+              className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground/30"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="rounded-full border border-white/10 bg-white/5 p-1.5 text-muted-foreground transition hover:text-foreground"
+                aria-label="Clear search"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
       </div>
+
+      {searchQuery && (
+        <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground/60">
+          Showing {filteredVehicles.length} of {vehicles.length} vehicles
+        </div>
+      )}
 
       {/* Vehicle Grid */}
       <div className="grid grid-cols-1 gap-4">
-        {vehicles.map((vehicle, index) => {
+        {filteredVehicles.map((vehicle, index) => {
           const healthStatus = getHealthStatus(vehicle.healthScore);
 
           return (
@@ -201,6 +242,20 @@ export function VehicleList() {
             </motion.div>
           );
         })}
+
+        {filteredVehicles.length === 0 && (
+          <div className="glass-card border-dashed border-white/10 p-10 text-center">
+            <p className="text-sm font-black uppercase tracking-[0.22em] text-foreground">No vehicles found</p>
+            <p className="mt-2 text-xs text-muted-foreground">Try a different vehicle ID, vendor, or status.</p>
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="mt-6 rounded-full bg-primary px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-primary-foreground"
+            >
+              Clear Search
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Footer Info */}

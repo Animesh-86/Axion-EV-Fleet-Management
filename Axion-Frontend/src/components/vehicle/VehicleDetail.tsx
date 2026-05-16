@@ -207,6 +207,10 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
     { timestamp: new Date().toISOString(), type: 'temperature', event: 'THERMAL_SYNC', newValue: `${snapshot.batteryTempC?.toFixed(1)}°C` }
   ] : [];
 
+  const isLiveMetric = (value: number | undefined) => value != null;
+  const formatMetric = (value: number | undefined, digits = 0) =>
+    value == null ? '—' : value.toFixed(digits);
+
   const handleTriggerOta = async () => {
     try {
       if (vehicleId) {
@@ -288,10 +292,10 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
 
              <div className="grid grid-cols-4 gap-4 mt-8">
                 {[
-                  { label: 'Speed', val: vehicle?.telemetry?.speedKmph?.toFixed(0) || 0, unit: 'km/h', icon: Gauge, color: 'text-primary' },
-                  { label: 'Battery', val: vehicle?.battery?.toFixed(0) || 0, unit: '%', icon: Battery, color: (vehicle?.battery ?? 0) > 20 ? 'text-emerald-400' : 'text-red-400' },
-                  { label: 'Thermal', val: vehicle?.temperature?.toFixed(1) || 0, unit: '°C', icon: Thermometer, color: (vehicle?.temperature ?? 0) < 45 ? 'text-amber-400' : 'text-red-400' },
-                  { label: 'Health', val: vehicle?.healthScore || 0, unit: 'pts', icon: Heart, color: 'text-blue-400' },
+                  { label: 'Speed', val: formatMetric(vehicle?.telemetry?.speedKmph, 0), unit: 'km/h', icon: Gauge, color: isLiveMetric(vehicle?.telemetry?.speedKmph) ? 'text-primary' : 'text-muted-foreground' },
+                  { label: 'Battery', val: formatMetric(vehicle?.telemetry?.batterySocPct ?? vehicle?.battery, 0), unit: '%', icon: Battery, color: (vehicle?.telemetry?.batterySocPct ?? vehicle?.battery ?? 0) > 20 ? 'text-emerald-400' : 'text-red-400' },
+                  { label: 'Thermal', val: formatMetric(vehicle?.telemetry?.batteryTempC ?? vehicle?.temperature, 1), unit: '°C', icon: Thermometer, color: (vehicle?.telemetry?.batteryTempC ?? vehicle?.temperature ?? 0) < 45 ? 'text-amber-400' : 'text-red-400' },
+                  { label: 'Health', val: formatMetric(vehicle?.healthScore, 0), unit: 'pts', icon: Heart, color: 'text-blue-400' },
                 ].map((stat, i) => (
                   <div key={i} className="bg-white/[0.03] border border-white/5 rounded-lg p-3 group hover:border-primary/20 transition-all">
                      <div className="flex items-center gap-2 mb-2">
@@ -302,6 +306,9 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
                         <span className="text-xl font-bold text-precision">{stat.val}</span>
                         <span className="text-[9px] text-muted-foreground font-mono">{stat.unit}</span>
                      </div>
+                    {stat.val === '—' && (
+                      <p className="mt-1 text-[9px] uppercase tracking-[0.16em] text-muted-foreground/50">Awaiting live sync</p>
+                    )}
                   </div>
                 ))}
              </div>

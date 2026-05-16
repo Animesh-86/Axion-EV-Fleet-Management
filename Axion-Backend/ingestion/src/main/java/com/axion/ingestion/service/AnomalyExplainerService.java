@@ -22,14 +22,14 @@ import java.util.stream.Collectors;
 @Service
 public class AnomalyExplainerService {
 
-    private final ChatClient chatClient;
+    private final ChatClient.Builder chatClientBuilder;
     private final AnomalyExplanationRepository repository;
     private final VectorStore vectorStore;
 
     public AnomalyExplainerService(ChatClient.Builder chatClientBuilder, 
                                    AnomalyExplanationRepository repository,
                                    @Autowired(required = false) VectorStore vectorStore) {
-        this.chatClient = chatClientBuilder.build();
+        this.chatClientBuilder = chatClientBuilder;
         this.repository = repository;
         this.vectorStore = vectorStore;
     }
@@ -78,7 +78,7 @@ public class AnomalyExplainerService {
         );
 
         try {
-            String rawResponse = chatClient.prompt()
+                String rawResponse = chatClientBuilder.build().prompt()
                     .user(promptText)
                     .call()
                     .content();

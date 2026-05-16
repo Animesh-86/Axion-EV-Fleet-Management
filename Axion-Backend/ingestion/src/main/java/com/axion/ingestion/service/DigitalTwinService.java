@@ -79,7 +79,7 @@ public class DigitalTwinService {
         updated.setHealthState(result.getState().name());
 
         redisTemplate.opsForValue().set(key, updated, ttl);
-        log.debug("Digital twin updated in Redis: {} | health={} state={}", key, result.getScore(), result.getState());
+        log.info("Digital twin updated in Redis: {} | health={} state={}", key, result.getScore(), result.getState());
 
         // Broadcast TWIN_UPDATE
         WebSocketMessage twinUpdateMsg = WebSocketMessage.builder()

@@ -130,13 +130,13 @@ export function TerminalFooter({ onGetStarted }: TerminalFooterProps) {
                     🚀 SYSTEM ONLINE
                   </div>
                   <div className="text-[var(--axion-cyan)]">
-                    → Backend API: http://localhost:8080
+                    → Backend API: http://127.0.0.1:8080
                   </div>
                   <div className="text-[var(--axion-cyan)]">
-                    → Frontend UI: http://localhost:3000
+                    → Frontend UI: http://127.0.0.1
                   </div>
                   <div className="text-[var(--axion-cyan)]">
-                    → ML Service: http://localhost:5000
+                    → ML Service: http://127.0.0.1:8000
                   </div>
                   <div className="text-amber-400 mt-4">
                     ⚡ 250 VEHICLE SIMULATOR ENGAGED

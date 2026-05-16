@@ -1,0 +1,150 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 1,
+  "links": [],
+  "liveNow": true,
+  "panels": [
+    {
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 0 },
+      "id": 1,
+      "title": "Telemetry Ingestion Rate (msg/s)",
+      "type": "timeseries",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "rate(axion_telemetry_ingested_total[1m])",
+          "legendFormat": "Throughput"
+        }
+      ]
+    },
+    {
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 0 },
+      "id": 2,
+      "title": "Kafka Consumer Lag",
+      "type": "stat",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "axion_kafka_consumer_lag",
+          "legendFormat": "Consumer Lag"
+        }
+      ]
+    },
+    {
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "id": 3,
+      "title": "API Response Latency (p50, p95, p99)",
+      "type": "timeseries",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "axion_api_latency_seconds{quantile=\"0.5\"}",
+          "legendFormat": "p50 Latency"
+        },
+        {
+          "expr": "axion_api_latency_seconds{quantile=\"0.95\"}",
+          "legendFormat": "p95 Latency"
+        },
+        {
+          "expr": "axion_api_latency_seconds{quantile=\"0.99\"}",
+          "legendFormat": "p99 Latency"
+        }
+      ]
+    },
+    {
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 8 },
+      "id": 4,
+      "title": "Active OTA Campaigns",
+      "type": "stat",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "axion_ota_campaigns_active",
+          "legendFormat": "Active Campaigns"
+        }
+      ]
+    },
+    {
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 8 },
+      "id": 5,
+      "title": "JVM Heap Memory Used (MB)",
+      "type": "timeseries",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "jvm_memory_used_bytes{area=\"heap\"} / 1024 / 1024",
+          "legendFormat": "Heap MB"
+        }
+      ]
+    },
+    {
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 8 },
+      "id": 6,
+      "title": "Process CPU Usage",
+      "type": "gauge",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "process_cpu_usage",
+          "legendFormat": "CPU %"
+        }
+      ]
+    },
+    {
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 8 },
+      "id": 7,
+      "title": "Live JVM Threads",
+      "type": "stat",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "jvm_threads_live_threads",
+          "legendFormat": "Live Threads"
+        }
+      ]
+    },
+    {
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
+      "id": 8,
+      "title": "System Uptime (Seconds)",
+      "type": "stat",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "process_uptime_seconds",
+          "legendFormat": "Uptime"
+        }
+      ]
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["axion", "fleet"],
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": ["5s", "10s", "30s", "1m"]
+  },
+  "timezone": "",
+  "title": "Axion EV Fleet Mission Control Observability",
+  "uid": "axion-fleet-obs-01",
+  "version": 1
+}

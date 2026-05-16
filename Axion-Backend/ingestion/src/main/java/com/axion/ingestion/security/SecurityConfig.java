@@ -25,13 +25,16 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+    private final boolean publicSummary;
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter, UserDetailsService userDetailsService) {
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter, UserDetailsService userDetailsService,
+                          @org.springframework.beans.factory.annotation.Value("${axion.api.publicSummary:true}") boolean publicSummary) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.userDetailsService = userDetailsService;
+        this.publicSummary = publicSummary;
     }
 
     @Bean
@@ -40,7 +43,9 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/auth/**", "/api/v1/health/**").permitAll()
+                .requestMatchers("/api/v1/auth/**", "/api/v1/health/**", "/api/v1/telemetry/**", "/ws/**").permitAll()
+                // Optionally allow unauthenticated access to fleet summary for easy demo/run-from-clone.
+                .requestMatchers(publicSummary ? new String[]{"/api/v1/fleet/summary", "/api/v1/fleet/vehicles"} : new String[]{}).permitAll()
                 .requestMatchers("/api/v1/**").authenticated()
                 .anyRequest().permitAll()
             )

@@ -29,6 +29,35 @@ public class MlServiceClient {
     }
 
     @SuppressWarnings("unchecked")
+    public java.util.List<java.util.Map<String, Object>> getFleetRiskRanking(Integer cacheTtlSeconds) {
+        String cacheKey = "ml:fleet:risk_ranking";
+        try {
+            Object cached = genericRedisTemplate.opsForValue().get(cacheKey);
+            if (cached instanceof java.util.List) {
+                return (java.util.List<java.util.Map<String, Object>>) cached;
+            }
+        } catch (Exception e) {
+            logger.warn("Redis cache read failure for fleet risk ranking: {}", e.getMessage());
+        }
+
+        try {
+            String url = mlServiceUrl + "/ml/v1/fleet/risk-ranking";
+            java.util.List<java.util.Map<String, Object>> res = restTemplate.getForObject(url, java.util.List.class);
+            if (res == null) res = new java.util.ArrayList<>();
+            try {
+                int ttl = cacheTtlSeconds != null ? cacheTtlSeconds : 60;
+                genericRedisTemplate.opsForValue().set(cacheKey, res, ttl, java.util.concurrent.TimeUnit.SECONDS);
+            } catch (Exception e) {
+                logger.warn("Redis cache write failure for fleet risk ranking: {}", e.getMessage());
+            }
+            return res;
+        } catch (Exception e) {
+            logger.warn("Failed to fetch fleet risk ranking from ML service: {}", e.getMessage());
+            return new java.util.ArrayList<>();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
     public Map<String, Object> getVehiclePredictions(String vehicleId) {
         String cacheKey = "ml_predictions:" + vehicleId;
         try {

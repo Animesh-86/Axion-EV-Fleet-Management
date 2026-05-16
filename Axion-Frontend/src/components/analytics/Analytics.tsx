@@ -16,6 +16,8 @@ export function Analytics() {
   const [healthHistory, setHealthHistory] = useState<{ time: string; healthy: number; degraded: number; critical: number }[]>([]);
   const [batteryHistory, setBatteryHistory] = useState<{ time: string; avg: number; min: number; max: number }[]>([]);
   const [riskRanking, setRiskRanking] = useState<FleetRiskItem[]>([]);
+  const [riskPage, setRiskPage] = useState(0);
+  const RISK_PAGE_SIZE = 100;
   const historyRef = useRef({ health: [] as typeof healthHistory, battery: [] as typeof batteryHistory });
 
   useEffect(() => {
@@ -361,8 +363,9 @@ export function Analytics() {
               </div>
             </div>
             {riskRanking.length > 0 ? (
+              <>
               <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-2">
-                {riskRanking.map((item) => {
+                {riskRanking.slice(riskPage * RISK_PAGE_SIZE, (riskPage + 1) * RISK_PAGE_SIZE).map((item) => {
                   const riskPct = Math.round(item.riskScore * 100);
                   const riskColor = item.riskScore >= 0.7 ? 'from-red-500/30 to-red-900/20 border-red-500/40' :
                     item.riskScore >= 0.4 ? 'from-amber-500/20 to-amber-900/10 border-amber-500/30' :
@@ -391,6 +394,14 @@ export function Analytics() {
                   );
                 })}
               </div>
+              <div className="flex items-center justify-between mt-4">
+                <div className="text-[12px] text-muted-foreground">Showing {(riskPage * RISK_PAGE_SIZE) + 1}–{Math.min((riskPage + 1) * RISK_PAGE_SIZE, riskRanking.length)} of {riskRanking.length}</div>
+                <div className="flex gap-2">
+                  <button disabled={riskPage === 0} onClick={() => setRiskPage(p => Math.max(0, p - 1))} className="px-3 py-1 bg-white/5 rounded disabled:opacity-40">Prev</button>
+                  <button disabled={(riskPage + 1) * RISK_PAGE_SIZE >= riskRanking.length} onClick={() => setRiskPage(p => p + 1)} className="px-3 py-1 bg-white/5 rounded disabled:opacity-40">Next</button>
+                </div>
+              </div>
+              </>
             ) : (
               <div className="h-[120px] flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-20 italic">Awaiting_ML_Risk_Data</div>
             )}

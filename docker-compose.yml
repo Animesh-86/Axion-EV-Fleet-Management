@@ -71,7 +71,7 @@ services:
     environment:
       POSTGRES_DB: axion
       POSTGRES_USER: axion
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -88,7 +88,7 @@ services:
     environment:
       POSTGRES_DB: axion_ts
       POSTGRES_USER: axion
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: ${TIMESCALEDB_PASSWORD:-change_me}
     volumes:
       - tsdata:/var/lib/postgresql/data
     healthcheck:
@@ -114,13 +114,19 @@ services:
         condition: service_healthy
     environment:
       # Override localhost references for container networking
-      AXION_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      AXION_MQTT_BROKER_URL: tcp://mosquitto:1883
-      AXION_CORS_ALLOWED_ORIGINS: http://localhost,http://localhost:80
-      SPRING_DATA_REDIS_HOST: redis
-      AXION_POSTGRES_URL: jdbc:postgresql://postgres:5432/axion
-      AXION_TSDB_URL: jdbc:postgresql://timescaledb:5432/axion_ts
-      AXION_ML_URL: http://ml:8000
+      AXION_KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+      AXION_MQTT_BROKER_URL: "tcp://mosquitto:1883"
+      AXION_CORS_ALLOWED_ORIGINS: "http://localhost,http://localhost:80"
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      AXION_OPENAI_KEY_FILE: ${AXION_OPENAI_KEY_FILE:-/run/secrets/OPENAI_API_KEY}
+      SPRING_DATA_REDIS_HOST: "redis"
+      AXION_POSTGRES_URL: ${AXION_POSTGRES_URL:-jdbc:postgresql://postgres:5432/axion}
+      AXION_TSDB_URL: ${AXION_TSDB_URL:-jdbc:postgresql://timescaledb:5432/axion_ts}
+      AXION_ML_URL: "http://ml:8000"
+      AXION_AGENT_MONITOR_ENABLED: "true"
+      AXION_BOOTSTRAP_ADMIN_USERNAME: "demo_admin"
+      AXION_BOOTSTRAP_ADMIN_PASSWORD: ${AXION_BOOTSTRAP_ADMIN_PASSWORD:-change_me}
+      AXION_API_PUBLICSUMMARY: "false"
     ports:
       - "8080:8080"
     healthcheck:
@@ -172,7 +178,7 @@ services:
       timescaledb:
         condition: service_healthy
     environment:
-      AXION_TSDB_URL: postgresql://axion:password@timescaledb:5432/axion_ts
+      AXION_TSDB_URL: ${AXION_TSDB_URL:-postgresql://axion:change_me@timescaledb:5432/axion_ts}
     ports:
       - "8000:8000"
     healthcheck:
@@ -180,6 +186,39 @@ services:
       interval: 15s
       timeout: 5s
       retries: 5
+
+  # ── Observability & Monitoring ────────────────────
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: axion-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: axion-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/axion_fleet_dashboard.json
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - prometheus
 
 volumes:
   pgdata:

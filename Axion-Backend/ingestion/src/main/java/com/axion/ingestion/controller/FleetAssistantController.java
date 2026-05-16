@@ -17,19 +17,18 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-@CrossOrigin
 @RestController
 @RequestMapping("/api/v1/ai")
 public class FleetAssistantController {
 
-    private final ChatClient chatClient;
+    private final ChatClient.Builder chatClientBuilder;
     private final AnomalyExplanationRepository explanationRepository;
     private final RedisTemplate<String, Object> genericRedisTemplate;
 
     public FleetAssistantController(ChatClient.Builder chatClientBuilder,
                                     AnomalyExplanationRepository explanationRepository,
                                     RedisTemplate<String, Object> genericRedisTemplate) {
-        this.chatClient = chatClientBuilder.build();
+        this.chatClientBuilder = chatClientBuilder;
         this.explanationRepository = explanationRepository;
         this.genericRedisTemplate = genericRedisTemplate;
     }
@@ -73,7 +72,7 @@ public class FleetAssistantController {
         String fullPrompt = history + "Operator: " + request.getPrompt();
 
         try {
-            return chatClient.prompt()
+                return chatClientBuilder.build().prompt()
                     .user(fullPrompt)
                     .functions("getVehicleStatus", "getFleetSummary")
                     .stream()
