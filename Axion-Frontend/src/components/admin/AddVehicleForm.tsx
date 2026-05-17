@@ -87,9 +87,9 @@ export const AddVehicleForm: React.FC = () => {
                     className="h-12 w-full rounded-2xl border border-white/10 bg-background/70 px-4 text-sm text-foreground outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
                   >
                     <option value="sedan_standard">Sedan Standard</option>
-                    <option value="suv_standard">SUV Standard</option>
-                    <option value="delivery_van">Delivery Van</option>
-                    <option value="heavy_duty">Heavy Duty</option>
+                    <option value="sedan_sport">Sedan Sport</option>
+                    <option value="truck_heavy">Truck Heavy</option>
+                    <option value="truck_light">Truck Light</option>
                   </select>
                 </label>
               </div>
@@ -102,10 +102,9 @@ export const AddVehicleForm: React.FC = () => {
                     onChange={(e) => setScenario(e.target.value)}
                     className="h-12 w-full rounded-2xl border border-white/10 bg-background/70 px-4 text-sm text-foreground outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/10"
                   >
-                    <option value="normal">Normal</option>
-                    <option value="battery_drain">Battery Drain</option>
-                    <option value="network_dropout">Network Dropout</option>
-                    <option value="temp_spike">Temperature Spike</option>
+                    <option value="normal">Normal Drive</option>
+                    <option value="low_battery">Low Battery Drain</option>
+                    <option value="critical_temp">Critical Temperature</option>
                   </select>
                 </label>
 

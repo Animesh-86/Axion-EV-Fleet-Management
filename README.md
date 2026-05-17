@@ -250,6 +250,8 @@ Axion-EV-Fleet-Management/
 
 ## Deployment
 
+For a complete feature-by-feature verification checklist, see [Project Docs/TESTING_GUIDE.md](Project%20Docs/TESTING_GUIDE.md).
+
 ### Docker Compose (One Command)
 
 ```bash

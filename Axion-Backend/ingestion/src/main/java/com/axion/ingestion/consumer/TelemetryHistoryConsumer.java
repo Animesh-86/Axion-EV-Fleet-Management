@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
@@ -39,16 +40,36 @@ public class TelemetryHistoryConsumer {
         }
     }
 
+    /**
+     * Scheduled flush ensures partial batches are always persisted.
+     * Without this, if exactly 99 events arrive and then traffic stops,
+     * those events would never be written to TimescaleDB.
+     */
+    @Scheduled(fixedDelayString = "${axion.tsdb.flush-interval-ms:5000}")
+    public void scheduledFlush() {
+        lock.lock();
+        try {
+            if (!batch.isEmpty()) {
+                log.debug("Scheduled flush triggered for {} pending events", batch.size());
+                flushBatch();
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
     private void flushBatch() {
         if (batch.isEmpty()) {
             return;
         }
         
-        log.debug("Flushing {} telemetry events to TimescaleDB", batch.size());
+        int batchSize = batch.size();
+        log.debug("Flushing {} telemetry events to TimescaleDB", batchSize);
         
         String sql = "INSERT INTO telemetry_history " +
                 "(time, vehicle_id, battery_soc, battery_temp, motor_temp, speed, health_score, health_state) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?) " +
+                "ON CONFLICT DO NOTHING";
                 
         List<Object[]> batchArgs = new ArrayList<>();
         for (CanonicalTelemetryEnvelope event : batch) {
@@ -69,8 +90,9 @@ public class TelemetryHistoryConsumer {
         
         try {
             tsdbJdbcTemplate.batchUpdate(sql, batchArgs);
+            log.debug("Successfully flushed {} events to TimescaleDB", batchArgs.size());
         } catch (Exception e) {
-            log.error("Failed to insert telemetry batch into TimescaleDB", e);
+            log.error("Failed to insert telemetry batch into TimescaleDB: {}", e.getMessage());
         }
         
         batch.clear();
