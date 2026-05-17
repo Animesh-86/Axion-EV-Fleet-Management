@@ -3,6 +3,9 @@ package com.axion.ingestion.api;
 import com.axion.ingestion.dto.CreateVehicleRequest;
 import com.axion.ingestion.model.DigitalTwinState;
 import com.axion.ingestion.model.TelemetrySnapshot;
+import com.axion.ingestion.service.VehicleRegistryService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,16 +14,21 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/admin/vehicles")
 public class AdminVehicleController {
 
     private final RedisTemplate<String, DigitalTwinState> redisTemplate;
     private final RedisTemplate<String, Object> genericRedisTemplate;
+    private final VehicleRegistryService registryService;
 
-    public AdminVehicleController(RedisTemplate<String, DigitalTwinState> redisTemplate, RedisTemplate<String, Object> genericRedisTemplate) {
+    public AdminVehicleController(RedisTemplate<String, DigitalTwinState> redisTemplate,
+                                  RedisTemplate<String, Object> genericRedisTemplate,
+                                  @Autowired(required = false) VehicleRegistryService registryService) {
         this.redisTemplate = redisTemplate;
         this.genericRedisTemplate = genericRedisTemplate;
+        this.registryService = registryService;
     }
 
     @PostMapping
@@ -30,6 +38,15 @@ public class AdminVehicleController {
         }
 
         String vehicleId = req.getId();
+        String profile = req.getProfile() != null ? req.getProfile() : "sedan_standard";
+
+        // 1. Register in vehicle registry (PostgreSQL + cache)
+        if (registryService != null) {
+            registryService.provision(vehicleId, profile, "admin-ui");
+            log.info("Vehicle {} provisioned in registry via admin UI", vehicleId);
+        }
+
+        // 2. Create initial digital twin in Redis
         String key = "digital_twin:" + vehicleId;
 
         TelemetrySnapshot t = new TelemetrySnapshot();
@@ -47,23 +64,28 @@ public class AdminVehicleController {
         s.setOnline(true);
         s.setLastSeen(Instant.now());
         s.setHealthScore(100);
-        s.setHealthState("OK");
-        s.setOtaEligibility(false);
-        s.setLastUpdateTimestamp(Instant.now());
+        s.setHealthState("HEALTHY");
 
         redisTemplate.opsForValue().set(key, s);
 
-        // Notify simulator to register the vehicle at runtime if requested
+        // 3. Notify simulator to register the vehicle at runtime if requested
         if (req.getRegisterWithSimulator() == null || req.getRegisterWithSimulator()) {
             Map<String, Object> msg = new HashMap<>();
             msg.put("schema_version", 1);
             msg.put("cmd", "register_vehicle");
             msg.put("id", vehicleId);
-            msg.put("profile", req.getProfile());
-            msg.put("scenario", req.getScenario());
+            msg.put("profile", profile);
+            msg.put("scenario", req.getScenario() != null ? req.getScenario() : "normal");
             genericRedisTemplate.convertAndSend("axion:simulator:commands", msg);
+            log.info("Simulator registration command sent for vehicle {}", vehicleId);
         }
 
-        return ResponseEntity.ok(Map.of("vehicleId", vehicleId, "created", true));
+        return ResponseEntity.ok(Map.of(
+                "vehicleId", vehicleId,
+                "profile", profile,
+                "registered", true,
+                "simulatorNotified", req.getRegisterWithSimulator() == null || req.getRegisterWithSimulator()
+        ));
     }
 }
+
