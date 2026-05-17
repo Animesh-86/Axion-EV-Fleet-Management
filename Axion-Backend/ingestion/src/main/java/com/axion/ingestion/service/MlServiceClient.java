@@ -83,8 +83,10 @@ public class MlServiceClient {
         } catch (Exception e) {
             logger.warn("Failed to fetch battery prediction from ML service for vehicle {}: {}", vehicleId, e.getMessage());
             Map<String, Object> fallback = new HashMap<>();
-            fallback.put("hours", 4.2);
-            fallback.put("confidence", 0.85);
+            fallback.put("hours", null);
+            fallback.put("confidence", 0.0);
+            fallback.put("available", false);
+            fallback.put("reason", "ML service unreachable");
             predictions.put("batteryDepletion", fallback);
         }
 
@@ -101,8 +103,10 @@ public class MlServiceClient {
         } catch (Exception e) {
             logger.warn("Failed to fetch temperature prediction from ML service for vehicle {}: {}", vehicleId, e.getMessage());
             Map<String, Object> fallback = new HashMap<>();
-            fallback.put("risk", "LOW");
-            fallback.put("predictedPeakC", 42.1);
+            fallback.put("risk", "UNAVAILABLE");
+            fallback.put("predictedPeakC", null);
+            fallback.put("available", false);
+            fallback.put("reason", "ML service unreachable");
             predictions.put("tempAnomaly", fallback);
         }
 
