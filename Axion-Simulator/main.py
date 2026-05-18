@@ -70,19 +70,20 @@ async def main():
         p_obj = get_profile(profile)
 
         # Use profile values if present, otherwise fallback to config
+        p = profiles_cfg.get("default", {})
+        
         try:
             t_range = [p_obj.base_temp_min, p_obj.base_temp_max]
         except Exception:
-            p = profiles_cfg.get("default", {})
             t_range = p.get("temp_range", [25.0, 32.0])
 
         try:
-            s_range = [p_obj.soc_min, p_obj.soc_max]
+            s_range = [p_obj.min_soc, p_obj.max_soc]
         except Exception:
             s_range = p.get("soc_range", [80.0, 95.0])
 
         try:
-            sp_range = [p_obj.speed_min, p_obj.speed_max]
+            sp_range = [0.0, p_obj.max_speed_kmph]
         except Exception:
             sp_range = p.get("speed_range", [40.0, 80.0])
 

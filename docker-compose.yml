@@ -120,8 +120,10 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-test-axion-demo}
       AXION_OPENAI_KEY_FILE: ${AXION_OPENAI_KEY_FILE:-/run/secrets/OPENAI_API_KEY}
       SPRING_DATA_REDIS_HOST: "redis"
-      AXION_POSTGRES_URL: ${AXION_POSTGRES_URL:-jdbc:postgresql://postgres:5432/axion}
-      AXION_TSDB_URL: ${AXION_TSDB_URL:-jdbc:postgresql://timescaledb:5432/axion_ts}
+      AXION_POSTGRES_URL: "jdbc:postgresql://postgres:5432/axion"
+      AXION_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me}
+      AXION_TSDB_URL: "jdbc:postgresql://timescaledb:5432/axion_ts"
+      AXION_TSDB_PASSWORD: ${TIMESCALEDB_PASSWORD:-change_me}
       AXION_ML_URL: "http://ml:8000"
       AXION_AGENT_MONITOR_ENABLED: "true"
       AXION_BOOTSTRAP_ADMIN_USERNAME: "demo_admin"
@@ -178,7 +180,7 @@ services:
       timescaledb:
         condition: service_healthy
     environment:
-      AXION_TSDB_URL: ${AXION_TSDB_URL:-postgresql://axion:change_me@timescaledb:5432/axion_ts}
+      AXION_TSDB_URL: "postgresql://axion:change_me@timescaledb:5432/axion_ts"
     ports:
       - "8000:8000"
     healthcheck:

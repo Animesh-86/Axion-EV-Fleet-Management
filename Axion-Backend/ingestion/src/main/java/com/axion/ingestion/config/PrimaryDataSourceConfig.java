@@ -39,6 +39,7 @@ public class PrimaryDataSourceConfig {
 
     @Primary
     @Bean(name = "primaryEntityManagerFactory")
+    @org.springframework.context.annotation.DependsOn("primaryFlyway")
     public LocalContainerEntityManagerFactoryBean primaryEntityManagerFactory(
             EntityManagerFactoryBuilder builder,
             @Qualifier("primaryDataSource") DataSource primaryDataSource) {
@@ -54,5 +55,16 @@ public class PrimaryDataSourceConfig {
     public PlatformTransactionManager primaryTransactionManager(
             @Qualifier("primaryEntityManagerFactory") LocalContainerEntityManagerFactoryBean primaryEntityManagerFactory) {
         return new JpaTransactionManager(primaryEntityManagerFactory.getObject());
+    }
+
+    @Bean(name = "primaryFlyway")
+    public org.flywaydb.core.Flyway primaryFlyway(@Qualifier("primaryDataSource") DataSource primaryDataSource) {
+        org.flywaydb.core.Flyway flyway = org.flywaydb.core.Flyway.configure()
+                .dataSource(primaryDataSource)
+                .locations("classpath:db/migration/primary")
+                .baselineOnMigrate(true)
+                .load();
+        flyway.migrate();
+        return flyway;
     }
 }

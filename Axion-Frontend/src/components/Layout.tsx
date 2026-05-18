@@ -81,13 +81,12 @@ export function Layout({ children }: LayoutProps) {
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: paths.dashboard },
     { id: 'vehicles', label: 'Vehicles', icon: Car, path: paths.vehicles },
     { id: 'digital-twin', label: 'Digital Twin', icon: Layers, path: null },
-    { id: 'admin', label: 'Admin', icon: FileText, path: paths.adminAddVehicle },
     { id: 'ota', label: 'OTA Campaigns', icon: Upload, path: paths.ota },
     { id: 'analytics', label: 'Analytics', icon: BarChart3, path: paths.analytics },
     { id: 'alerts', label: 'Alerts', icon: AlertTriangle, path: paths.alerts },
     { id: 'system', label: 'System Health', icon: Server, path: paths.system },
     { id: 'audit', label: 'Audit Logs', icon: FileText, path: paths.auditLogs },
-    { id: 'settings', label: 'Settings', icon: Settings, path: paths.settings },
+    { id: 'settings', label: 'Settings & Admin', icon: Settings, path: paths.settings },
   ];
 
   const goNav = (id: NavId, path: string | null) => {

@@ -1,4 +1,5 @@
 import { PORTS, HEALTH, POLL_DASHBOARD, POLL_SYSTEM_HEALTH, TELEMETRY_HISTORY_WINDOW } from '../../config';
+import { AddVehicleForm } from '../../components/admin/AddVehicleForm';
 
 export function SettingsPage() {
   return (
@@ -127,6 +128,14 @@ export function SettingsPage() {
           <p className="mt-8 text-[8px] font-black uppercase tracking-[0.4em] text-muted-foreground opacity-20 text-center">
              FLEET_CONTROL_SYSTEM_UNIFIED_OS_CORE
           </p>
+        </div>
+
+        {/* Admin Section */}
+        <div className="lg:col-span-2 mt-8">
+          <h2 className="text-2xl font-black tracking-tighter uppercase text-precision mb-4">Admin Provisioning</h2>
+          <div className="border border-white/5 rounded-2xl overflow-hidden bg-black/20">
+             <AddVehicleForm />
+          </div>
         </div>
       </div>
     </div>
