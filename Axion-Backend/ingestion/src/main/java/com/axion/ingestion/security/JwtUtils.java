@@ -17,14 +17,33 @@ import java.util.function.Function;
 @Component
 public class JwtUtils {
 
-    @Value("${axion.jwt.secret:defaultSecretKeyWithAtLeast256BitsLengthForHmacSha256!@#}")
+    @Value("${axion.jwt.secret:}")
     private String jwtSecret;
 
     @Value("${axion.jwt.expirationMs:86400000}")
     private int jwtExpirationMs;
 
     private Key getSigningKey() {
-        byte[] keyBytes = jwtSecret.getBytes();
+        if (jwtSecret == null || jwtSecret.isBlank()) {
+            throw new IllegalStateException("JWT secret is not configured. Set 'axion.jwt.secret' via environment/secret manager.");
+        }
+
+        byte[] keyBytes;
+        try {
+            if (jwtSecret.startsWith("base64:")) {
+                String b64 = jwtSecret.substring("base64:".length());
+                keyBytes = java.util.Base64.getDecoder().decode(b64);
+            } else {
+                keyBytes = jwtSecret.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            }
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to decode JWT secret: " + e.getMessage(), e);
+        }
+
+        if (keyBytes.length < 32) {
+            throw new IllegalStateException("JWT secret must be at least 256 bits (32 bytes). Provide a sufficiently long secret or a base64-encoded key prefixed with 'base64:'.");
+        }
+
         return Keys.hmacShaKeyFor(keyBytes);
     }
 

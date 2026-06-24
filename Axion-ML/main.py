@@ -82,22 +82,10 @@ def predict_temperature(vehicleId: str, db: Session = Depends(get_db)):
 @app.get("/ml/v1/fleet/risk-ranking", response_model=List[FleetRiskItem])
 def get_fleet_risk_ranking(db: Session = Depends(get_db)):
     """Aggregates all active vehicles across the fleet and returns an ordered list ranked by absolute risk score."""
-    latest_per_vehicle = (
-        db.query(
-            TelemetryHistory.vehicle_id.label("vehicle_id"),
-            func.max(TelemetryHistory.time).label("max_time"),
-        )
-        .group_by(TelemetryHistory.vehicle_id)
-        .subquery()
-    )
-
     latest_records = (
         db.query(TelemetryHistory)
-        .join(
-            latest_per_vehicle,
-            (TelemetryHistory.vehicle_id == latest_per_vehicle.c.vehicle_id)
-            & (TelemetryHistory.time == latest_per_vehicle.c.max_time),
-        )
+        .distinct(TelemetryHistory.vehicle_id)
+        .order_by(TelemetryHistory.vehicle_id, TelemetryHistory.time.desc())
         .all()
     )
 

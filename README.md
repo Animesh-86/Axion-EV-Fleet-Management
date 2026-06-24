@@ -27,125 +27,124 @@
 git clone https://github.com/Animesh-86/Axion-EV-Fleet-Management.git
 cd Axion-EV-Fleet-Management
 
-# Copy local environment template
+# Copy environment templates
 cp .env.local.example .env.local
-
-# Optional: production env template
 cp .env.production.example .env.production
 
-# If using OpenAI integration provide the key via file or env var:
-# - File: set `AXION_OPENAI_KEY_FILE` (default: /run/secrets/OPENAI_API_KEY)
-# - or set `OPENAI_API_KEY` in the environment
+# Run the 1-click deployment script
+# On Windows:
+deploy.bat
 
-docker compose up --build -d
+# On Linux / Mac:
+./deploy.sh
 ```
 
-Open http://127.0.0.1 — 250 simulated EVs streaming live telemetry.
-
-If `localhost` resolves to IPv6 on your machine, use `127.0.0.1` to reach Docker-exposed services.
+Open http://localhost — 250 simulated EVs streaming live telemetry.
 
 ---
 
 ## Overview
 
-Axion is a **backend-first, event-driven platform** that ingests, normalizes, and processes electric vehicle telemetry at scale. It maintains a **real-time digital twin** for each vehicle, computes **explainable health scores**, and orchestrates **OTA update simulations** across a fleet of 250 vehicles.
+Axion is an **enterprise-grade, event-driven EV fleet management platform** built for high-throughput telemetry ingestion, real-time digital twin tracking, explainable AI health scoring, and resilient over-the-air (OTA) orchestrations. 
 
-The system tolerates unreliable connectivity, heterogeneous vendor data formats, and high-throughput telemetry streams — providing operators with actionable fleet insights through a premium dark-themed dashboard.
-
-> Academic project with industry-aligned architecture — emphasizing correctness, scalability, and explainability.
+Engineered with a **production-first mindset**, the platform leverages Spring Boot, Spring WebFlux (for non-blocking concurrent I/O), Apache Kafka (for decoupled linear stream processing), Mosquitto MQTT, and Redis (for distributed coordination, low-latency twin storage, and global lock management).
 
 ---
 
-## System Architecture
+## Production-Grade Architecture
+
+To scale seamlessly to thousands of concurrent electric vehicles under unreliable network conditions, Axion utilizes a decoupled, linear event-driven pipeline that guarantees zero data loss, low database contention, and robust edge validation.
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│                     AXION ARCHITECTURE                           │
-├──────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  [Python Simulator]              [React Dashboard]               │
-│   250 Vehicles                    Polling 3-5s                   │
-│   5 Scenarios                          ▲                         │
-│       │                                │                         │
-│       ▼                          Fleet REST API                  │
-│  REST + MQTT ──────► [Spring Boot Ingestion]                     │
-│                            │                                     │
-│                    Validate + Normalize                           │
-│                            │                                     │
-│                            ▼                                     │
-│                   [Apache Kafka]                                  │
-│                   telemetry.normal                                │
-│                   ota.events                                     │
-│                            │                                     │
-│                            ▼                                     │
-│                   [TelemetryConsumer]                             │
-│                            │                                     │
-│                    ┌───────┴───────┐                              │
-│                    ▼               ▼                              │
-│            [Digital Twin]   [Health Score                         │
-│             Service]         Engine]                              │
-│                    │               │                              │
-│                    ▼               ▼                              │
-│              [Redis 7.0]      [Spring AI]                         │
-│              Live State       (GenAI/RAG)                         │
-│              120s TTL              │                              │
-│                                    ▼                              │
-│                               [PgVector]                          │
-│                                                                  │
-└──────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────┐
+│                     AXION ENTERPRISE ARCHITECTURE                      │
+├────────────────────────────────────────────────────────────────────────┤
+│                                                                        │
+│  [250 simulated EVs]                [Enterprise Dashboard (React)]     │
+│   HTTP/MQTT Client                      WebSocket / REST API           │
+│         │                                        ▲                     │
+│         ▼ (Edge Security)                        │ (Throttled 1/sec)   │
+│  [Mosquitto MQTT Broker]                         │                     │
+│    └─► Validation (VehicleRegistry)              │                     │
+│  [Spring Boot Ingestion REST]                    │                     │
+│         │                                        │                     │
+│         ▼ Ingest (Throughput metrics)            │                     │
+│   (Topic: telemetry.raw)                         │                     │
+│  [Apache Kafka Ingress]                          │                     │
+│         │                                        │                     │
+│         ▼ Consume                                │                     │
+│  [TelemetryPipelineEnricher]                     │                     │
+│         │                                        │                     │
+│         ├─► Schema Validation & Registry checks  │                     │
+│         ├─► [ML Predictive Service] (WebClient)  │                     │
+│         └─► Rules Engine (Health Scoring)        │                     │
+│         │                                        │                     │
+│         ▼ Publish Enriched Telemetry             │                     │
+│   (Topic: telemetry.enriched) ───► Persistence   │                     │
+│  [Apache Kafka Egress]            (TimescaleDB)  │                     │
+│         │                                        │                     │
+│         ▼ Consume                                │                     │
+│  [TelemetryEnrichedConsumer] ────────────────────┘                     │
+│         │                                                              │
+│         ▼ Direct Write (Optimized Twin State)                          │
+│     [Redis 7.0 Cache] (120s TTL)                                       │
+│         │                                                              │
+│         ▼ LLM Explanations (Distributed Redis Lock)                    │
+│     [Spring AI / OpenAI] ──► PgVector RAG KB                           │
+│                                                                        │
+└────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Data Flow:** Simulator → REST/MQTT → Spring Boot → Kafka → Consumer → Digital Twin + Health Score → Redis → React Dashboard
+### Production Telemetry Pipeline
+1. **Edge Authorization**: Incoming telemetry over MQTT is authorized at the edge. The `MqttMessageHandler` performs high-speed validation against the `VehicleRegistryService` to instantly drop unauthenticated payloads.
+2. **Ingress Buffer (`telemetry.raw`)**: Telemetry payloads are normalized using the Adapter Pattern and immediately dispatched to Kafka's `telemetry.raw` partition to decouple the ingestion boundary from down-stream CPU-intensive operations.
+3. **Linear Enrichment & Scoring Pipeline**:
+   - The `TelemetryPipelineEnricher` processes events from `telemetry.raw` sequentially.
+   - It executes non-blocking concurrent API calls to the ML predictive services using a Spring WebFlux `WebClient` under a fully reactive `Mono.zip(...)` pattern.
+   - It performs deterministic health scoring and attaches metadata directly to a new `telemetry.enriched` Kafka topic.
+4. **Authoritative Digital Twin State**:
+   - The `TelemetryEnrichedConsumer` reads from `telemetry.enriched` and commits updates directly to Redis.
+   - We removed highly-contentious Redis `WATCH/MULTI/EXEC` optimistic locks, replacing them with highly-performant direct read/writes governed by strict client-side timestamp tracking (stale telemetry packets are dropped deterministically).
+5. **WebSocket Throttling & Debouncing**:
+   - Broadcast storms are prevented by a local `ConcurrentHashMap`-based debouncer, limiting WebSocket `TWIN_UPDATE` UI notifications to a maximum of **1 update per second per vehicle**, shielding client browsers from rendering fatigue.
 
 ---
 
-## Key Features
+## Key Features & Hardened Infrastructure
 
-### Dual-Protocol Telemetry Ingestion
-- REST (HTTP POST) and MQTT ingestion
-- Adapter pattern normalizes vendor data into canonical `CanonicalTelemetryEnvelope`
-- Strict validation with graceful error handling
-- Throughput tracking (events/second)
+### 🛡️ Edge Security & Dual-Protocol Ingestion
+- **Protocols**: Low-overhead MQTT (Eclipse Mosquitto) and high-throughput REST (HTTP POST).
+- **Edge Security**: Strict whitelist checks against a synchronized `VehicleRegistry` at ingestion time to prevent malicious packet injection.
+- **Dependency Injection**: Fully clean Spring IoC architecture with constructor injection and annotated `@Component` mappings, entirely removing unmanageable `new` adapter/validator instances.
 
-### Real-Time Event Pipeline
-- Apache Kafka as central event backbone
-- Topic isolation: `telemetry.normal`, `ota.events`
-- Fault-tolerant, replayable event processing
+### ⚡ Non-Blocking Reactive Orchestration
+- **WebClient Integration**: Stalling REST calls (previously blocked on `RestTemplate`) have been completely replaced with a fully concurrent, non-blocking `WebClient` integration to fetch real-time battery degradation predictions.
+- **Throttling**: Dual-layered debouncing prevents downstream database and UI congestion while retaining data fidelity inside Kafka.
 
-### Digital Twin Engine
-- One authoritative twin per vehicle in Redis
-- Stores: telemetry snapshot, health score, connectivity state
-- Stale-data protection via timestamp ordering
-- Automatic 120s TTL expiry
+### 🧬 Digital Twin Engine & Distributed Locks
+- **Redis Cache**: Authoritative digital twin states indexed by `vehicleId` with a 120-second automatic TTL expiry.
+- **Distributed Lock Management**: The GenAI Anomaly Explainer utilizes a distributed Redis Lock manager (`setIfAbsent` with 15-minute global TTL) instead of local in-memory caches. This prevents concurrent LLM invocation storms and redundant token consumption when scaling backend replicas across multiple Kubernetes pods.
 
-### Explainable Health Scoring (0–100)
-- Rule-based scoring with configurable thresholds
-- **HEALTHY** (≥80) · **DEGRADED** (50–79) · **CRITICAL** (<50)
-- Factors: Battery SOC, battery temperature, connectivity
-- Human-readable explanations for every deduction
+### 📊 Micrometer Observability (Prometheus & Grafana Ready)
+- **Engineered Metrics**: Ripped out volatile custom array-based sliding windows, implementing native Spring **Micrometer Instrumentation** via `MeterRegistry`.
+- **Metrics Tracked**: High-speed concurrency-safe telemetry throughput counters, processing latency timers, and payload validation failure meters.
 
-### OTA Update Simulation
-- Health-gated: refuses if battery low or temp high
-- State machine: `PENDING → IN_PROGRESS → SUCCESS / FAILURE`
-- Canary-style rollout with automatic rollback
-- Campaign tracking via Kafka events
+### 🧪 Hardened OTA Simulation & State Machine
+- **State Flow**: Gated state transitions: `PENDING → IN_PROGRESS → SUCCESS / FAILURE`.
+- **Asynchronous Execution**: Simulated downloads and installations are executed via Spring `@Async` threads using non-blocking asynchronous delays (`Thread.sleep(3000)` within an executor pool). This preserves the critical `IN_PROGRESS` duration required for realistic frontend polling, rather than executing instantaneously.
+- **Safety**: Updates automatically reject if the twin state indicates low state-of-charge (<20% SOC) or thermal warnings (>45°C).
 
-### GenAI Fleet Intelligence
-- Spring AI integration for natural language anomaly explanation
-- PgVector RAG (Retrieval-Augmented Generation) knowledge base
-- Autonomous agentic monitoring using Spring AI `@Tool` function calling
-- Streaming SSE fleet assistant for chat-based operations
+### 🤖 Explainable GenAI Intelligence
+- **RAG Capability**: Dynamic anomaly identification powered by Spring AI linked to a `PgVector` vector database.
+- **Conversational Ops**: Continuous streaming Server-Sent Events (SSE) chat broker allowing operators to interactively diagnose anomalies in plain natural language.
 
-### Premium Dashboard
-- Dark-themed React 18 dashboard with glassmorphism effects
-- 6 animated KPI cards, health distribution charts
-- 7+ pages: Dashboard, Fleet, Vehicle Detail, OTA Manager, Analytics, Alerts, System Health
+### 🖥️ Premium Glassmorphic Dashboard
+- **Visuals**: Dark-themed modern React 18 UI built with Tailwind CSS, Framer Motion, and Shadcn UI.
+- **Dynamic Views**: 6 animated KPI cards, interactive Recharts graphs, real-time alert logs, custom OTA campaign controller, and a fully interactive GenAI SSE chat assistant.
 
-### 250-Vehicle Simulator
-- Python asyncio driving 250 concurrent EVs
-- Vehicle profiles: sedan, truck, sport
-- 5 fault-injection scenarios: normal drive, battery drain, temp spike, network dropout, OTA trigger
-- YAML-based fleet configuration
+### 🚗 Async Python Simulator
+- **Simulation**: High-concurrency `asyncio` engine representing a fleet of 250 vehicles.
+- **Scenarios**: 5 hot-swappable telemetry profiles (Normal Drive, Rapid SOC Drain, High-Temp Spike, GPS/Network Dropout, OTA trigger) loaded dynamically from YAML files.
 
 ---
 
@@ -252,11 +251,30 @@ Axion-EV-Fleet-Management/
 
 For a complete feature-by-feature verification checklist, see [Project Docs/TESTING_GUIDE.md](Project%20Docs/TESTING_GUIDE.md).
 
-### Docker Compose (One Command)
+### 1-Click Deployment (Recommended)
+
+To completely spin up the stack, tear down any old conflicting containers, and ensure a clean environment, simply use the deployment scripts:
+
+**Windows:**
+```cmd
+deploy.bat
+```
+
+**Linux / macOS:**
+```bash
+./deploy.sh
+```
+
+### Load Testing Simulation
+To test the backend ingestion pipeline with high-throughput telemetry (100 concurrent vehicles), we provide a containerized load-tester. You don't need Python installed on your host machine to run this.
 
 ```bash
-docker compose up --build -d
+docker compose --profile testing up load-tester -d
 ```
+
+### Troubleshooting
+**Port Conflicts (e.g. 8080 or 5432 is already in use):**
+If you see an error like `bind: Only one usage of each socket address is normally permitted`, it means you have a local process (like a local Postgres or a rogue Java process) holding that port. Ensure you shut down local databases or Spring Boot apps before running the deploy script.
 
 | Container | Image | Port |
 |-----------|-------|------|

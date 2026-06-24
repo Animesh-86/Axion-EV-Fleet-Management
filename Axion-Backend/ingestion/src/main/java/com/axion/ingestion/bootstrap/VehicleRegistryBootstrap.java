@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.List;
  */
 @Slf4j
 @Component
+@ConditionalOnProperty(prefix = "axion.bootstrap", name = "enabled", havingValue = "true", matchIfMissing = false)
 @Order(2) // Run after DB migrations and admin bootstrap
 public class VehicleRegistryBootstrap implements CommandLineRunner {
 

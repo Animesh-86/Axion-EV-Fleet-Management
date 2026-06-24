@@ -53,14 +53,22 @@ public class FleetController {
     }
 
     @GetMapping("/summary")
-    public FleetSummaryResponse getFleetSummary() {
+    public reactor.core.publisher.Mono<FleetSummaryResponse> getFleetSummary() {
 
-        Set<String> keys = redisTemplate.keys("digital_twin:*");
+        Set<String> keys = new HashSet<>();
+        redisTemplate.execute((org.springframework.data.redis.core.RedisCallback<Void>) connection -> {
+            try (org.springframework.data.redis.core.Cursor<byte[]> cursor = connection.scan(org.springframework.data.redis.core.ScanOptions.scanOptions().match("digital_twin:*").count(1000).build())) {
+                while (cursor.hasNext()) {
+                    keys.add(new String(cursor.next()));
+                }
+            }
+            return null;
+        });
 
         FleetSummaryResponse summary = new FleetSummaryResponse();
 
-        if (keys == null)
-            return summary;
+        if (keys.isEmpty())
+            return reactor.core.publisher.Mono.just(summary);
 
         summary.setTotalVehicles(keys.size());
 
@@ -82,44 +90,50 @@ public class FleetController {
         summary.setEventsPerSecond(throughputTracker.getEventsPerSecond());
         summary.setTotalEventsProcessed(throughputTracker.getTotalEvents());
 
-        // Fetch ML-predicted fleet risk ranking (cached by MlServiceClient)
-        long predicted = 0;
-        try {
-            int cacheTtl = Integer.parseInt(System.getenv().getOrDefault("AXION_ML_CACHE_TTL", "60"));
-            java.util.List<java.util.Map<String, Object>> list = mlServiceClient.getFleetRiskRanking(cacheTtl);
-
-            Set<String> escalateIds = new HashSet<>();
-            if (list != null) {
-                for (java.util.Map<String, Object> m : list) {
-                    Object rs = m.get("riskScore");
-                    double val = 0.0;
-                    if (rs instanceof Number) val = ((Number) rs).doubleValue();
-                    else if (rs instanceof String) {
-                        try { val = Double.parseDouble((String) rs); } catch (Exception ignored) {}
-                    }
-                    if (val >= escalationThreshold) {
-                        predicted++;
-                        Object vid = m.get("vehicleId");
-                        if (vid != null) escalateIds.add(String.valueOf(vid));
+        int cacheTtl = Integer.parseInt(System.getenv().getOrDefault("AXION_ML_CACHE_TTL", "60"));
+        return mlServiceClient.getFleetRiskRanking(cacheTtl)
+            .map(list -> {
+                long predicted = 0;
+                Set<String> escalateIds = new HashSet<>();
+                if (list != null) {
+                    for (java.util.Map<String, Object> m : list) {
+                        Object rs = m.get("riskScore");
+                        double val = 0.0;
+                        if (rs instanceof Number) val = ((Number) rs).doubleValue();
+                        else if (rs instanceof String) {
+                            try { val = Double.parseDouble((String) rs); } catch (Exception ignored) {}
+                        }
+                        if (val >= escalationThreshold) {
+                            predicted++;
+                            Object vid = m.get("vehicleId");
+                            if (vid != null) escalateIds.add(String.valueOf(vid));
+                        }
                     }
                 }
-            }
-
                 summary.setPredictedCritical(predicted);
-        } catch (Exception ignored) {
-            summary.setPredictedCritical(0);
-        }
-
-        return summary;
+                return summary;
+            })
+            .onErrorResume(e -> {
+                summary.setPredictedCritical(0);
+                return reactor.core.publisher.Mono.just(summary);
+            });
     }
 
     @GetMapping("/vehicles")
     public java.util.List<FleetVehicleResponse> listVehicles() {
 
-        Set<String> keys = redisTemplate.keys("digital_twin:*");
+        Set<String> keys = new HashSet<>();
+        redisTemplate.execute((org.springframework.data.redis.core.RedisCallback<Void>) connection -> {
+            try (org.springframework.data.redis.core.Cursor<byte[]> cursor = connection.scan(org.springframework.data.redis.core.ScanOptions.scanOptions().match("digital_twin:*").count(1000).build())) {
+                while (cursor.hasNext()) {
+                    keys.add(new String(cursor.next()));
+                }
+            }
+            return null;
+        });
         java.util.List<FleetVehicleResponse> vehicles = new java.util.ArrayList<>();
 
-        if (keys == null)
+        if (keys.isEmpty())
             return vehicles;
 
         for (String key : keys) {
@@ -171,5 +185,18 @@ public class FleetController {
             return org.springframework.http.ResponseEntity.notFound().build();
         }
         return org.springframework.http.ResponseEntity.ok(state);
+    }
+
+    @GetMapping("/risk-ranking")
+    public reactor.core.publisher.Mono<org.springframework.http.ResponseEntity<java.util.List<java.util.Map<String, Object>>>> getFleetRiskRanking() {
+        int cacheTtl = Integer.parseInt(System.getenv().getOrDefault("AXION_ML_CACHE_TTL", "60"));
+        return mlServiceClient.getFleetRiskRanking(cacheTtl)
+            .map(org.springframework.http.ResponseEntity::ok);
+    }
+
+    @org.springframework.web.bind.annotation.PostMapping("/ml-retrain")
+    public java.util.concurrent.CompletableFuture<org.springframework.http.ResponseEntity<java.util.Map<String, Object>>> triggerRetraining() {
+        return mlServiceClient.triggerRetraining()
+            .thenApply(org.springframework.http.ResponseEntity::ok);
     }
 }

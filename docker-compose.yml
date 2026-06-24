@@ -52,6 +52,8 @@ services:
   mosquitto:
     image: eclipse-mosquitto:2.0
     container_name: axion-mosquitto
+    ports:
+      - "1883:1883"
     volumes:
       - ./Axion-Backend/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
     command: /usr/sbin/mosquitto -c /mosquitto/config/mosquitto.conf
@@ -110,6 +112,10 @@ services:
         condition: service_healthy
       mosquitto:
         condition: service_healthy
+      postgres:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
     environment:
       # Override localhost references for container networking
       AXION_KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
@@ -124,6 +130,9 @@ services:
       AXION_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me}
       AXION_TSDB_URL: "jdbc:postgresql://timescaledb:5432/axion_ts"
       AXION_TSDB_PASSWORD: ${TIMESCALEDB_PASSWORD:-change_me}
+      AXION_KAFKA_ENABLED: "true"
+      # Local/dev demo JWT secret (override with Docker secret in production)
+      AXION_JWT_SECRET: "change_me_demo_secret"
       AXION_ML_URL: "http://ml:8000"
       AXION_AGENT_MONITOR_ENABLED: "true"
       AXION_BOOTSTRAP_ADMIN_USERNAME: "demo_admin"
@@ -168,6 +177,19 @@ services:
     environment:
       AXION_MQTT_BROKER: mosquitto
       AXION_BACKEND_URL: http://backend:8080/api/v1/telemetry
+
+  load-tester:
+    build:
+      context: ./scripts/load_test
+      dockerfile: Dockerfile
+    container_name: axion-load-tester
+    profiles:
+      - testing
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    environment:
+      BROKER_HOST: mosquitto
 
   # ── ML Predictive Analytics (FastAPI) ──────────────
 

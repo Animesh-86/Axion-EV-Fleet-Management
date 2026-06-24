@@ -15,6 +15,8 @@ public class TelemetryPayload {
     private Double motorTempC;
     private Double ambientTempC;
     private Double odometerKm;
+    private Double healthScore;
+    private String healthState;
 
     // getters & setters
 }

@@ -2,9 +2,9 @@ package com.axion.ingestion.validation;
 
 import com.axion.ingestion.exception.ValidationException;
 import com.axion.ingestion.model.CanonicalTelemetryEnvelope;
+import org.springframework.stereotype.Component;
 
-
-
+@Component
 public class TelemetryValidator {
 
     public void validate(CanonicalTelemetryEnvelope envelope) {

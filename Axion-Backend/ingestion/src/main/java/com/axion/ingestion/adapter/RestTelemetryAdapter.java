@@ -5,8 +5,11 @@ import com.axion.ingestion.model.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.springframework.stereotype.Component;
+
 import java.time.Instant;
 
+@Component
 public class RestTelemetryAdapter implements TelemetryAdapter {
 
     private final ObjectMapper mapper = new ObjectMapper();

@@ -2,6 +2,7 @@ package com.axion.ingestion.security;
 
 import com.axion.ingestion.model.primary.User;
 import com.axion.ingestion.repository.primary.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -15,7 +16,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     private final UserRepository userRepository;
 
-    public UserDetailsServiceImpl(UserRepository userRepository) {
+    public UserDetailsServiceImpl(@Autowired(required = false) UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 

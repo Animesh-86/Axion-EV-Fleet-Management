@@ -79,7 +79,12 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 async function fetchWithAuth(url: string, options: RequestInit = {}) {
   // Use HttpOnly cookie for auth; include credentials so cookie is sent.
   const headers = new Headers(options.headers || {});
-  return fetch(url, { ...options, headers, credentials: 'include' });
+  const res = await fetch(url, { ...options, headers, credentials: 'include' });
+  if (res.status === 401 || res.status === 403) {
+    localStorage.removeItem('axion_user');
+    window.location.href = '/login';
+  }
+  return res;
 }
 
 export class AxionApi {
@@ -126,15 +131,13 @@ export class AxionApi {
   }
 
   static async getFleetRiskRanking(): Promise<FleetRiskItem[]> {
-    const ML_BASE = import.meta.env.VITE_ML_BASE_URL || 'http://127.0.0.1:8000';
-    const res = await fetch(`${ML_BASE}/ml/v1/fleet/risk-ranking`);
+    const res = await fetchWithAuth(`${BASE_URL}/api/v1/fleet/risk-ranking`);
     if (!res.ok) throw new Error('Failed to fetch risk ranking');
     return res.json();
   }
 
   static async triggerRetraining(): Promise<{ status: string }> {
-    const ML_BASE = import.meta.env.VITE_ML_BASE_URL || 'http://127.0.0.1:8000';
-    const res = await fetch(`${ML_BASE}/ml/v1/retrain`, { method: 'POST' });
+    const res = await fetchWithAuth(`${BASE_URL}/api/v1/ml-retrain`, { method: 'POST' });
     if (!res.ok) throw new Error('Failed to trigger retraining');
     return res.json();
   }

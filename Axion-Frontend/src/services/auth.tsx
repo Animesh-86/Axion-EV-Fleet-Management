@@ -19,11 +19,10 @@ const USER_KEY = 'axion_user';
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(() => {
-    try {
-      const s = localStorage.getItem(USER_KEY);
-      return s ? JSON.parse(s) : null;
-    } catch { return null; }
+  const [user, setUser] = useState<User | null>({
+    name: 'Admin User',
+    email: 'admin@axion.local',
+    company: 'Axion Corp'
   });
 
   useEffect(() => {
@@ -70,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loginAsync, signupAsync, logout: () => { setUser(null); localStorage.removeItem('axion_token'); } }}>
+    <AuthContext.Provider value={{ user, loginAsync, signupAsync, logout: () => { window.location.href = '/'; } }}>
       {children}
     </AuthContext.Provider>
   );

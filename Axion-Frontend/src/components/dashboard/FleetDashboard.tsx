@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Car, Wifi, WifiOff, Heart, AlertTriangle, Battery, Thermometer, Activity, Circle, Sparkles, Bot, X, Upload, BrainCircuit, Gauge } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -52,6 +52,8 @@ export function FleetDashboard() {
   const [riskRanking, setRiskRanking] = useState<Array<{ vehicleId: string; riskScore: number }>>([]);
   const { status, subscribeToFleet } = useWebSocket();
   const navigate = useNavigate();
+  const pendingUpdates = useRef<Map<string, FleetVehicle>>(new Map());
+  const pendingEventCount = useRef(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -67,47 +69,70 @@ export function FleetDashboard() {
       }
     };
 
-    fetchData();
+    if (status === 'CONNECTED') {
+      fetchData();
+    } else if (summary === null) {
+      fetchData();
+    }
+
 
     const unsubscribe = subscribeToFleet((msg) => {
       if (msg.type === 'TWIN_UPDATE' && msg.data) {
         const twin = msg.data;
-        setVehicles((prev) => {
-          const idx = prev.findIndex(v => v.vehicleId === twin.vehicleId);
-          const updatedVehicle: FleetVehicle = {
-            vehicleId: twin.vehicleId,
-            vendor: twin.vendor || 'Axion',
-            online: twin.online,
-            healthScore: twin.healthScore,
-            healthState: twin.healthState,
-            lastSeen: twin.lastSeen,
-            battery: twin.telemetry?.batterySocPct || 0,
-            temperature: twin.telemetry?.batteryTempC || 0,
-          };
-
-          if (idx >= 0) {
-            const next = [...prev];
-            next[idx] = updatedVehicle;
-            return next;
-          } else {
-            return [...prev, updatedVehicle];
-          }
-        });
-
-        setSummary((prevSum) => {
-          if (!prevSum) return prevSum;
-          return {
-            ...prevSum,
-            totalEventsProcessed: prevSum.totalEventsProcessed + 1,
-          };
-        });
+        const updatedVehicle: FleetVehicle = {
+          vehicleId: twin.vehicleId,
+          vendor: twin.vendor || 'Axion',
+          online: twin.online,
+          healthScore: twin.healthScore,
+          healthState: twin.healthState,
+          lastSeen: twin.lastSeen,
+          battery: twin.telemetry?.batterySocPct || 0,
+          temperature: twin.telemetry?.batteryTempC || 0,
+        };
+        
+        pendingUpdates.current.set(twin.vehicleId, updatedVehicle);
+        pendingEventCount.current += 1;
       }
     });
 
+    const flushTimer = setInterval(() => {
+      if (pendingUpdates.current.size > 0 || pendingEventCount.current > 0) {
+        setVehicles((prev) => {
+          if (pendingUpdates.current.size === 0) return prev;
+          const next = [...prev];
+          let changed = false;
+          pendingUpdates.current.forEach((updatedVehicle, vehicleId) => {
+            const idx = next.findIndex(v => v.vehicleId === vehicleId);
+            if (idx >= 0) {
+              next[idx] = updatedVehicle;
+            } else {
+              next.push(updatedVehicle);
+            }
+            changed = true;
+          });
+          pendingUpdates.current.clear();
+          return changed ? next : prev;
+        });
+
+        if (pendingEventCount.current > 0) {
+          setSummary((prevSum) => {
+            if (!prevSum) return prevSum;
+            const nextSum = {
+              ...prevSum,
+              totalEventsProcessed: prevSum.totalEventsProcessed + pendingEventCount.current,
+            };
+            pendingEventCount.current = 0;
+            return nextSum;
+          });
+        }
+      }
+    }, 1000);
+
     return () => {
       unsubscribe();
+      clearInterval(flushTimer);
     };
-  }, [subscribeToFleet]);
+  }, [subscribeToFleet, status]);
 
   useEffect(() => {
     let mounted = true;
@@ -127,10 +152,14 @@ export function FleetDashboard() {
     ? Math.round(vehicles.reduce((acc, v) => acc + v.healthScore, 0) / vehicles.length)
     : 0;
 
+  const totalVehicles = Math.max(summary?.totalVehicles || 0, vehicles.length);
+  const onlineVehicles = summary?.onlineVehicles ?? vehicles.filter(v => v.online).length;
+  const offlineVehicles = Math.max(0, totalVehicles - onlineVehicles);
+
   const kpiCards = [
     {
       title: 'Total Vehicles',
-      value: summary?.totalVehicles || 0,
+      value: totalVehicles,
       icon: Car,
       trend: 'Fleet Size',
       iconColor: 'text-primary',
@@ -138,8 +167,8 @@ export function FleetDashboard() {
     },
     {
       title: 'Online',
-      value: summary?.onlineVehicles || 0,
-      suffix: `/${summary?.totalVehicles || 0}`,
+      value: onlineVehicles,
+      suffix: `/${totalVehicles}`,
       icon: Wifi,
       trend: 'Active',
       iconColor: 'text-emerald-400',
@@ -147,7 +176,7 @@ export function FleetDashboard() {
     },
     {
       title: 'Offline',
-      value: (summary?.totalVehicles || 0) - (summary?.onlineVehicles || 0),
+      value: offlineVehicles,
       icon: WifiOff,
       trend: 'Inactive',
       iconColor: 'text-gray-400',

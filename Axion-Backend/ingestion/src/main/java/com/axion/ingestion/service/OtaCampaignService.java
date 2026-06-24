@@ -310,7 +310,17 @@ public class OtaCampaignService {
             }
         }
 
-        // Simulate deployment (80% success rate)
+        // Simulate deployment network download & install process (3 seconds)
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            job.setState("FAILED");
+            log.warn("OTA INTERRUPTED: vehicle={}", vehicleId);
+            return;
+        }
+
+        // Simulate deployment outcome (80% success rate)
         boolean success = random.nextDouble() > 0.2;
 
         if (success) {

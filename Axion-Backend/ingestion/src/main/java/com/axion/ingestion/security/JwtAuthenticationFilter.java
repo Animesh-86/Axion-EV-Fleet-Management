@@ -72,9 +72,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
-            // Token validation failed
+            org.slf4j.LoggerFactory.getLogger(JwtAuthenticationFilter.class)
+                .error("Cannot set user authentication: {}", e.getMessage());
         }
-        
         filterChain.doFilter(request, response);
     }
 }

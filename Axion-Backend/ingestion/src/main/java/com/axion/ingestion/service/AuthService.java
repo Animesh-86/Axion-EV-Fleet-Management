@@ -5,6 +5,7 @@ import com.axion.ingestion.model.dto.AuthResponse;
 import com.axion.ingestion.model.dto.RegisterRequest;
 import com.axion.ingestion.model.primary.User;
 import com.axion.ingestion.repository.primary.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import com.axion.ingestion.security.JwtUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,10 +26,10 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final UserDetailsService userDetailsService;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
-                       JwtUtils jwtUtils, AuthenticationManager authenticationManager,
-                       UserDetailsService userDetailsService) {
-        this.userRepository = userRepository;
+        public AuthService(@Autowired(required = false) UserRepository userRepository, PasswordEncoder passwordEncoder,
+                                           JwtUtils jwtUtils, AuthenticationManager authenticationManager,
+                                           UserDetailsService userDetailsService) {
+                this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtils = jwtUtils;
         this.authenticationManager = authenticationManager;

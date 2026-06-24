@@ -36,12 +36,15 @@ CREATE TABLE ota_campaigns (
 CREATE TABLE ota_jobs (
     job_id       VARCHAR(255) PRIMARY KEY,
     campaign_id  VARCHAR(255) REFERENCES ota_campaigns(campaign_id),
-    vehicle_id   VARCHAR(50) NOT NULL,
+    vehicle_id   VARCHAR(50) NOT NULL REFERENCES vehicle_registry(vehicle_id),
     state        VARCHAR(20) NOT NULL, -- PENDING, IN_PROGRESS, SUCCESS, FAILED, ROLLED_BACK
     is_canary    BOOLEAN DEFAULT FALSE,
     started_at   TIMESTAMPTZ,
     completed_at TIMESTAMPTZ
 );
+
+CREATE INDEX idx_ota_jobs_vehicle ON ota_jobs(vehicle_id);
+CREATE INDEX idx_ota_jobs_campaign ON ota_jobs(campaign_id);
 
 -- Vehicle Policies
 CREATE TABLE vehicle_policies (

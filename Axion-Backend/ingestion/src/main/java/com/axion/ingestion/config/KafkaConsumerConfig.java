@@ -6,6 +6,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -15,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
+@ConditionalOnProperty(prefix = "axion.kafka", name = "enabled", havingValue = "true", matchIfMissing = false)
 public class KafkaConsumerConfig {
 
     @Value("${axion.kafka.bootstrap-servers}")
@@ -49,6 +51,14 @@ public class KafkaConsumerConfig {
         ConcurrentKafkaListenerContainerFactory<String, CanonicalTelemetryEnvelope> factory = new ConcurrentKafkaListenerContainerFactory<>();
 
         factory.setConsumerFactory(consumerFactory());
+        return factory;
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, CanonicalTelemetryEnvelope> batchFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, CanonicalTelemetryEnvelope> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(consumerFactory());
+        factory.setBatchListener(true);
         return factory;
     }
 }

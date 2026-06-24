@@ -8,11 +8,13 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Component
+@ConditionalOnProperty(prefix = "axion.bootstrap", name = "enabled", havingValue = "true", matchIfMissing = false)
 public class BootstrapAdmin implements ApplicationRunner {
 
     private final UserRepository userRepository;

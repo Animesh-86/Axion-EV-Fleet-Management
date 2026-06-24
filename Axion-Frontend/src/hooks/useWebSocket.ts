@@ -22,7 +22,7 @@ export function useWebSocket() {
   
   // Callbacks for different topics
   const fleetUpdatesCallbacks = useRef<Set<(msg: WebSocketMessage) => void>>(new Set());
-  const vehicleUpdatesCallbacks = useRef<Map<string, Set<(msg: WebSocketMessage) => void>>>(new Map());
+  const vehicleUpdatesCallbacks = useRef<Map<string, { callbacks: Set<(msg: WebSocketMessage) => void>, subscription: any }>>(new Map());
 
   useEffect(() => {
     // Rely on HttpOnly cookie for auth; do not send Authorization header from client
@@ -76,26 +76,32 @@ export function useWebSocket() {
 
   const subscribeToVehicle = useCallback((vehicleId: string, callback: (msg: WebSocketMessage) => void) => {
     if (!vehicleUpdatesCallbacks.current.has(vehicleId)) {
-      vehicleUpdatesCallbacks.current.set(vehicleId, new Set());
+      vehicleUpdatesCallbacks.current.set(vehicleId, { callbacks: new Set(), subscription: null });
+      
       // If already connected, dynamically subscribe to this new topic
       if (clientRef.current && clientRef.current.connected) {
-        clientRef.current.subscribe(`/topic/vehicle/${vehicleId}`, (message) => {
+        const sub = clientRef.current.subscribe(`/topic/vehicle/${vehicleId}`, (message) => {
           const payload: WebSocketMessage = JSON.parse(message.body);
-          const cbs = vehicleUpdatesCallbacks.current.get(vehicleId);
-          if (cbs) cbs.forEach(cb => cb(payload));
+          const state = vehicleUpdatesCallbacks.current.get(vehicleId);
+          if (state && state.callbacks) {
+             state.callbacks.forEach(cb => cb(payload));
+          }
         });
+        const state = vehicleUpdatesCallbacks.current.get(vehicleId);
+        if (state) state.subscription = sub;
       }
     }
     
-    const callbacks = vehicleUpdatesCallbacks.current.get(vehicleId)!;
-    callbacks.add(callback);
+    const state = vehicleUpdatesCallbacks.current.get(vehicleId)!;
+    state.callbacks.add(callback);
 
     return () => {
-      callbacks.delete(callback);
-      if (callbacks.size === 0) {
+      state.callbacks.delete(callback);
+      if (state.callbacks.size === 0) {
+        if (state.subscription) {
+          state.subscription.unsubscribe();
+        }
         vehicleUpdatesCallbacks.current.delete(vehicleId);
-        // Note: In stompjs you'd ideally unsubscribe using the subscription object,
-        // but for simplicity we just remove the callback reference here.
       }
     };
   }, []);

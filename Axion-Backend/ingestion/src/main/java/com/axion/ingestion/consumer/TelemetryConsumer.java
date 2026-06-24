@@ -5,9 +5,11 @@ import com.axion.ingestion.model.CanonicalTelemetryEnvelope;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 @Slf4j
 @Component
+@ConditionalOnProperty(prefix = "axion.kafka", name = "enabled", havingValue = "true", matchIfMissing = false)
 public class TelemetryConsumer {
 
     private final DigitalTwinService digitalTwinService;

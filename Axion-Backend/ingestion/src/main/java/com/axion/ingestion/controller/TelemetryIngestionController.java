@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.axion.ingestion.model.CanonicalTelemetryEnvelope;
 import reactor.core.publisher.Mono;
 
 @Slf4j
@@ -31,10 +32,10 @@ public class TelemetryIngestionController {
         })
         @PostMapping
         public Mono<ResponseEntity<Void>> ingest(
-                        @RequestBody String payload) {
-                log.info("Received telemetry REST request for payload size: {} bytes", payload.length());
+                        @RequestBody CanonicalTelemetryEnvelope envelope) {
+                log.info("Received telemetry REST request for vehicle: {}", envelope != null ? envelope.getVehicleId() : "unknown");
 
-                return ingestionService.ingestRest(payload)
+                return ingestionService.ingestRest(envelope)
                                 .thenReturn(ResponseEntity.accepted().build());
         }
 }

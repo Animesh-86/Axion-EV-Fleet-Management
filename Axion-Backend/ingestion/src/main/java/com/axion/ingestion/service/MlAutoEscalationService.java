@@ -55,7 +55,7 @@ public class MlAutoEscalationService {
             if (!autoEscalate) return;
 
             int cacheTtl = Integer.parseInt(System.getenv().getOrDefault("AXION_ML_CACHE_TTL", "60"));
-            List<Map<String, Object>> list = mlServiceClient.getFleetRiskRanking(cacheTtl);
+            List<Map<String, Object>> list = mlServiceClient.getFleetRiskRanking(cacheTtl).block();
             if (list == null || list.isEmpty()) return;
 
             Set<String> escalateIds = new HashSet<>();

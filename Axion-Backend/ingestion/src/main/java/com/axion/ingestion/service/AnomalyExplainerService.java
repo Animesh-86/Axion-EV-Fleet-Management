@@ -25,12 +25,15 @@ public class AnomalyExplainerService {
     private final ChatClient.Builder chatClientBuilder;
     private final AnomalyExplanationRepository repository;
     private final VectorStore vectorStore;
+    private final org.springframework.data.redis.core.StringRedisTemplate stringRedisTemplate;
 
     public AnomalyExplainerService(ChatClient.Builder chatClientBuilder, 
-                                   AnomalyExplanationRepository repository,
-                                   @Autowired(required = false) VectorStore vectorStore) {
+                                   @org.springframework.beans.factory.annotation.Autowired(required = false) AnomalyExplanationRepository repository,
+                                   org.springframework.data.redis.core.StringRedisTemplate stringRedisTemplate,
+                                   @org.springframework.beans.factory.annotation.Autowired(required = false) VectorStore vectorStore) {
         this.chatClientBuilder = chatClientBuilder;
         this.repository = repository;
+        this.stringRedisTemplate = stringRedisTemplate;
         this.vectorStore = vectorStore;
     }
 
@@ -40,6 +43,20 @@ public class AnomalyExplainerService {
      * and strictly binding response schemas into target deterministic POJOs.
      */
     public AnomalyExplanation explainAnomaly(String vehicleId, String healthState, double speed, double soc, double temp, String mlContext) {
+        String debounceKey = "debounce:llm:" + vehicleId;
+        Boolean isLocked = stringRedisTemplate.opsForValue().setIfAbsent(debounceKey, "locked", java.time.Duration.ofMinutes(15));
+        
+        if (Boolean.FALSE.equals(isLocked)) {
+            log.info("Skipping LLM prompt for vehicle {} in state {} to prevent API spam (debounced via Redis).", vehicleId, healthState);
+            return AnomalyExplanation.builder()
+                    .severity(healthState)
+                    .summary("Automated GenAI diagnostic summary debounced.")
+                    .rootCause("Thermal envelope recorded previously.")
+                    .recommendedAction("Trigger manual diagnostic polling task")
+                    .confidenceScore(0.50)
+                    .build();
+        }
+        
         log.info("Triggering GenAI Anomaly Explanation engine for vehicle {} in state {}", vehicleId, healthState);
 
         // 1. Prepare RAG context retrieval from pgvector
@@ -101,7 +118,9 @@ public class AnomalyExplainerService {
                     .confidenceScore(explanation.getConfidenceScore() != null ? explanation.getConfidenceScore() : 0.85)
                     .build();
 
-            repository.save(entity);
+            if (repository != null) {
+                repository.save(entity);
+            }
             log.info("Successfully persisted structured explanation schema output for anomaly on {}", vehicleId);
             
             // Optionally auto-embed document into pgvector store for future self-healing feedback cycles
@@ -138,7 +157,9 @@ public class AnomalyExplainerService {
                     .recommendedAction(fallback.getRecommendedAction())
                     .confidenceScore(fallback.getConfidenceScore())
                     .build();
-            repository.save(entity);
+            if (repository != null) {
+                repository.save(entity);
+            }
             return fallback;
         }
     }

@@ -43,7 +43,7 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/auth/**", "/api/v1/health/**", "/api/v1/telemetry/**", "/api/v1/registry/**", "/ws/**").permitAll()
+                .requestMatchers("/api/v1/auth/**", "/api/v1/health/**", "/api/v1/telemetry/**", "/api/v1/registry/**").permitAll()
                 // Optionally allow unauthenticated access to fleet summary for easy demo/run-from-clone.
                 .requestMatchers(publicSummary ? new String[]{"/api/v1/fleet/summary", "/api/v1/fleet/vehicles"} : new String[]{}).permitAll()
                 .requestMatchers("/api/v1/**").authenticated()

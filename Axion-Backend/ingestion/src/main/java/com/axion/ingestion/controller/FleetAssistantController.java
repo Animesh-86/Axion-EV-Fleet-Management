@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -26,8 +27,8 @@ public class FleetAssistantController {
     private final RedisTemplate<String, Object> genericRedisTemplate;
 
     public FleetAssistantController(ChatClient.Builder chatClientBuilder,
-                                    AnomalyExplanationRepository explanationRepository,
-                                    RedisTemplate<String, Object> genericRedisTemplate) {
+                                    @Autowired(required = false) AnomalyExplanationRepository explanationRepository,
+                                    @Autowired(required = false) RedisTemplate<String, Object> genericRedisTemplate) {
         this.chatClientBuilder = chatClientBuilder;
         this.explanationRepository = explanationRepository;
         this.genericRedisTemplate = genericRedisTemplate;

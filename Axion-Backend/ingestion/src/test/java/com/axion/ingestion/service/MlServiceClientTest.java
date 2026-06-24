@@ -35,7 +35,7 @@ class MlServiceClientTest {
     @BeforeEach
     void setUp() {
         when(genericRedisTemplate.opsForValue()).thenReturn(valueOps);
-        client = new MlServiceClient(genericRedisTemplate, "http://ml-test:8000");
+        client = new MlServiceClient(genericRedisTemplate, "http://ml-test:8000", org.springframework.web.reactive.function.client.WebClient.builder());
     }
 
     @Test
@@ -47,7 +47,7 @@ class MlServiceClientTest {
         );
         when(valueOps.get("ml_predictions:v001")).thenReturn(cached);
 
-        Map<String, Object> result = client.getVehiclePredictions("v001");
+        Map<String, Object> result = client.getVehiclePredictions("v001").join();
 
         assertEquals(cached, result);
         // Verify no HTTP calls were made (RestTemplate not called)
@@ -59,7 +59,7 @@ class MlServiceClientTest {
         when(valueOps.get(anyString())).thenReturn(null);
 
         // The ML service URL is unreachable — client will catch RestClientException
-        Map<String, Object> result = client.getVehiclePredictions("v999");
+        Map<String, Object> result = client.getVehiclePredictions("v999").join();
 
         assertNotNull(result);
         // Verify battery predictions exist with explicit unavailable markers
@@ -78,7 +78,7 @@ class MlServiceClientTest {
         when(valueOps.get(anyString())).thenThrow(new RuntimeException("Redis connection refused"));
 
         // Should not throw, should fall through to HTTP call (which will also fail for this test URL)
-        Map<String, Object> result = client.getVehiclePredictions("v001");
+        Map<String, Object> result = client.getVehiclePredictions("v001").join();
 
         assertNotNull(result);
         assertFalse(result.isEmpty());

@@ -14,8 +14,7 @@ export function LandingPage() {
   const { user } = useAuth();
 
   const onGetStarted = () => {
-    if (user) navigate(paths.dashboard);
-    else navigate(paths.signup);
+    navigate(paths.dashboard);
   };
 
   const onViewArchitecture = () => navigate(paths.architecture);

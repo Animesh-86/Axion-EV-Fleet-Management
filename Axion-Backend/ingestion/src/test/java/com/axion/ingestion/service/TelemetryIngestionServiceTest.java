@@ -24,28 +24,40 @@ class TelemetryIngestionServiceTest {
     @Mock private TelemetryKafkaProducer producer;
     @Mock private ThroughputTracker throughputTracker;
     @Mock private VehicleRegistryService registryService;
+    @Mock private com.axion.ingestion.validation.TelemetryValidator validator;
 
     private TelemetryIngestionService service;
 
-    // Payload uses snake_case field names matching RestTelemetryAdapter expectations
-    private static final String PAYLOAD_TEMPLATE =
-            "{\"vehicle_id\":\"%s\",\"vendor\":\"SIMULATED\",\"timestamp\":\"2026-05-18T00:00:00Z\"," +
-            "\"telemetry\":{\"battery_soc_pct\":85.0,\"speed_kmph\":60.0,\"battery_temp_c\":30.0," +
-            "\"motor_temp_c\":35.0,\"ambient_temp_c\":25.0,\"odometer_km\":15000.0}}";
+    private CanonicalTelemetryEnvelope makeEnvelope(String vehicleId) {
+        CanonicalTelemetryEnvelope env = new CanonicalTelemetryEnvelope();
+        env.setVehicleId(vehicleId);
+        env.setVendor("SIMULATED");
+        env.setTimestamp(java.time.Instant.parse("2026-05-18T00:00:00Z"));
+        com.axion.ingestion.model.TelemetryPayload tp = new com.axion.ingestion.model.TelemetryPayload();
+        tp.setBatterySocPct(85.0);
+        tp.setSpeedKmph(60.0);
+        tp.setBatteryTempC(30.0);
+        tp.setMotorTempC(35.0);
+        tp.setAmbientTempC(25.0);
+        tp.setOdometerKm(15000.0);
+        env.setTelemetry(tp);
+        return env;
+    }
 
     @BeforeEach
     void setUp() {
-        service = new TelemetryIngestionService(producer, throughputTracker, registryService);
+        service = new TelemetryIngestionService(null, validator, producer, throughputTracker, registryService);
     }
 
     @Test
     @DisplayName("Registered vehicle telemetry is published to Kafka")
     void registeredVehicleTelemetryIsPublished() {
         when(registryService.isRegistered("v001")).thenReturn(true);
+        when(producer.publishAsync(any())).thenReturn(java.util.concurrent.CompletableFuture.completedFuture(null));
 
-        service.ingestRest(String.format(PAYLOAD_TEMPLATE, "v001")).block();
+        service.ingestRest(makeEnvelope("v001")).block();
 
-        verify(producer, times(1)).publish(any(CanonicalTelemetryEnvelope.class));
+        verify(producer, times(1)).publishAsync(any(CanonicalTelemetryEnvelope.class));
         verify(throughputTracker, times(1)).recordEvent();
     }
 
@@ -54,23 +66,24 @@ class TelemetryIngestionServiceTest {
     void unregisteredVehicleTelemetryIsRejected() {
         when(registryService.isRegistered("ghost-999")).thenReturn(false);
 
-        service.ingestRest(String.format(PAYLOAD_TEMPLATE, "ghost-999")).block();
+        service.ingestRest(makeEnvelope("ghost-999")).block();
 
         // Producer should NOT be called — telemetry was rejected
-        verify(producer, never()).publish(any());
+        verify(producer, never()).publishAsync(any());
         verify(throughputTracker, never()).recordEvent();
     }
 
     @Test
     @DisplayName("When VehicleRegistryService is null (unavailable), telemetry passes through")
     void registryBypassWhenServiceUnavailable() {
-        // Create service without registry — simulates @Autowired(required=false) returning null
         TelemetryIngestionService serviceWithoutRegistry =
-                new TelemetryIngestionService(producer, throughputTracker, null);
+                new TelemetryIngestionService(null, validator, producer, throughputTracker, null);
 
-        serviceWithoutRegistry.ingestRest(String.format(PAYLOAD_TEMPLATE, "any-vehicle")).block();
+        when(producer.publishAsync(any())).thenReturn(java.util.concurrent.CompletableFuture.completedFuture(null));
+
+        serviceWithoutRegistry.ingestRest(makeEnvelope("any-vehicle")).block();
 
         // Should pass through since registry is not available
-        verify(producer, times(1)).publish(any(CanonicalTelemetryEnvelope.class));
+        verify(producer, times(1)).publishAsync(any(CanonicalTelemetryEnvelope.class));
     }
 }

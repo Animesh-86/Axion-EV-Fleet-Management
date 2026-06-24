@@ -7,17 +7,15 @@ import { AddVehicleForm } from '../components/admin/AddVehicleForm';
 import { Analytics } from '../components/analytics/Analytics';
 import { AlertsAnalytics } from '../components/alerts/AlertsAnalytics';
 import { SystemHealth } from '../components/system/SystemHealth';
-import { LoginPage } from '../components/auth/LoginPage';
-import { SignupPage } from '../components/auth/SignupPage';
 import { LandingPage } from './pages/LandingPage';
 import { ArchitecturePage } from './pages/ArchitecturePage';
 import { SettingsPage } from './pages/SettingsPage';
 import { VehicleTwinPage } from './pages/VehicleTwinPage';
 import { AuditLogsPage } from '../pages/AuditLogsPage';
 import { AppShellLayout } from './layouts/AppShellLayout';
-import { AuthRequired } from './guards/AuthRequired';
-import { GuestOnly } from './guards/GuestOnly';
 import { paths } from '../constants/navigation';
+import { LoginPage } from '../components/auth/LoginPage';
+import { SignupPage } from '../components/auth/SignupPage';
 
 export function AppRoutes() {
   return (
@@ -25,37 +23,20 @@ export function AppRoutes() {
       <Toaster theme="dark" position="top-right" richColors closeButton />
       <Routes>
         <Route path={paths.landing} element={<LandingPage />} />
+        <Route path={paths.login} element={<LoginPage />} />
+        <Route path={paths.signup} element={<SignupPage />} />
         <Route path={paths.architecture} element={<ArchitecturePage />} />
-        <Route
-          path={paths.login}
-          element={
-            <GuestOnly>
-              <LoginPage />
-            </GuestOnly>
-          }
-        />
-        <Route
-          path={paths.signup}
-          element={
-            <GuestOnly>
-              <SignupPage />
-            </GuestOnly>
-          }
-        />
-
-        <Route element={<AuthRequired />}>
-          <Route element={<AppShellLayout />}>
-            <Route path={paths.dashboard} element={<FleetDashboard />} />
-            <Route path={paths.vehicles} element={<VehicleList />} />
-            <Route path={paths.adminAddVehicle} element={<AddVehicleForm />} />
-            <Route path="/vehicles/:vehicleId" element={<VehicleTwinPage />} />
-            <Route path={paths.ota} element={<OTAManagement />} />
-            <Route path={paths.analytics} element={<Analytics />} />
-            <Route path={paths.alerts} element={<AlertsAnalytics />} />
-            <Route path={paths.system} element={<SystemHealth />} />
-            <Route path={paths.auditLogs} element={<AuditLogsPage />} />
-            <Route path={paths.settings} element={<SettingsPage />} />
-          </Route>
+        <Route element={<AppShellLayout />}>
+          <Route path={paths.dashboard} element={<FleetDashboard />} />
+          <Route path={paths.vehicles} element={<VehicleList />} />
+          <Route path={paths.adminAddVehicle} element={<AddVehicleForm />} />
+          <Route path="/vehicles/:vehicleId" element={<VehicleTwinPage />} />
+          <Route path={paths.ota} element={<OTAManagement />} />
+          <Route path={paths.analytics} element={<Analytics />} />
+          <Route path={paths.alerts} element={<AlertsAnalytics />} />
+          <Route path={paths.system} element={<SystemHealth />} />
+          <Route path={paths.auditLogs} element={<AuditLogsPage />} />
+          <Route path={paths.settings} element={<SettingsPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to={paths.landing} replace />} />
