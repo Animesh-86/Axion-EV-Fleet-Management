@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -38,6 +40,7 @@ public class FleetAssistantController {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ChatQueryRequest {
+        @NotBlank(message = "Prompt is required")
         private String prompt;
         private String sessionId;
     }
@@ -56,7 +59,7 @@ public class FleetAssistantController {
      * via Redis and live function calling capabilities to execute infrastructure probes.
      */
     @PostMapping(value = "/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> streamChatAssistant(@RequestBody ChatQueryRequest request) {
+    public Flux<String> streamChatAssistant(@Valid @RequestBody ChatQueryRequest request) {
         String sessionKey = "chat_memory:" + (request.getSessionId() != null ? request.getSessionId() : "anonymous");
         
         // Retrieve Redis-backed conversation context (30-min TTL)

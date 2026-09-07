@@ -7,6 +7,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 
 import java.util.List;
 import java.util.Map;
@@ -31,6 +34,7 @@ public class VehicleRegistryController {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ProvisionRequest {
+        @NotBlank(message = "Vehicle ID is required")
         private String vehicleId;
         private String profile;
     }
@@ -39,12 +43,13 @@ public class VehicleRegistryController {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class BulkProvisionRequest {
+        @NotEmpty(message = "Vehicle IDs list must not be empty")
         private List<String> vehicleIds;
         private String profile;
     }
 
     @PostMapping("/provision")
-    public ResponseEntity<VehicleRegistryEntity> provision(@RequestBody ProvisionRequest request) {
+    public ResponseEntity<VehicleRegistryEntity> provision(@Valid @RequestBody ProvisionRequest request) {
         VehicleRegistryEntity entity = registryService.provision(
                 request.getVehicleId(),
                 request.getProfile() != null ? request.getProfile() : "sedan_standard",
@@ -54,7 +59,7 @@ public class VehicleRegistryController {
     }
 
     @PostMapping("/provision/bulk")
-    public ResponseEntity<Map<String, Object>> bulkProvision(@RequestBody BulkProvisionRequest request) {
+    public ResponseEntity<Map<String, Object>> bulkProvision(@Valid @RequestBody BulkProvisionRequest request) {
         int count = registryService.bulkProvision(
                 request.getVehicleIds(),
                 request.getProfile() != null ? request.getProfile() : "sedan_standard",

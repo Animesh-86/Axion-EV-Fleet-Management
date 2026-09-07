@@ -45,7 +45,7 @@ public class AuthService {
                 .id(UUID.randomUUID().toString())
                 .username(request.getUsername())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole() != null ? request.getRole() : "OPERATOR")
+                .role("OPERATOR") // Role is never client-supplied; promotion is admin-only
                 .createdAt(Instant.now())
                 .build();
 

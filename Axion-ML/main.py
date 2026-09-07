@@ -1,5 +1,4 @@
 from fastapi import FastAPI, Depends, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 import pandas as pd
@@ -17,13 +16,9 @@ app = FastAPI(
     openapi_url="/openapi.json"
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# CORS is intentionally not configured — this service is internal-only,
+# called by the Spring Boot backend over the Docker network.
+# If direct browser access is ever needed, scope origins to localhost.
 
 class BatteryPredictionResponse(BaseModel):
     predictedDepletionHours: float

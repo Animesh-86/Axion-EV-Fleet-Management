@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -32,7 +33,7 @@ public class AdminVehicleController {
     }
 
     @PostMapping
-    public ResponseEntity<Map<String, Object>> createVehicle(@RequestBody CreateVehicleRequest req) {
+    public ResponseEntity<Map<String, Object>> createVehicle(@Valid @RequestBody CreateVehicleRequest req) {
         if (req.getId() == null || req.getId().isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("error", "id is required"));
         }
