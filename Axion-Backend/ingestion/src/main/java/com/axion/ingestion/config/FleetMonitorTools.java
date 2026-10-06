@@ -67,7 +67,17 @@ public class FleetMonitorTools {
             log.info("Agentic tool invoked: getFleetSummary with filter={}", request.getFleetFilter());
             Map<String, Object> summary = new HashMap<>();
             try {
-                Set<String> keys = redisTemplate.keys("digital_twin:*");
+                java.util.Set<String> keys = new java.util.HashSet<>();
+                redisTemplate.execute((org.springframework.data.redis.core.RedisCallback<Void>) connection -> {
+                    try (org.springframework.data.redis.core.Cursor<byte[]> cursor = connection.scan(
+                            org.springframework.data.redis.core.ScanOptions.scanOptions().match("digital_twin:*").count(1000).build())) {
+                        while (cursor.hasNext()) {
+                            keys.add(new String(cursor.next()));
+                        }
+                    }
+                    return null;
+                });
+
                 int total = 0;
                 int healthy = 0;
                 int degraded = 0;

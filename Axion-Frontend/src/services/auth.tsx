@@ -16,13 +16,17 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 const USER_KEY = 'axion_user';
+const TOKEN_KEY = 'axion_token';
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>({
-    name: 'Admin User',
-    email: 'admin@axion.local',
-    company: 'Axion Corp'
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+      const saved = localStorage.getItem(USER_KEY);
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
   });
 
   useEffect(() => {
@@ -41,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!res.ok) return { success: false, error: 'Invalid credentials' };
       
       const data = await res.json();
-      // Server sets HttpOnly cookie with JWT; do not store token in localStorage.
+      if (data.token) localStorage.setItem(TOKEN_KEY, data.token);
       setUser({ name: data.username, email: data.username });
       return { success: true };
     } catch (e) {
@@ -69,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loginAsync, signupAsync, logout: () => { window.location.href = '/'; } }}>
+    <AuthContext.Provider value={{ user, loginAsync, signupAsync, logout: () => { setUser(null); localStorage.removeItem(TOKEN_KEY); window.location.href = '/'; } }}>
       {children}
     </AuthContext.Provider>
   );

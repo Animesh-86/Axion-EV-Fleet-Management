@@ -77,11 +77,13 @@ export interface TelemetryHistory {
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 async function fetchWithAuth(url: string, options: RequestInit = {}) {
-  // Use HttpOnly cookie for auth; include credentials so cookie is sent.
   const headers = new Headers(options.headers || {});
+  const token = localStorage.getItem('axion_token');
+  if (token) headers.set('Authorization', `Bearer ${token}`);
   const res = await fetch(url, { ...options, headers, credentials: 'include' });
   if (res.status === 401 || res.status === 403) {
     localStorage.removeItem('axion_user');
+    localStorage.removeItem('axion_token');
     window.location.href = '/login';
   }
   return res;
@@ -96,9 +98,11 @@ export class AxionApi {
   }
 
   static async getFleetVehicles(): Promise<FleetVehicle[]> {
-    const res = await fetchWithAuth(`${BASE_URL}/api/v1/fleet/vehicles`);
+    const res = await fetchWithAuth(`${BASE_URL}/api/v1/fleet/vehicles?page=0&size=200`);
     if (!res.ok) throw new Error('Failed to fetch vehicles');
-    return res.json();
+    const data = await res.json();
+    // Backend now returns paginated wrapper { content, page, size, totalElements, totalPages }
+    return Array.isArray(data) ? data : (data.content ?? []);
   }
 
   static async getVehicle(vehicleId: string): Promise<VehicleDetail> {
@@ -137,7 +141,7 @@ export class AxionApi {
   }
 
   static async triggerRetraining(): Promise<{ status: string }> {
-    const res = await fetchWithAuth(`${BASE_URL}/api/v1/ml-retrain`, { method: 'POST' });
+    const res = await fetchWithAuth(`${BASE_URL}/api/v1/fleet/ml-retrain`, { method: 'POST' });
     if (!res.ok) throw new Error('Failed to trigger retraining');
     return res.json();
   }

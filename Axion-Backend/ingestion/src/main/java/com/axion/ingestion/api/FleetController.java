@@ -10,7 +10,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -39,6 +42,9 @@ public class FleetController {
 
     @Value("${axion.ml.escalation-streak-ttl-seconds:120}")
     private int escalationStreakTtlSeconds;
+
+    @Value("${axion.ml.cache-ttl:60}")
+    private int mlCacheTtl;
 
     public FleetController(RedisTemplate<String, DigitalTwinState> redisTemplate,
             RedisTemplate<String, Object> genericRedisTemplate,
@@ -90,8 +96,7 @@ public class FleetController {
         summary.setEventsPerSecond(throughputTracker.getEventsPerSecond());
         summary.setTotalEventsProcessed(throughputTracker.getTotalEvents());
 
-        int cacheTtl = Integer.parseInt(System.getenv().getOrDefault("AXION_ML_CACHE_TTL", "60"));
-        return mlServiceClient.getFleetRiskRanking(cacheTtl)
+        return mlServiceClient.getFleetRiskRanking(mlCacheTtl)
             .map(list -> {
                 long predicted = 0;
                 Set<String> escalateIds = new HashSet<>();
@@ -120,7 +125,12 @@ public class FleetController {
     }
 
     @GetMapping("/vehicles")
-    public java.util.List<FleetVehicleResponse> listVehicles() {
+    public Map<String, Object> listVehicles(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size) {
+
+        // Clamp size to prevent abuse
+        size = Math.min(Math.max(size, 1), 200);
 
         Set<String> keys = new HashSet<>();
         redisTemplate.execute((org.springframework.data.redis.core.RedisCallback<Void>) connection -> {
@@ -134,7 +144,7 @@ public class FleetController {
         java.util.List<FleetVehicleResponse> vehicles = new java.util.ArrayList<>();
 
         if (keys.isEmpty())
-            return vehicles;
+            return Map.of("content", vehicles, "page", page, "size", size, "totalElements", 0, "totalPages", 0);
 
         for (String key : keys) {
             DigitalTwinState state = redisTemplate.opsForValue().get(key);
@@ -160,7 +170,21 @@ public class FleetController {
             vehicles.add(v);
         }
 
-        return vehicles;
+        // Sort by health score ascending (worst first) for consistent ordering
+        vehicles.sort(java.util.Comparator.comparingInt(FleetVehicleResponse::getHealthScore));
+
+        int totalElements = vehicles.size();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+        int fromIndex = Math.min(page * size, totalElements);
+        int toIndex = Math.min(fromIndex + size, totalElements);
+
+        return Map.of(
+                "content", vehicles.subList(fromIndex, toIndex),
+                "page", page,
+                "size", size,
+                "totalElements", totalElements,
+                "totalPages", totalPages
+        );
     }
 
     private Integer readInt(Object value) {
@@ -189,8 +213,7 @@ public class FleetController {
 
     @GetMapping("/risk-ranking")
     public reactor.core.publisher.Mono<org.springframework.http.ResponseEntity<java.util.List<java.util.Map<String, Object>>>> getFleetRiskRanking() {
-        int cacheTtl = Integer.parseInt(System.getenv().getOrDefault("AXION_ML_CACHE_TTL", "60"));
-        return mlServiceClient.getFleetRiskRanking(cacheTtl)
+        return mlServiceClient.getFleetRiskRanking(mlCacheTtl)
             .map(org.springframework.http.ResponseEntity::ok);
     }
 

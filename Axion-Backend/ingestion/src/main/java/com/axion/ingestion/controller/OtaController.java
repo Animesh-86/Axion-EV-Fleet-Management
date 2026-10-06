@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/v1/ota")
@@ -47,7 +48,7 @@ public class OtaController {
     @PostMapping("/campaigns")
     @Operation(summary = "Create Campaign", description = "Create a new OTA deployment campaign in DRAFT state")
     public ResponseEntity<CampaignResponse> createCampaign(
-            @RequestBody CampaignCreateRequest request,
+            @Valid @RequestBody CampaignCreateRequest request,
             Principal principal) {
         String createdBy = principal != null ? principal.getName() : "system";
         CampaignResponse response = campaignService.createCampaign(request, createdBy);

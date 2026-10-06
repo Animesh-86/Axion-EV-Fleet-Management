@@ -132,12 +132,12 @@ services:
       AXION_TSDB_PASSWORD: ${TIMESCALEDB_PASSWORD:-change_me}
       AXION_KAFKA_ENABLED: "true"
       # Local/dev demo JWT secret (override with Docker secret in production)
-      AXION_JWT_SECRET: "change_me_demo_secret"
+      AXION_JWT_SECRET: ${AXION_JWT_SECRET:-base64:Y2hhbmdlX21lX2luX3Byb2R1Y3Rpb25fdGhpcw==}
       AXION_ML_URL: "http://ml:8000"
       AXION_AGENT_MONITOR_ENABLED: "true"
       AXION_BOOTSTRAP_ADMIN_USERNAME: "demo_admin"
       AXION_BOOTSTRAP_ADMIN_PASSWORD: ${AXION_BOOTSTRAP_ADMIN_PASSWORD:-change_me}
-      AXION_API_PUBLICSUMMARY: "false"
+      AXION_API_PUBLICSUMMARY: "true"
     ports:
       - "8080:8080"
     healthcheck:
@@ -203,8 +203,7 @@ services:
         condition: service_healthy
     environment:
       AXION_TSDB_URL: "postgresql://axion:change_me@timescaledb:5432/axion_ts"
-    ports:
-      - "8000:8000"
+    # Port not exposed to host — ML service is only called server-to-server by backend
     healthcheck:
       test: python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
       interval: 15s
@@ -236,7 +235,7 @@ services:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
       - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/axion_fleet_dashboard.json
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning

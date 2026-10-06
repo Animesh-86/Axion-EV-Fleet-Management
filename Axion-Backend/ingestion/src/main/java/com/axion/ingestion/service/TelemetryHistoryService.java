@@ -53,8 +53,16 @@ public class TelemetryHistoryService {
                 "GROUP BY bucket, vehicle_id " +
                 "ORDER BY bucket ASC";
 
-        // Defaulting interval to '1 hour' if simple '1h' is passed.
-        String parsedInterval = intervalStr.replace("h", " hour").replace("m", " minute");
+        // Validate interval against allowlist to prevent unexpected SQL interval values
+        java.util.Map<String, String> ALLOWED_INTERVALS = java.util.Map.of(
+                "5m", "5 minute", "15m", "15 minute", "30m", "30 minute",
+                "1h", "1 hour", "6h", "6 hour", "12h", "12 hour", "24h", "24 hour"
+        );
+        String parsedInterval = ALLOWED_INTERVALS.get(intervalStr);
+        if (parsedInterval == null) {
+            throw new com.axion.ingestion.exception.ValidationException(
+                    "Invalid interval '" + intervalStr + "'. Allowed: " + ALLOWED_INTERVALS.keySet());
+        }
         
         return tsdbJdbcTemplate.query(sql,
                 new Object[]{parsedInterval, vehicleId},

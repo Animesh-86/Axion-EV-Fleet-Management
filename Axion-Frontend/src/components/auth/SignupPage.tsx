@@ -126,15 +126,15 @@ export function SignupPage() {
             </div>
 
             <div>
-              <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40 mb-2">Network_Identity (Email)</label>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40 mb-2">Network_Identity (Username / Email)</label>
               <div className="relative">
                 <Mail className="w-4 h-4 text-muted-foreground absolute left-4 top-1/2 -translate-y-1/2 opacity-40" />
                 <input
-                  type="email"
+                  type="text"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className={inputClass}
-                  placeholder="IDENTITY@AXION.SYS"
+                  placeholder="demo_admin or user@axion.sys"
                   required
                 />
               </div>

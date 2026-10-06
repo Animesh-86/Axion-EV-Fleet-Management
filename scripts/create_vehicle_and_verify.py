@@ -15,14 +15,16 @@ def register_admin():
     except Exception as e:
         print("Register failed or already exists; attempting login fallback")
         # Try to login instead
-        try:
-            login_url = f"{BACKEND}/api/v1/auth/login"
-            lr = requests.post(login_url, json={"username": body["username"], "password": body["password"]}, timeout=5)
-            lr.raise_for_status()
-            return lr.json().get("token")
-        except Exception as le:
-            print("Login fallback failed:", le)
-            return None
+        for pwd in ["change_me", "demo"]:
+            try:
+                login_url = f"{BACKEND}/api/v1/auth/login"
+                lr = requests.post(login_url, json={"username": body["username"], "password": pwd}, timeout=5)
+                if lr.status_code == 200:
+                    return lr.json().get("token")
+            except Exception as le:
+                pass
+        print("Login fallback failed for all candidate passwords.")
+        return None
 
 def create_vehicle(token, vid="demo-001"):
     url = f"{BACKEND}/api/v1/admin/vehicles"

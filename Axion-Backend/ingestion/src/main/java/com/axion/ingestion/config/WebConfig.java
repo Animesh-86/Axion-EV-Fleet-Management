@@ -1,22 +1,13 @@
 package com.axion.ingestion.config;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+/**
+ * CORS is configured centrally via {@link com.axion.ingestion.security.SecurityConfig#corsConfigurationSource()}.
+ * This class is intentionally empty to avoid duplicate/conflicting CORS registrations.
+ */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
-
-    @Value("${axion.cors.allowed-origins}")
-    private String allowedOrigins;
-
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOrigins(allowedOrigins)
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true);
-    }
+    // Intentionally empty — CORS is managed by SecurityConfig
 }
