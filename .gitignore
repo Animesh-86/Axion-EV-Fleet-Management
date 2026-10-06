@@ -38,3 +38,7 @@ target/
 __pycache__/
 *.pyc
 models/*.pkl
+# Secrets and local environments
+.env.local
+.env.production
+Project Docs/SECRETS.md
