@@ -121,9 +121,10 @@ services:
       AXION_KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
       AXION_MQTT_BROKER_URL: "tcp://mosquitto:1883"
       AXION_CORS_ALLOWED_ORIGINS: "http://localhost,http://localhost:80"
-      # Temporary demo key to allow backend startup during smoke-tests.
-      # Replace with a real secret or mount via Docker secret for production.
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-test-axion-demo}
+      # Using Groq AI via OpenAI compatibility layer
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-your_groq_api_key_here}
+      SPRING_AI_OPENAI_BASE_URL: "https://api.groq.com/openai"
+      SPRING_AI_OPENAI_CHAT_OPTIONS_MODEL: "llama3-8b-8192"
       AXION_OPENAI_KEY_FILE: ${AXION_OPENAI_KEY_FILE:-/run/secrets/OPENAI_API_KEY}
       SPRING_DATA_REDIS_HOST: "redis"
       AXION_POSTGRES_URL: "jdbc:postgresql://postgres:5432/axion"
@@ -132,7 +133,7 @@ services:
       AXION_TSDB_PASSWORD: ${TIMESCALEDB_PASSWORD:-change_me}
       AXION_KAFKA_ENABLED: "true"
       # Local/dev demo JWT secret (override with Docker secret in production)
-      AXION_JWT_SECRET: ${AXION_JWT_SECRET:-base64:Y2hhbmdlX21lX2luX3Byb2R1Y3Rpb25fdGhpcw==}
+      AXION_JWT_SECRET: ${AXION_JWT_SECRET:-base64:c3VwZXJfc2VjcmV0X2tleV9mb3JfYXhpb25fdGhhdF9pc19hdF9sZWFzdF8zMl9ieXRlcw==}
       AXION_ML_URL: "http://ml:8000"
       AXION_AGENT_MONITOR_ENABLED: "true"
       AXION_BOOTSTRAP_ADMIN_USERNAME: "demo_admin"

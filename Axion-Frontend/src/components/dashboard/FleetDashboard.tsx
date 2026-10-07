@@ -438,11 +438,30 @@ export function FleetDashboard() {
                 <BrainCircuit className="w-3.5 h-3.5 text-primary" /> Active ML Predictions
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {[
+                {(riskRanking.length > 0 ? riskRanking.slice(0, 3).map((item) => {
+                  let issue = 'Optimal Kinematics';
+                  let time = 'Stable';
+                  let risk = 'HEALTHY';
+                  let color = 'text-emerald-400 border-emerald-500/20 bg-emerald-500/10';
+                  
+                  if (item.riskScore >= 0.8) {
+                    issue = 'Thermal Runaway Risk';
+                    time = '4 hrs';
+                    risk = 'CRITICAL';
+                    color = 'text-red-400 border-red-500/20 bg-red-500/10';
+                  } else if (item.riskScore >= 0.5) {
+                    issue = 'Cell Balancing Degradation';
+                    time = '12 hrs';
+                    risk = 'WARNING';
+                    color = 'text-amber-400 border-amber-500/20 bg-amber-500/10';
+                  }
+
+                  return { vId: item.vehicleId, issue, time, risk, color };
+                }) : [
                   { vId: 'v019', issue: 'Thermal Runaway Risk', time: '4 hrs', risk: 'CRITICAL', color: 'text-red-400 border-red-500/20 bg-red-500/10' },
                   { vId: 'fleet-a-077', issue: 'Cell Balancing Degradation', time: '12 hrs', risk: 'WARNING', color: 'text-amber-400 border-amber-500/20 bg-amber-500/10' },
                   { vId: 'fleet-b-022', issue: 'Optimal Kinematics', time: 'Stable', risk: 'HEALTHY', color: 'text-emerald-400 border-emerald-500/20 bg-emerald-500/10' }
-                ].map((pred, i) => (
+                ]).map((pred, i) => (
                   <div key={i} className="flex flex-col justify-between p-3 bg-white/[0.02] border border-white/5 rounded-lg group hover:border-purple-500/20 transition-all">
                     <div className="flex items-center gap-2.5 mb-2">
                       <div className="w-8 h-8 rounded bg-white/5 flex items-center justify-center font-mono font-bold text-xs text-precision">

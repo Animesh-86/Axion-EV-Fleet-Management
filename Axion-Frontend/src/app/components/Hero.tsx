@@ -18,7 +18,7 @@ export function Hero({ onGetStarted, onViewArchitecture }: HeroProps) {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(16,185,129,0.08),transparent_60%)]" />
 
       <div className="relative z-10 max-w-7xl mx-auto w-full">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="grid lg:grid-cols-2 gap-32 items-center">
           {/* Left: Text Content */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
@@ -34,13 +34,13 @@ export function Hero({ onGetStarted, onViewArchitecture }: HeroProps) {
             >
               <Zap className="w-3 h-3 text-primary" />
               <span className="text-[10px] text-primary font-black uppercase tracking-[0.3em]">
-                ENTERPRISE_TELEMETRY_PIPELINE
+                ENTERPRISE TELEMETRY PIPELINE
               </span>
             </motion.div>
 
             <h1 className="text-6xl lg:text-8xl font-black text-precision leading-[0.85] tracking-tighter uppercase">
               The Intelligent<br />
-              <span className="text-primary">Nervous_System</span><br />
+              <span className="text-primary">Nervous System</span><br />
               for Your EV Fleet
             </h1>
 
@@ -55,7 +55,7 @@ export function Hero({ onGetStarted, onViewArchitecture }: HeroProps) {
                 whileTap={{ scale: 0.98 }}
                 className="px-8 py-4 border border-white/10 text-precision text-[11px] font-black uppercase tracking-widest rounded bg-white/5 hover:bg-white/10 transition-all"
               >
-                View_Architecture
+                View Architecture
               </motion.button>
 
               <motion.button
@@ -64,7 +64,7 @@ export function Hero({ onGetStarted, onViewArchitecture }: HeroProps) {
                 whileTap={{ scale: 0.98 }}
                 className="px-8 py-4 bg-primary text-black text-[11px] font-black uppercase tracking-widest rounded hover:brightness-110 transition-all shadow-[0_0_30px_-5px_rgba(16,185,129,0.3)]"
               >
-                Access_Gateway
+                Access Gateway
               </motion.button>
             </div>
           </motion.div>
@@ -75,22 +75,22 @@ export function Hero({ onGetStarted, onViewArchitecture }: HeroProps) {
             
             {/* Floating Data Nodes */}
             <DataNode
-              label="INGESTION_RATE"
-              value="84ms_latency | 5,204_msgs/min"
+              label="INGESTION RATE"
+              value="84ms latency | 5,204 msgs/min"
               color="cyan"
               delay={0.3}
               position={{ x: 10, y: 15 }}
             />
             <DataNode
-              label="KAFKA_CLUSTER"
-              value="telemetry.normal | 250_partitions"
+              label="KAFKA CLUSTER"
+              value="telemetry.normal | 250 partitions"
               color="amber"
               delay={0.5}
               position={{ x: 65, y: 20 }}
             />
             <DataNode
-              label="DIGITAL_TWIN"
-              value="Redis_SYNCHRONIZED | HEALTH_94"
+              label="DIGITAL TWIN"
+              value="Redis SYNCHRONIZED | HEALTH 94"
               color="green"
               delay={0.7}
               position={{ x: 35, y: 75 }}
@@ -106,10 +106,10 @@ export function Hero({ onGetStarted, onViewArchitecture }: HeroProps) {
           className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-4"
         >
           {[
-            { label: 'ACTIVE_VEHICLES', value: '250', unit: 'CONNECTED' },
-            { label: 'EVENTS_PER_SEC', value: '87', unit: 'PEAK' },
-            { label: 'SYSTEM_UPTIME', value: '99.97%', unit: 'SLA_REACH' },
-            { label: 'ML_PREDICTIONS', value: '10K+', unit: 'PER_HOUR' },
+            { label: 'ACTIVE VEHICLES', value: '250', unit: 'CONNECTED' },
+            { label: 'EVENTS PER SEC', value: '87', unit: 'PEAK' },
+            { label: 'SYSTEM UPTIME', value: '99.97%', unit: 'SLA REACH' },
+            { label: 'ML PREDICTIONS', value: '10K+', unit: 'PER HOUR' },
           ].map((metric, i) => (
             <motion.div
               key={metric.label}

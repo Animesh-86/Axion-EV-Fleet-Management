@@ -44,7 +44,7 @@ public class VehicleController {
         r.setHealthScore(state.getHealthScore());
         r.setHealthState(state.getHealthState());
         r.setTelemetry(state.getTelemetry());
-        r.setPredictions(mlServiceClient.getVehiclePredictions(state.getVehicleId()));
+        r.setPredictions(mlServiceClient.getVehiclePredictions(state.getVehicleId()).join());
         return r;
     }
 }

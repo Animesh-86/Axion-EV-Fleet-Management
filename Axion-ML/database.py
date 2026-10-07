@@ -7,6 +7,9 @@ raw_url = os.getenv("AXION_TSDB_URL", "postgresql://axion:password@localhost:543
 if raw_url.startswith("jdbc:"):
     raw_url = raw_url.replace("jdbc:", "")
 
+if raw_url.startswith("postgresql://"):
+    raw_url = raw_url.replace("postgresql://", "postgresql+psycopg2://")
+
 SQLALCHEMY_DATABASE_URL = raw_url
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)

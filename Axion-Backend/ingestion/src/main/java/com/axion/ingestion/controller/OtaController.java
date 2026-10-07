@@ -39,7 +39,7 @@ public class OtaController {
         if (initiated) {
             return ResponseEntity.ok().build();
         } else {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.badRequest().build();
         }
     }
 
