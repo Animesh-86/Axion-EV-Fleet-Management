@@ -6,9 +6,7 @@ import lombok.*;
 import java.time.Instant;
 
 /**
- * Represents a registered vehicle in the fleet. Closes the architectural gap
- * where digital twins were created implicitly from unvalidated telemetry.
- * Now only provisioned vehicles can emit telemetry and appear on the dashboard.
+ * Persistent entity representing a provisioned fleet asset in the primary database.
  */
 @Entity
 @Table(name = "vehicle_registry")

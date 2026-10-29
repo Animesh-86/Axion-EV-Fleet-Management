@@ -16,10 +16,6 @@ app = FastAPI(
     openapi_url="/openapi.json"
 )
 
-# CORS is intentionally not configured — this service is internal-only,
-# called by the Spring Boot backend over the Docker network.
-# If direct browser access is ever needed, scope origins to localhost.
-
 class BatteryPredictionResponse(BaseModel):
     predictedDepletionHours: float
     confidence: float
@@ -90,12 +86,7 @@ def get_fleet_risk_ranking(db: Session = Depends(get_db)):
             v_map[r.vehicle_id] = r
 
     if not v_map:
-        # Fallback array if table is empty
-        return [
-            FleetRiskItem(vehicleId="v001", riskScore=0.15),
-            FleetRiskItem(vehicleId="v002", riskScore=0.22),
-            FleetRiskItem(vehicleId="v003", riskScore=0.08),
-        ]
+        return []
 
     rankings = []
     for v_id, r in v_map.items():

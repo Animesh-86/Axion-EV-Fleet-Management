@@ -25,16 +25,18 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    private final boolean publicSummary;
-
+    private final boolean authEnabled;
+    private final String allowedOrigins;
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter, UserDetailsService userDetailsService,
-                          @org.springframework.beans.factory.annotation.Value("${axion.api.publicSummary:true}") boolean publicSummary) {
+                          @org.springframework.beans.factory.annotation.Value("${axion.security.auth-enabled:false}") boolean authEnabled,
+                          @org.springframework.beans.factory.annotation.Value("${axion.cors.allowed-origins:http://localhost,http://localhost:3000}") String allowedOrigins) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.userDetailsService = userDetailsService;
-        this.publicSummary = publicSummary;
+        this.authEnabled = authEnabled;
+        this.allowedOrigins = allowedOrigins;
     }
 
     @Bean
@@ -42,18 +44,20 @@ public class SecurityConfig {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(auth -> auth
-                .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ASYNC).permitAll()
-                // Auth: login and registration are public
-                .requestMatchers("/api/v1/auth/login", "/api/v1/auth/register").permitAll()
-                .requestMatchers("/api/v1/health/**", "/api/v1/telemetry/**").permitAll()
-                // Swagger / OpenAPI docs
-                .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/webjars/**").permitAll()
-                // Optionally allow unauthenticated access to fleet summary for easy demo/run-from-clone.
-                .requestMatchers(publicSummary ? new String[]{"/api/v1/fleet/summary", "/api/v1/fleet/vehicles"} : new String[]{}).permitAll()
-                .requestMatchers("/api/v1/**").authenticated()
-                .anyRequest().permitAll()
-            )
+            .authorizeHttpRequests(auth -> {
+                auth.dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ASYNC).permitAll();
+                if (!authEnabled) {
+                    auth.anyRequest().permitAll();
+                } else {
+                    auth.requestMatchers("/api/v1/auth/login", "/api/v1/auth/register").permitAll()
+                        .requestMatchers("/api/v1/health/**", "/api/v1/telemetry/**").permitAll()
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/webjars/**").permitAll()
+                        .requestMatchers("/api/v1/fleet/summary", "/api/v1/fleet/vehicles").permitAll()
+                        .requestMatchers("/api/v1/admin/**", "/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/**").authenticated()
+                        .anyRequest().permitAll();
+                }
+            })
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
@@ -84,7 +88,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:*", "http://localhost")); // Supports dev (3000) and Docker (80)
+        List<String> origins = Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
+        configuration.setAllowedOriginPatterns(origins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

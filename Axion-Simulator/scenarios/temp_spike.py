@@ -1,5 +1,3 @@
-# scenarios/temp_spike.py
-
 from scenarios.base import Scenario
 
 class TempSpikeScenario(Scenario):

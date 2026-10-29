@@ -69,10 +69,12 @@ export function FleetDashboard() {
       }
     };
 
-    if (status === 'CONNECTED') {
-      fetchData();
-    } else if (summary === null) {
-      fetchData();
+    fetchData();
+
+    // Polling fallback when WebSocket is disconnected or reconnecting
+    let pollTimer: ReturnType<typeof setInterval> | null = null;
+    if (status !== 'CONNECTED') {
+      pollTimer = setInterval(fetchData, POLL_DASHBOARD);
     }
 
 
@@ -131,6 +133,7 @@ export function FleetDashboard() {
     return () => {
       unsubscribe();
       clearInterval(flushTimer);
+      if (pollTimer) clearInterval(pollTimer);
     };
   }, [subscribeToFleet, status]);
 

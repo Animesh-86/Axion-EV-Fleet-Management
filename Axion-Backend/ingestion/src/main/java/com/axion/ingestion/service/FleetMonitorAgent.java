@@ -2,6 +2,8 @@ package com.axion.ingestion.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -11,33 +13,36 @@ public class FleetMonitorAgent {
 
     private final ChatClient.Builder chatClientBuilder;
 
-    public FleetMonitorAgent(ChatClient.Builder chatClientBuilder) {
+    @Value("${axion.agent.monitor.enabled:false}")
+    private boolean enabled;
+
+    public FleetMonitorAgent(@Autowired(required = false) ChatClient.Builder chatClientBuilder) {
         this.chatClientBuilder = chatClientBuilder;
     }
 
-    /**
-     * Executes autonomously on a schedule. Instructs the LLM to analyze overall fleet state
-     * by calling exposed tool beans dynamically and compiling a proactive maintenance digest.
-     */
     @Scheduled(fixedRateString = "${axion.agent.monitor.rate-ms:300000}", initialDelay = 60000)
     public void runAutonomousFleetAudit() {
-        boolean enabled = Boolean.parseBoolean(System.getenv().getOrDefault("AXION_AGENT_MONITOR_ENABLED", "false"));
         if (!enabled) {
-            log.debug("FleetMonitorAgent skipped because AXION_AGENT_MONITOR_ENABLED=false");
+            log.debug("FleetMonitorAgent skipped because axion.agent.monitor.enabled=false");
             return;
         }
 
-        log.info("Initiating scheduled agentic loop audit sequence using Spring AI Function Calling execution callbacks");
+        if (chatClientBuilder == null) {
+            log.debug("FleetMonitorAgent skipped because ChatClient.Builder is not configured");
+            return;
+        }
+
+        log.info("Initiating scheduled agentic fleet audit");
         try {
-                String reportText = chatClientBuilder.build().prompt()
+            String reportText = chatClientBuilder.build().prompt()
                     .user("Evaluate the health state of the entire fleet by invoking your available status query tools. Summarize key risks, list critical vehicle IDs, and outline high-priority infrastructure actions required.")
                     .functions("getVehicleStatus", "getFleetSummary")
                     .call()
                     .content();
 
-            log.info("=== Autonomous GenAI Fleet Health Digest ===\n{}", reportText);
+            log.info("Autonomous Fleet Health Digest:\n{}", reportText);
         } catch (Exception e) {
-            log.warn("Scheduled Agentic function calling execution loop skipped/deferred: {}", e.getMessage());
+            log.warn("Scheduled fleet audit loop deferred: {}", e.getMessage());
         }
     }
 }

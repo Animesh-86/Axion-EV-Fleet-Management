@@ -25,11 +25,15 @@ export function useWebSocket() {
   const vehicleUpdatesCallbacks = useRef<Map<string, { callbacks: Set<(msg: WebSocketMessage) => void>, subscription: any }>>(new Map());
 
   useEffect(() => {
-    // Rely on HttpOnly cookie for auth; do not send Authorization header from client
+    const token = localStorage.getItem('axion_token');
+    const connectHeaders: Record<string, string> = {};
+    if (token) {
+      connectHeaders['Authorization'] = `Bearer ${token}`;
+    }
+
     const client = new Client({
-      // Provide SockJS factory
       webSocketFactory: () => new SockJS(`${BASE_URL}/ws`),
-      connectHeaders: {},
+      connectHeaders,
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
@@ -40,16 +44,27 @@ export function useWebSocket() {
       
       // Subscribe to global fleet updates
       client.subscribe('/topic/fleet/updates', (message) => {
-        const payload: WebSocketMessage = JSON.parse(message.body);
-        fleetUpdatesCallbacks.current.forEach(cb => cb(payload));
+        try {
+          const payload: WebSocketMessage = JSON.parse(message.body);
+          fleetUpdatesCallbacks.current.forEach(cb => cb(payload));
+        } catch (e) {
+          console.error('Failed to parse fleet WebSocket message', e);
+        }
       });
       
       // Subscribe to individual vehicle updates dynamically based on active callbacks
-      vehicleUpdatesCallbacks.current.forEach((callbacks, vehicleId) => {
-        client.subscribe(`/topic/vehicle/${vehicleId}`, (message) => {
-          const payload: WebSocketMessage = JSON.parse(message.body);
-          callbacks.forEach(cb => cb(payload));
+      vehicleUpdatesCallbacks.current.forEach((entry, vehicleId) => {
+        const sub = client.subscribe(`/topic/vehicle/${vehicleId}`, (message) => {
+          try {
+            const payload: WebSocketMessage = JSON.parse(message.body);
+            if (entry.callbacks) {
+              entry.callbacks.forEach(cb => cb(payload));
+            }
+          } catch (e) {
+            console.error('Failed to parse vehicle WebSocket message for', vehicleId, e);
+          }
         });
+        entry.subscription = sub;
       });
     };
 
@@ -81,10 +96,14 @@ export function useWebSocket() {
       // If already connected, dynamically subscribe to this new topic
       if (clientRef.current && clientRef.current.connected) {
         const sub = clientRef.current.subscribe(`/topic/vehicle/${vehicleId}`, (message) => {
-          const payload: WebSocketMessage = JSON.parse(message.body);
-          const state = vehicleUpdatesCallbacks.current.get(vehicleId);
-          if (state && state.callbacks) {
-             state.callbacks.forEach(cb => cb(payload));
+          try {
+            const payload: WebSocketMessage = JSON.parse(message.body);
+            const state = vehicleUpdatesCallbacks.current.get(vehicleId);
+            if (state && state.callbacks) {
+               state.callbacks.forEach(cb => cb(payload));
+            }
+          } catch (e) {
+            console.error('Failed to parse vehicle WebSocket message for', vehicleId, e);
           }
         });
         const state = vehicleUpdatesCallbacks.current.get(vehicleId);

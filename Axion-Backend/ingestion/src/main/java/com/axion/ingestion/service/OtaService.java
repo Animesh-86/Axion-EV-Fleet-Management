@@ -22,6 +22,9 @@ public class OtaService {
     @Value("${axion.health.battery-temp-critical}")
     private double tempMaxForOta;
 
+    @Value("${axion.ota.simulation.success-rate:0.80}")
+    private double simulationSuccessRate;
+
     public OtaService(RedisTemplate<String, DigitalTwinState> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
@@ -48,7 +51,7 @@ public class OtaService {
             }
         }
 
-        boolean success = random.nextDouble() > 0.2; // 80% success rate
+        boolean success = random.nextDouble() < simulationSuccessRate;
 
         state.setLastUpdateTimestamp(Instant.now());
         state.setOtaEligibility(!success); // After successful OTA, not immediately eligible again

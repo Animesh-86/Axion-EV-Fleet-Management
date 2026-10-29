@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Terminal, Github, Linkedin, Twitter, ArrowRight } from 'lucide-react';
+import { Terminal, Github, ArrowRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 interface TerminalFooterProps {
@@ -173,41 +173,33 @@ export function TerminalFooter({ onGetStarted }: TerminalFooterProps) {
             <ArrowRight className="w-5 h-5" />
           </motion.button>
 
-          <motion.button
+          <motion.a
+            href="https://github.com/Animesh-86/Axion-EV-Fleet-Management"
+            target="_blank"
+            rel="noopener noreferrer"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="px-8 py-4 border-2 border-[var(--axion-cyan)] text-[var(--axion-cyan)] font-[var(--font-outfit)] font-bold rounded-lg backdrop-blur-md hover:bg-[var(--axion-glass-bg)] transition-colors flex items-center gap-2"
           >
             <Github className="w-5 h-5" />
             View on GitHub
-          </motion.button>
+          </motion.a>
         </motion.div>
 
         {/* Footer Bottom */}
         <div className="border-t border-gray-800 pt-8">
-          <div className="grid md:grid-cols-3 gap-8 mb-8">
-            <div>
-              <h3 className="text-xl font-[var(--font-outfit)] font-bold text-white mb-4">
-                Axion Platform
-              </h3>
-              <p className="text-sm text-gray-400 font-[var(--font-outfit)]">
-                Enterprise-grade EV Fleet Telemetry, Digital Twin, and OTA Orchestration Platform
-              </p>
-            </div>
-
-            
-
-            
+          <div className="mb-8">
+            <h3 className="text-xl font-[var(--font-outfit)] font-bold text-white mb-4">
+              Axion Platform
+            </h3>
+            <p className="text-sm text-gray-400 font-[var(--font-outfit)] max-w-xl">
+              Enterprise-grade EV Fleet Telemetry, Digital Twin, and OTA Orchestration Platform
+            </p>
           </div>
 
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-8 border-t border-gray-800">
             <div className="text-sm text-gray-500 font-[var(--font-jetbrains)]">
               © 2026 Axion Platform. All rights reserved.
-            </div>
-            <div className="flex gap-4">
-              {[Github, Twitter, Linkedin].map((Icon, i) => (
-                null
-              ))}
             </div>
           </div>
         </div>

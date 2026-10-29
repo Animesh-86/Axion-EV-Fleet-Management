@@ -39,6 +39,12 @@ public class MlAutoEscalationService {
     @Value("${axion.ml.escalation-streak-ttl-seconds:120}")
     private int escalationStreakTtlSeconds;
 
+    @Value("${axion.ml.cache-ttl:60}")
+    private int mlCacheTtl;
+
+    @Value("${axion.ml.escalation-score-cap:49}")
+    private int escalationScoreCap;
+
     public MlAutoEscalationService(RedisTemplate<String, DigitalTwinState> redisTemplate,
                                    @Qualifier("genericRedisTemplate") RedisTemplate<String, Object> genericRedisTemplate,
                                    MlServiceClient mlServiceClient,
@@ -54,7 +60,7 @@ public class MlAutoEscalationService {
         try {
             if (!autoEscalate) return;
 
-            int cacheTtl = Integer.parseInt(System.getenv().getOrDefault("AXION_ML_CACHE_TTL", "60"));
+            int cacheTtl = mlCacheTtl;
             List<Map<String, Object>> list = mlServiceClient.getFleetRiskRanking(cacheTtl).block();
             if (list == null || list.isEmpty()) return;
 
@@ -88,7 +94,7 @@ public class MlAutoEscalationService {
                             String previousState = state.getHealthState();
                             state.setHealthState("CRITICAL");
                             Integer currentScore = state.getHealthScore();
-                            state.setHealthScore(currentScore == null ? 49 : Math.min(currentScore, 49));
+                            state.setHealthScore(currentScore == null ? escalationScoreCap : Math.min(currentScore, escalationScoreCap));
                             redisTemplate.opsForValue().set(key, state);
 
                             WebSocketMessage twinUpdateMsg = WebSocketMessage.builder()

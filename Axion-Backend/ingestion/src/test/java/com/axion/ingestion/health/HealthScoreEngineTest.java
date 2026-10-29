@@ -32,6 +32,8 @@ class HealthScoreEngineTest {
         rules.packetLossCritical = 30.0;
         rules.penaltyWarning = 15;
         rules.penaltyCritical = 35;
+        rules.healthyThreshold = 80;
+        rules.degradedThreshold = 50;
         engine = new HealthScoreEngine(rules);
     }
 

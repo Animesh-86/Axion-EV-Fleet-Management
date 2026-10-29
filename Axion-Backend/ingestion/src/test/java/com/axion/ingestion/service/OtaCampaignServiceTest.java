@@ -48,9 +48,12 @@ class OtaCampaignServiceTest {
     @BeforeEach
     void setUp() {
         service = new OtaCampaignService(campaignRepo, jobRepo, redisTemplate);
-        // Set health-gate thresholds via reflection since @Value won't fire in unit tests
+        // Set health-gate thresholds and zero test delays via reflection
         setField(service, "socMinForOta", 30.0);
         setField(service, "tempMaxForOta", 45.0);
+        setField(service, "canaryWaitMs", 0L);
+        setField(service, "rolloutDelayMs", 0L);
+        setField(service, "installDelayMs", 0L);
     }
 
     private void setField(Object target, String fieldName, Object value) {

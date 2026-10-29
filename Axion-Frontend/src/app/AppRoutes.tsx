@@ -11,11 +11,9 @@ import { LandingPage } from './pages/LandingPage';
 import { ArchitecturePage } from './pages/ArchitecturePage';
 import { SettingsPage } from './pages/SettingsPage';
 import { VehicleTwinPage } from './pages/VehicleTwinPage';
-import { AuditLogsPage } from '../pages/AuditLogsPage';
+import { AuditLogsPage } from './pages/AuditLogsPage';
 import { AppShellLayout } from './layouts/AppShellLayout';
 import { paths } from '../constants/navigation';
-import { LoginPage } from '../components/auth/LoginPage';
-import { SignupPage } from '../components/auth/SignupPage';
 
 export function AppRoutes() {
   return (
@@ -23,8 +21,8 @@ export function AppRoutes() {
       <Toaster theme="dark" position="top-right" richColors closeButton />
       <Routes>
         <Route path={paths.landing} element={<LandingPage />} />
-        <Route path={paths.login} element={<LoginPage />} />
-        <Route path={paths.signup} element={<SignupPage />} />
+        <Route path={paths.login} element={<Navigate to={paths.dashboard} replace />} />
+        <Route path={paths.signup} element={<Navigate to={paths.dashboard} replace />} />
         <Route path={paths.architecture} element={<ArchitecturePage />} />
         <Route element={<AppShellLayout />}>
           <Route path={paths.dashboard} element={<FleetDashboard />} />

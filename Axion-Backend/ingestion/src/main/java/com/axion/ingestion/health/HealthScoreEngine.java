@@ -67,9 +67,9 @@ public class HealthScoreEngine {
     }
 
     private HealthState deriveState(int score) {
-        if (score >= 80) {
+        if (score >= rules.healthyThreshold) {
             return HealthState.HEALTHY;
-        } else if (score >= 50) {
+        } else if (score >= rules.degradedThreshold) {
             return HealthState.DEGRADED;
         } else {
             return HealthState.CRITICAL;

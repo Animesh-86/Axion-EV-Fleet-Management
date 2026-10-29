@@ -42,7 +42,7 @@ export function VehicleList() {
           temperature: v.temperature || 0,
           healthScore: v.healthScore || 100,
           status: v.online ? 'online' : 'offline',
-          lastUpdate: new Date(v.lastSeen).toLocaleTimeString(),
+          lastUpdate: v.lastSeen ? new Date(v.lastSeen).toLocaleTimeString() : 'N/A',
           degradationDrivers: getDegradationDrivers(v),
         }));
         setVehicles(mapped);

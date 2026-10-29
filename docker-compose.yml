@@ -203,7 +203,7 @@ services:
       timescaledb:
         condition: service_healthy
     environment:
-      AXION_TSDB_URL: "postgresql://axion:change_me@timescaledb:5432/axion_ts"
+      AXION_TSDB_URL: "postgresql://axion:${TIMESCALEDB_PASSWORD:-change_me}@timescaledb:5432/axion_ts"
     # Port not exposed to host — ML service is only called server-to-server by backend
     healthcheck:
       test: python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
@@ -233,8 +233,8 @@ services:
     ports:
       - "3001:3000"
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
       - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/axion_fleet_dashboard.json

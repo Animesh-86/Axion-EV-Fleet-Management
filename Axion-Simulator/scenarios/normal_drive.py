@@ -1,5 +1,3 @@
-# scenarios/normal_drive.py
-
 import random
 from scenarios.base import Scenario
 

@@ -28,7 +28,7 @@ public class FleetAssistantController {
     private final AnomalyExplanationRepository explanationRepository;
     private final RedisTemplate<String, Object> genericRedisTemplate;
 
-    public FleetAssistantController(ChatClient.Builder chatClientBuilder,
+    public FleetAssistantController(@Autowired(required = false) ChatClient.Builder chatClientBuilder,
                                     @Autowired(required = false) AnomalyExplanationRepository explanationRepository,
                                     @Autowired(required = false) RedisTemplate<String, Object> genericRedisTemplate) {
         this.chatClientBuilder = chatClientBuilder;
@@ -51,6 +51,9 @@ public class FleetAssistantController {
      */
     @GetMapping("/explanations/{vehicleId}")
     public ResponseEntity<List<AnomalyExplanationEntity>> getExplanations(@PathVariable String vehicleId) {
+        if (explanationRepository == null) {
+            return ResponseEntity.ok(List.of());
+        }
         return ResponseEntity.ok(explanationRepository.findByVehicleIdOrderByCreatedAtDesc(vehicleId));
     }
 
@@ -64,19 +67,25 @@ public class FleetAssistantController {
         
         // Retrieve Redis-backed conversation context (30-min TTL)
         StringBuilder history = new StringBuilder();
-        try {
-            Object cached = genericRedisTemplate.opsForValue().get(sessionKey);
-            if (cached instanceof String) {
-                history.append((String) cached).append("\n");
+        if (genericRedisTemplate != null) {
+            try {
+                Object cached = genericRedisTemplate.opsForValue().get(sessionKey);
+                if (cached instanceof String) {
+                    history.append((String) cached).append("\n");
+                }
+            } catch (Exception e) {
+                log.warn("Redis history retrieval for AI context memory failed: {}", e.getMessage());
             }
-        } catch (Exception e) {
-            log.warn("Redis history retrieval for AI context memory failed: {}", e.getMessage());
+        }
+
+        if (chatClientBuilder == null) {
+            return Flux.just("AI Fleet Assistant connectivity offline. Verify keys & token infrastructure.");
         }
 
         String fullPrompt = history + "Operator: " + request.getPrompt();
 
         try {
-                return chatClientBuilder.build().prompt()
+            return chatClientBuilder.build().prompt()
                     .user(fullPrompt)
                     .functions("getVehicleStatus", "getFleetSummary")
                     .stream()
@@ -85,16 +94,18 @@ public class FleetAssistantController {
                         // Keep live append memory lightweight
                     })
                     .doOnComplete(() -> {
-                        try {
-                            // Update context memory
-                            String updatedHistory = history + "Operator: " + request.getPrompt() + "\n[Response delivered]";
-                            // Keep max context short to preserve tokens
-                            if (updatedHistory.length() > 2000) {
-                                updatedHistory = updatedHistory.substring(updatedHistory.length() - 2000);
+                        if (genericRedisTemplate != null) {
+                            try {
+                                // Update context memory
+                                String updatedHistory = history + "Operator: " + request.getPrompt() + "\n[Response delivered]";
+                                // Keep max context short to preserve tokens
+                                if (updatedHistory.length() > 2000) {
+                                    updatedHistory = updatedHistory.substring(updatedHistory.length() - 2000);
+                                }
+                                genericRedisTemplate.opsForValue().set(sessionKey, updatedHistory, 30, TimeUnit.MINUTES);
+                            } catch (Exception e) {
+                                log.debug("Redis state sequence update tracking skipped: {}", e.getMessage());
                             }
-                            genericRedisTemplate.opsForValue().set(sessionKey, updatedHistory, 30, TimeUnit.MINUTES);
-                        } catch (Exception e) {
-                            log.debug("Redis state sequence update tracking skipped: {}", e.getMessage());
                         }
                     })
                     .onErrorResume(e -> {

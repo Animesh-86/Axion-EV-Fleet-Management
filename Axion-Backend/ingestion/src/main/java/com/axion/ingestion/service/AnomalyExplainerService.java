@@ -27,7 +27,7 @@ public class AnomalyExplainerService {
     private final VectorStore vectorStore;
     private final org.springframework.data.redis.core.StringRedisTemplate stringRedisTemplate;
 
-    public AnomalyExplainerService(ChatClient.Builder chatClientBuilder, 
+    public AnomalyExplainerService(@org.springframework.beans.factory.annotation.Autowired(required = false) ChatClient.Builder chatClientBuilder, 
                                    @org.springframework.beans.factory.annotation.Autowired(required = false) AnomalyExplanationRepository repository,
                                    org.springframework.data.redis.core.StringRedisTemplate stringRedisTemplate,
                                    @org.springframework.beans.factory.annotation.Autowired(required = false) VectorStore vectorStore) {
@@ -37,27 +37,27 @@ public class AnomalyExplainerService {
         this.vectorStore = vectorStore;
     }
 
-    /**
-     * Explains an anomaly by prompting the LLM with real-time sensory states,
-     * augmenting prompts with semantically similar past incidents retrieved via RAG (pgvector),
-     * and strictly binding response schemas into target deterministic POJOs.
-     */
     public AnomalyExplanation explainAnomaly(String vehicleId, String healthState, double speed, double soc, double temp, String mlContext) {
         String debounceKey = "debounce:llm:" + vehicleId;
         Boolean isLocked = stringRedisTemplate.opsForValue().setIfAbsent(debounceKey, "locked", java.time.Duration.ofMinutes(15));
         
         if (Boolean.FALSE.equals(isLocked)) {
-            log.info("Skipping LLM prompt for vehicle {} in state {} to prevent API spam (debounced via Redis).", vehicleId, healthState);
+            log.info("Skipping LLM prompt for vehicle {} in state {} (debounced via Redis)", vehicleId, healthState);
             return AnomalyExplanation.builder()
                     .severity(healthState)
-                    .summary("Automated GenAI diagnostic summary debounced.")
+                    .summary("Diagnostic summary debounced.")
                     .rootCause("Thermal envelope recorded previously.")
                     .recommendedAction("Trigger manual diagnostic polling task")
                     .confidenceScore(0.50)
                     .build();
         }
+
+        if (chatClientBuilder == null) {
+            log.info("ChatClient.Builder unavailable, using fallback explanation for vehicle {}", vehicleId);
+            return buildFallbackExplanation(vehicleId, healthState, soc, temp);
+        }
         
-        log.info("Triggering GenAI Anomaly Explanation engine for vehicle {} in state {}", vehicleId, healthState);
+        log.info("Generating anomaly explanation for vehicle {} in state {}", vehicleId, healthState);
 
         // 1. Prepare RAG context retrieval from pgvector
         String ragContext = "No historical incident precedent retrieved.";
@@ -73,15 +73,15 @@ public class AnomalyExplainerService {
                             .collect(Collectors.joining("\n---\n"));
                 }
             } catch (Exception e) {
-                log.warn("PgVector similarity search encountered warning, proceeding with fallback logic: {}", e.getMessage());
+                log.warn("Vector similarity search warning: {}", e.getMessage());
             }
         }
 
-        // 2. Set up deterministic output conversion target binding
+        // 2. Deterministic output schema conversion
         BeanOutputConverter<AnomalyExplanation> converter = new BeanOutputConverter<>(AnomalyExplanation.class);
         String formatInstructions = converter.getFormat();
 
-        // 3. Assemble prompt augmented with RAG state contexts
+        // 3. Assemble prompt augmented with RAG context
         String promptText = String.format(
                 "You are an expert autonomous Electric Vehicle fleet diagnostic AI engine.\n" +
                 "Analyze the following real-time parameters for vehicle '%s' which has dropped to health state '%s':\n" +
@@ -95,72 +95,73 @@ public class AnomalyExplainerService {
         );
 
         try {
-                String rawResponse = chatClientBuilder.build().prompt()
+            String rawResponse = chatClientBuilder.build().prompt()
                     .user(promptText)
                     .call()
                     .content();
 
-            // Parse response directly to typed POJO
             AnomalyExplanation explanation = converter.convert(rawResponse);
             if (explanation == null) {
                 throw new IllegalStateException("Structured schema binding output converter returned null pointer");
             }
 
-            // Persist structured explanation to PostgreSQL primary cluster
             AnomalyExplanationEntity entity = AnomalyExplanationEntity.builder()
                     .id(UUID.randomUUID().toString())
                     .vehicleId(vehicleId)
                     .createdAt(Instant.now())
                     .severity(explanation.getSeverity() != null ? explanation.getSeverity() : healthState)
-                    .summary(explanation.getSummary() != null ? explanation.getSummary() : "No abstract provided")
+                    .summary(explanation.getSummary() != null ? explanation.getSummary() : "No summary provided")
                     .rootCause(explanation.getRootCause() != null ? explanation.getRootCause() : "Undiagnosed sensory sequence")
-                    .recommendedAction(explanation.getRecommendedAction() != null ? explanation.getRecommendedAction() : "Initiate manual intervention sequence")
+                    .recommendedAction(explanation.getRecommendedAction() != null ? explanation.getRecommendedAction() : "Initiate manual intervention")
                     .confidenceScore(explanation.getConfidenceScore() != null ? explanation.getConfidenceScore() : 0.85)
                     .build();
 
             if (repository != null) {
                 repository.save(entity);
             }
-            log.info("Successfully persisted structured explanation schema output for anomaly on {}", vehicleId);
+            log.info("Successfully persisted structured explanation for vehicle {}", vehicleId);
             
-            // Optionally auto-embed document into pgvector store for future self-healing feedback cycles
             if (vectorStore != null) {
                 try {
                     String embedContent = String.format("[%s] Vehicle %s dropped to %s due to: %s. Action taken: %s",
                             entity.getSeverity(), vehicleId, healthState, entity.getRootCause(), entity.getRecommendedAction());
                     vectorStore.add(List.of(new Document(embedContent)));
                 } catch (Exception e) {
-                    log.debug("Auto-embedding pipeline sequence deferred: {}", e.getMessage());
+                    log.debug("Auto-embedding skipped: {}", e.getMessage());
                 }
             }
 
             return explanation;
 
         } catch (Exception e) {
-            log.error("GenAI client prompt sequence failed: {}", e.getMessage(), e);
-            // Fallback response POJO guarantee
-            AnomalyExplanation fallback = AnomalyExplanation.builder()
-                    .severity(healthState)
-                    .summary("Automated GenAI diagnostic summary sequence unavailable. Review metrics directly.")
-                    .rootCause(String.format("Thermal envelope recorded at %.1f°C with capacity %.1f%%", temp, soc))
-                    .recommendedAction("Trigger manual diagnostic polling task")
-                    .confidenceScore(0.50)
-                    .build();
-
-            AnomalyExplanationEntity entity = AnomalyExplanationEntity.builder()
-                    .id(UUID.randomUUID().toString())
-                    .vehicleId(vehicleId)
-                    .createdAt(Instant.now())
-                    .severity(fallback.getSeverity())
-                    .summary(fallback.getSummary())
-                    .rootCause(fallback.getRootCause())
-                    .recommendedAction(fallback.getRecommendedAction())
-                    .confidenceScore(fallback.getConfidenceScore())
-                    .build();
-            if (repository != null) {
-                repository.save(entity);
-            }
-            return fallback;
+            log.error("AI explanation call failed: {}", e.getMessage(), e);
+            return buildFallbackExplanation(vehicleId, healthState, soc, temp);
         }
+    }
+
+    private AnomalyExplanation buildFallbackExplanation(String vehicleId, String healthState, double soc, double temp) {
+        AnomalyExplanation fallback = AnomalyExplanation.builder()
+                .severity(healthState)
+                .summary("Automated diagnostic summary unavailable. Review metrics directly.")
+                .rootCause(String.format("Thermal envelope recorded at %.1f°C with capacity %.1f%%", temp, soc))
+                .recommendedAction("Trigger manual diagnostic polling task")
+                .confidenceScore(0.50)
+                .build();
+
+        AnomalyExplanationEntity entity = AnomalyExplanationEntity.builder()
+                .id(UUID.randomUUID().toString())
+                .vehicleId(vehicleId)
+                .createdAt(Instant.now())
+                .severity(fallback.getSeverity())
+                .summary(fallback.getSummary())
+                .rootCause(fallback.getRootCause())
+                .recommendedAction(fallback.getRecommendedAction())
+                .confidenceScore(fallback.getConfidenceScore())
+                .build();
+
+        if (repository != null) {
+            repository.save(entity);
+        }
+        return fallback;
     }
 }

@@ -3,74 +3,57 @@ package com.axion.ingestion.api;
 import com.axion.ingestion.dto.FleetSummaryResponse;
 import com.axion.ingestion.dto.FleetVehicleResponse;
 import com.axion.ingestion.model.DigitalTwinState;
-import com.axion.ingestion.model.dto.WebSocketMessage;
 import com.axion.ingestion.service.ThroughputTracker;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
-
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api/v1/fleet")
 public class FleetController {
 
     private final RedisTemplate<String, DigitalTwinState> redisTemplate;
-    private final RedisTemplate<String, Object> genericRedisTemplate;
     private final ThroughputTracker throughputTracker;
     private final com.axion.ingestion.service.MlServiceClient mlServiceClient;
-    private final SimpMessagingTemplate messagingTemplate;
-
-    @Value("${axion.ml.auto-escalate:false}")
-    private boolean autoEscalate;
 
     @Value("${axion.ml.escalation-threshold:0.7}")
     private double escalationThreshold;
-
-    @Value("${axion.ml.escalation-hysteresis:2}")
-    private int escalationHysteresis;
-
-    @Value("${axion.ml.escalation-streak-ttl-seconds:120}")
-    private int escalationStreakTtlSeconds;
 
     @Value("${axion.ml.cache-ttl:60}")
     private int mlCacheTtl;
 
     public FleetController(RedisTemplate<String, DigitalTwinState> redisTemplate,
-            RedisTemplate<String, Object> genericRedisTemplate,
             ThroughputTracker throughputTracker,
-            com.axion.ingestion.service.MlServiceClient mlServiceClient,
-            SimpMessagingTemplate messagingTemplate) {
+            com.axion.ingestion.service.MlServiceClient mlServiceClient) {
         this.redisTemplate = redisTemplate;
-        this.genericRedisTemplate = genericRedisTemplate;
         this.throughputTracker = throughputTracker;
         this.mlServiceClient = mlServiceClient;
-        this.messagingTemplate = messagingTemplate;
     }
 
-    @GetMapping("/summary")
-    public reactor.core.publisher.Mono<FleetSummaryResponse> getFleetSummary() {
-
+    private Set<String> scanDigitalTwinKeys() {
         Set<String> keys = new HashSet<>();
         redisTemplate.execute((org.springframework.data.redis.core.RedisCallback<Void>) connection -> {
-            try (org.springframework.data.redis.core.Cursor<byte[]> cursor = connection.scan(org.springframework.data.redis.core.ScanOptions.scanOptions().match("digital_twin:*").count(1000).build())) {
+            try (org.springframework.data.redis.core.Cursor<byte[]> cursor = connection.scan(
+                    org.springframework.data.redis.core.ScanOptions.scanOptions().match("digital_twin:*").count(1000).build())) {
                 while (cursor.hasNext()) {
                     keys.add(new String(cursor.next()));
                 }
             }
             return null;
         });
+        return keys;
+    }
 
+    @GetMapping("/summary")
+    public reactor.core.publisher.Mono<FleetSummaryResponse> getFleetSummary() {
+        Set<String> keys = scanDigitalTwinKeys();
         FleetSummaryResponse summary = new FleetSummaryResponse();
 
         if (keys.isEmpty())
@@ -99,7 +82,6 @@ public class FleetController {
         return mlServiceClient.getFleetRiskRanking(mlCacheTtl)
             .map(list -> {
                 long predicted = 0;
-                Set<String> escalateIds = new HashSet<>();
                 if (list != null) {
                     for (java.util.Map<String, Object> m : list) {
                         Object rs = m.get("riskScore");
@@ -110,8 +92,6 @@ public class FleetController {
                         }
                         if (val >= escalationThreshold) {
                             predicted++;
-                            Object vid = m.get("vehicleId");
-                            if (vid != null) escalateIds.add(String.valueOf(vid));
                         }
                     }
                 }
@@ -129,18 +109,9 @@ public class FleetController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size) {
 
-        // Clamp size to prevent abuse
         size = Math.min(Math.max(size, 1), 200);
 
-        Set<String> keys = new HashSet<>();
-        redisTemplate.execute((org.springframework.data.redis.core.RedisCallback<Void>) connection -> {
-            try (org.springframework.data.redis.core.Cursor<byte[]> cursor = connection.scan(org.springframework.data.redis.core.ScanOptions.scanOptions().match("digital_twin:*").count(1000).build())) {
-                while (cursor.hasNext()) {
-                    keys.add(new String(cursor.next()));
-                }
-            }
-            return null;
-        });
+        Set<String> keys = scanDigitalTwinKeys();
         java.util.List<FleetVehicleResponse> vehicles = new java.util.ArrayList<>();
 
         if (keys.isEmpty())
@@ -170,7 +141,6 @@ public class FleetController {
             vehicles.add(v);
         }
 
-        // Sort by health score ascending (worst first) for consistent ordering
         vehicles.sort(java.util.Comparator.comparingInt(FleetVehicleResponse::getHealthScore));
 
         int totalElements = vehicles.size();
@@ -185,30 +155,6 @@ public class FleetController {
                 "totalElements", totalElements,
                 "totalPages", totalPages
         );
-    }
-
-    private Integer readInt(Object value) {
-        if (value instanceof Number) {
-            return ((Number) value).intValue();
-        }
-        if (value instanceof String) {
-            try {
-                return Integer.parseInt((String) value);
-            } catch (Exception ignored) {
-            }
-        }
-        return 0;
-    }
-
-    @GetMapping("/{vehicleId}")
-    public org.springframework.http.ResponseEntity<DigitalTwinState> getVehicle(
-            @org.springframework.web.bind.annotation.PathVariable String vehicleId) {
-        String key = "digital_twin:" + vehicleId;
-        DigitalTwinState state = redisTemplate.opsForValue().get(key);
-        if (state == null) {
-            return org.springframework.http.ResponseEntity.notFound().build();
-        }
-        return org.springframework.http.ResponseEntity.ok(state);
     }
 
     @GetMapping("/risk-ranking")

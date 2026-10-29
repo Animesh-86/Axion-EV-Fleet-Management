@@ -1,5 +1,3 @@
-# profiles/loader.py
-
 from profiles.base_profile import VehicleProfile
 
 # Default vehicle profiles matching common EV archetypes

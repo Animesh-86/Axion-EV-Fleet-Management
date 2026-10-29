@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { FileText, Search, Filter, Shield, Activity, Lock, Users, Server } from 'lucide-react';
+import { Search, Filter, Shield, Activity, Lock, Users, Server } from 'lucide-react';
 
 export function AuditLogsPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Mock data for Phase 1
+  // Structured events ledger
   const MOCK_LOGS = [
     { id: 'AL-1001', timestamp: '2026-05-14T10:05:22Z', user: 'admin_sys', action: 'OTA_TRIGGERED', details: 'Triggered thermal management OTA for AX-101', severity: 'HIGH', icon: Activity, color: 'text-amber-400' },
     { id: 'AL-1002', timestamp: '2026-05-14T09:42:10Z', user: 'system', action: 'POLICY_UPDATE', details: 'Global charging policy updated to 80% limit', severity: 'MEDIUM', icon: Shield, color: 'text-blue-400' },
@@ -83,5 +83,3 @@ export function AuditLogsPage() {
     </div>
   );
 }
-
-

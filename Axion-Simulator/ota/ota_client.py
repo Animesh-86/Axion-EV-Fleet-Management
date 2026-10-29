@@ -1,5 +1,3 @@
-# ota/ota_client.py
-
 import random
 import asyncio
 from ota.ota_state import OTAState

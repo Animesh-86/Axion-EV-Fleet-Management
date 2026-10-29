@@ -13,36 +13,24 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Vehicle Registry — Manages the lifecycle of known fleet devices.
- *
- * Addresses the architectural gap where digital twins were created implicitly
- * from any vehicleId that appeared in telemetry. Now the ingestion path can
- * validate that a vehicle is registered before accepting its data.
- *
- * Uses an in-memory cache (ConcurrentHashMap) for O(1) validation on the
- * hot ingestion path, backed by PostgreSQL for persistence.
+ * Fleet device registry service managing asset lifecycle states,
+ * active status caching, and telemetry admission validation.
  */
 @Slf4j
 @Service
 public class VehicleRegistryService {
 
     private final VehicleRegistryRepository repository;
-
-    /**
-     * Hot-path cache: vehicleIds of ACTIVE vehicles.
-     * Refreshed on registration/decommission. Avoids DB hit per telemetry event.
-     */
     private final Set<String> activeVehicleCache = ConcurrentHashMap.newKeySet();
+
+    @org.springframework.beans.factory.annotation.Value("${axion.registry.default-firmware-version:v1.0.0}")
+    private String defaultFirmwareVersion;
 
     public VehicleRegistryService(VehicleRegistryRepository repository) {
         this.repository = repository;
         refreshCache();
     }
 
-    /**
-     * Validates whether a vehicleId is registered and active.
-     * Called on the telemetry ingestion hot path — must be O(1).
-     */
     public boolean isRegistered(String vehicleId) {
         return activeVehicleCache.contains(vehicleId);
     }
@@ -58,7 +46,7 @@ public class VehicleRegistryService {
                 .vehicleId(vehicleId)
                 .displayName(vehicleId)
                 .vehicleProfile(profile)
-                .firmwareVersion("v1.0.0")
+                .firmwareVersion(defaultFirmwareVersion)
                 .lifecycleState("ACTIVE")
                 .registeredAt(Instant.now())
                 .registeredBy(registeredBy)
@@ -70,10 +58,6 @@ public class VehicleRegistryService {
         return saved;
     }
 
-    /**
-     * Bulk provision — used by the simulator bootstrap to register all
-     * vehicles from fleet.yaml before telemetry emission begins.
-     */
     @Transactional
     public int bulkProvision(List<String> vehicleIds, String profile, String registeredBy) {
         int provisioned = 0;
@@ -83,7 +67,7 @@ public class VehicleRegistryService {
                         .vehicleId(vehicleId)
                         .displayName(vehicleId)
                         .vehicleProfile(profile)
-                        .firmwareVersion("v1.0.0")
+                        .firmwareVersion(defaultFirmwareVersion)
                         .lifecycleState("ACTIVE")
                         .registeredAt(Instant.now())
                         .registeredBy(registeredBy)
@@ -121,6 +105,10 @@ public class VehicleRegistryService {
 
     public long countActive() {
         return activeVehicleCache.size();
+    }
+
+    public long countTotal() {
+        return repository.count();
     }
 
     @Transactional

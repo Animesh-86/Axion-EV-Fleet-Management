@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/admin/ai")
+@RequestMapping({"/api/v1/admin/ai", "/admin/ai"})
 public class AdminAiKeyController {
 
     private final OpenAiKeyConfig openAiKeyConfig;

@@ -120,7 +120,10 @@ export function VehicleDetail({ vehicleId, onBack }: VehicleDetailProps) {
       }
     });
 
+    const pollTimer = setInterval(fetchVehicle, POLL_VEHICLE_DETAIL);
+
     return () => {
+      clearInterval(pollTimer);
       unsubscribe();
     };
   }, [vehicleId, subscribeToVehicle]);

@@ -82,9 +82,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
   if (token) headers.set('Authorization', `Bearer ${token}`);
   const res = await fetch(url, { ...options, headers, credentials: 'include' });
   if (res.status === 401 || res.status === 403) {
-    localStorage.removeItem('axion_user');
-    localStorage.removeItem('axion_token');
-    window.location.href = '/login';
+    console.warn(`API returned ${res.status} for ${url}`);
   }
   return res;
 }
@@ -203,6 +201,21 @@ export class AxionApi {
   static async getExplanations(vehicleId: string): Promise<AnomalyExplanation[]> {
     const res = await fetchWithAuth(`${BASE_URL}/api/v1/ai/explanations/${encodeURIComponent(vehicleId)}`);
     if (!res.ok) throw new Error('Failed to fetch AI explanations');
+    return res.json();
+  }
+
+  // ──── Admin Provisioning API ────
+
+  static async createVehicle(data: { id: string; profile: string; scenario: string; registerWithSimulator: boolean }) {
+    const res = await fetchWithAuth(`${BASE_URL}/api/v1/admin/vehicles`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const txt = await res.text();
+      throw new Error(txt || res.statusText);
+    }
     return res.json();
   }
 }

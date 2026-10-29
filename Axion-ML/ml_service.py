@@ -12,6 +12,8 @@ BATTERY_MODEL_PATH = os.path.join(MODEL_DIR, "battery_depletion.pkl")
 TEMP_MODEL_PATH = os.path.join(MODEL_DIR, "temp_anomaly.pkl")
 PEAK_TEMP_MODEL_PATH = os.path.join(MODEL_DIR, "peak_temp.pkl")
 
+DEFAULT_AMBIENT_TEMP_C = 25.0
+
 class MLPredictionService:
     def __init__(self):
         self.battery_model = None
@@ -207,7 +209,7 @@ class MLPredictionService:
                 temp_data.append({
                     "temp_slope": slope,
                     "current_temp": window["battery_temp"].iloc[-1],
-                    "ambient_temp": 25.0, # default ambient assumption
+                    "ambient_temp": DEFAULT_AMBIENT_TEMP_C,
                     "target_peak": window["battery_temp"].max() + max(0, slope) * 15.0
                 })
 

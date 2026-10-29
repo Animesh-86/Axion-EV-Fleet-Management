@@ -184,9 +184,9 @@ export function Layout({ children }: LayoutProps) {
             )}
             <button
               type="button"
-              onClick={() => { logout(); navigate(paths.login); }}
+              onClick={() => { logout(); navigate(paths.landing); }}
               className={`text-muted-foreground hover:text-red-400 transition-colors p-2 ${sidebarCollapsed ? 'mx-auto' : ''}`}
-              title="Sign out"
+              title="Return to Home"
             >
               <LogOut className="w-4 h-4" />
             </button>

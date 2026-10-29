@@ -1,5 +1,3 @@
-# core/connection_state.py
-
 from dataclasses import dataclass
 
 

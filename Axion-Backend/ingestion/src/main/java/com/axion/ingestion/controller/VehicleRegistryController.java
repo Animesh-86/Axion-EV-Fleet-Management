@@ -15,10 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Vehicle Registry API — Device provisioning and lifecycle management.
- *
- * Closes the gap where any vehicleId could create a digital twin.
- * Vehicles must be provisioned via this API before telemetry is accepted.
+ * REST controller for vehicle asset provisioning and lifecycle management.
  */
 @RestController
 @RequestMapping("/api/v1/registry")
@@ -97,7 +94,7 @@ public class VehicleRegistryController {
     public ResponseEntity<Map<String, Object>> stats() {
         return ResponseEntity.ok(Map.of(
                 "registeredActive", registryService.countActive(),
-                "totalRegistered", registryService.listAll().size()
+                "totalRegistered", registryService.countTotal()
         ));
     }
 }

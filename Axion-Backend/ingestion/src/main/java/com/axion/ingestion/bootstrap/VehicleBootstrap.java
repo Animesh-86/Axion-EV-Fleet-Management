@@ -2,94 +2,92 @@ package com.axion.ingestion.bootstrap;
 
 import com.axion.ingestion.model.DigitalTwinState;
 import com.axion.ingestion.model.TelemetrySnapshot;
+import com.axion.ingestion.model.primary.VehicleRegistryEntity;
+import com.axion.ingestion.service.VehicleRegistryService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 
+@Slf4j
 @Component
-public class VehicleBootstrap implements ApplicationRunner {
+@Order(3)
+public class VehicleBootstrap implements CommandLineRunner {
 
     private final RedisTemplate<String, DigitalTwinState> redisTemplate;
-    private final RedisTemplate<String, Object> genericRedisTemplate;
-
-    @Value("${axion.bootstrap.vehicle.count:250}")
-    private int vehicleCount;
-
-    @Value("${axion.bootstrap.vehicle.prefix:EV}")
-    private String vehiclePrefix;
-
-    @Value("${axion.bootstrap.registerWithSimulator:true}")
-    private boolean registerWithSimulator;
+    private final VehicleRegistryService registryService;
 
     @Value("${axion.bootstrap.enabled:false}")
     private boolean bootstrapEnabled;
 
     public VehicleBootstrap(RedisTemplate<String, DigitalTwinState> redisTemplate,
-                            RedisTemplate<String, Object> genericRedisTemplate) {
+                            @Autowired(required = false) VehicleRegistryService registryService) {
         this.redisTemplate = redisTemplate;
-        this.genericRedisTemplate = genericRedisTemplate;
+        this.registryService = registryService;
     }
 
     @Override
-    public void run(ApplicationArguments args) throws Exception {
+    public void run(String... args) {
+        if (!bootstrapEnabled) {
+            return;
+        }
+
         try {
-            if (!bootstrapEnabled) {
-                System.out.println("[BOOTSTRAP] Vehicle seeding disabled (axion.bootstrap.enabled=false)");
-                return;
-            }
-            Set<String> keys = redisTemplate.keys("digital_twin:*");
-            int existing = keys == null ? 0 : keys.size();
-            if (existing >= vehicleCount) {
-                System.out.println("[BOOTSTRAP] Digital twin count sufficient: " + existing);
-                return;
+            // Clean up any legacy unmapped EV prefix keys
+            Set<String> legacyKeys = redisTemplate.keys("digital_twin:EV*");
+            if (legacyKeys != null && !legacyKeys.isEmpty()) {
+                redisTemplate.delete(legacyKeys);
+                log.info("Purged {} legacy unmapped digital twin keys from Redis", legacyKeys.size());
             }
 
-            int toCreate = vehicleCount - existing;
-            System.out.println("[BOOTSTRAP] Creating " + toCreate + " vehicles to reach " + vehicleCount);
-            for (int i = 1; i <= toCreate; i++) {
-                String id = vehiclePrefix + String.format("%04d", existing + i);
-                String key = "digital_twin:" + id;
+            if (registryService == null) {
+                return;
+            }
 
-                TelemetrySnapshot t = new TelemetrySnapshot();
-                t.setSpeedKmph(0.0);
-                t.setBatterySocPct(90.0);
-                t.setBatteryTempC(30.0);
-                t.setMotorTempC(35.0);
-                t.setAmbientTempC(25.0);
-                t.setOdometerKm(0.0);
+            List<VehicleRegistryEntity> registeredVehicles = registryService.listByState("ACTIVE");
+            int initialized = 0;
 
-                DigitalTwinState s = new DigitalTwinState();
-                s.setVehicleId(id);
-                s.setVendor("BOOTSTRAP");
-                s.setTelemetry(t);
-                s.setOnline(true);
-                s.setLastSeen(Instant.now());
-                s.setHealthScore(100);
-                s.setHealthState("OK");
-                s.setOtaEligibility(false);
-                s.setLastUpdateTimestamp(Instant.now());
-
-                redisTemplate.opsForValue().set(key, s);
-
-                if (registerWithSimulator) {
-                    Map<String, Object> msg = new HashMap<>();
-                    msg.put("cmd", "register_vehicle");
-                    msg.put("id", id);
-                    msg.put("profile", "sedan");
-                    msg.put("scenario", "normal_drive");
-                    genericRedisTemplate.convertAndSend("axion:simulator:commands", msg);
+            for (VehicleRegistryEntity vehicle : registeredVehicles) {
+                String key = "digital_twin:" + vehicle.getVehicleId();
+                if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
+                    continue;
                 }
+
+                TelemetrySnapshot snapshot = new TelemetrySnapshot();
+                snapshot.setSpeedKmph(0.0);
+                snapshot.setBatterySocPct(90.0);
+                snapshot.setBatteryTempC(28.0);
+                snapshot.setMotorTempC(32.0);
+                snapshot.setAmbientTempC(25.0);
+                snapshot.setOdometerKm(12500.0);
+
+                DigitalTwinState state = new DigitalTwinState();
+                state.setVehicleId(vehicle.getVehicleId());
+                state.setVendor("FLEET_BASE");
+                state.setTelemetry(snapshot);
+                state.setOnline(true);
+                state.setLastSeen(Instant.now());
+                state.setHealthScore(100);
+                state.setHealthState("HEALTHY");
+                state.setOtaEligibility(false);
+                state.setLastUpdateTimestamp(Instant.now());
+
+                redisTemplate.opsForValue().set(key, state);
+                initialized++;
             }
-            System.out.println("[BOOTSTRAP] Vehicle seeding complete.");
+
+            if (initialized > 0) {
+                log.info("Initialized {} digital twins in Redis matching registered fleet assets", initialized);
+            }
         } catch (Exception e) {
-            System.err.println("[BOOTSTRAP] Vehicle seeding failed: " + e.getMessage());
+            log.error("Failed to initialize digital twin cache: {}", e.getMessage());
         }
     }
 }

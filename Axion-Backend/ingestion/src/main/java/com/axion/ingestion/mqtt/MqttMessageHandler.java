@@ -1,6 +1,6 @@
 package com.axion.ingestion.mqtt;
 
-import com.axion.ingestion.adapter.RestTelemetryAdapter;
+import com.axion.ingestion.adapter.TelemetryAdapter;
 import com.axion.ingestion.model.CanonicalTelemetryEnvelope;
 import com.axion.ingestion.producer.TelemetryProducer;
 import com.axion.ingestion.service.ThroughputTracker;
@@ -16,14 +16,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Component
 public class MqttMessageHandler {
 
-    private final RestTelemetryAdapter adapter;
+    private final TelemetryAdapter adapter;
     private final TelemetryValidator validator;
     private final TelemetryProducer producer;
     private final ThroughputTracker throughputTracker;
     private final com.axion.ingestion.service.VehicleRegistryService registryService;
 
     @Autowired
-    public MqttMessageHandler(RestTelemetryAdapter adapter,
+    public MqttMessageHandler(TelemetryAdapter adapter,
                               TelemetryValidator validator,
                               TelemetryProducer producer, 
                               ThroughputTracker throughputTracker,

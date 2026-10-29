@@ -38,7 +38,7 @@ public class AuthService {
 
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
-            throw new RuntimeException("Username is already taken!");
+            throw new IllegalArgumentException("Username is already taken!");
         }
 
         User user = User.builder()
@@ -70,7 +70,7 @@ public class AuthService {
         );
 
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow();
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + request.getUsername()));
                 
         user.setLastLogin(Instant.now());
         userRepository.save(user);

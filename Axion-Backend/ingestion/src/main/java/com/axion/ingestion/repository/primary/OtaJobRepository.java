@@ -11,5 +11,7 @@ public interface OtaJobRepository extends JpaRepository<OtaJobEntity, String> {
 
     List<OtaJobEntity> findByCampaign_CampaignId(String campaignId);
 
+    List<OtaJobEntity> findByVehicleId(String vehicleId);
+
     long countByCampaign_CampaignIdAndState(String campaignId, String state);
 }

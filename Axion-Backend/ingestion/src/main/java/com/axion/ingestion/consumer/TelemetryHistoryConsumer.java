@@ -57,9 +57,7 @@ public class TelemetryHistoryConsumer {
             tsdbJdbcTemplate.batchUpdate(sql, batchArgs);
             log.debug("Successfully flushed {} events to TimescaleDB", batchArgs.size());
         } catch (Exception e) {
-            log.error("Failed to insert telemetry batch into TimescaleDB: {}", e.getMessage());
-            // Do NOT rethrow; swallowing the exception prevents Kafka from NACKing the batch
-            // and allows the consumer to continue accepting messages in tests and degraded modes.
+            log.error("Failed to insert telemetry batch into TimescaleDB: {}", e.getMessage(), e);
         }
     }
 }

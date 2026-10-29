@@ -46,7 +46,7 @@ class TelemetryIngestionServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new TelemetryIngestionService(null, validator, producer, throughputTracker, registryService);
+        service = new TelemetryIngestionService(validator, producer, throughputTracker, registryService);
     }
 
     @Test
@@ -77,7 +77,7 @@ class TelemetryIngestionServiceTest {
     @DisplayName("When VehicleRegistryService is null (unavailable), telemetry passes through")
     void registryBypassWhenServiceUnavailable() {
         TelemetryIngestionService serviceWithoutRegistry =
-                new TelemetryIngestionService(null, validator, producer, throughputTracker, null);
+                new TelemetryIngestionService(validator, producer, throughputTracker, null);
 
         when(producer.publishAsync(any())).thenReturn(java.util.concurrent.CompletableFuture.completedFuture(null));
 

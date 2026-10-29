@@ -1,10 +1,12 @@
 package com.axion.ingestion.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 public class StartupChecks {
 
@@ -21,16 +23,12 @@ public class StartupChecks {
     public void validateSecrets() {
         if (!requireSecrets) return;
 
-        StringBuilder missing = new StringBuilder();
-        if (openAiKey == null || openAiKey.isBlank()) {
-            missing.append("OPENAI API key (spring.ai.openai.api-key) is not configured. ");
-        }
-        if (jwtSecret == null || jwtSecret.isBlank()) {
-            missing.append("JWT secret (axion.jwt.secret) is not configured. ");
+        if (openAiKey == null || openAiKey.isBlank() || "disabled".equalsIgnoreCase(openAiKey)) {
+            log.warn("OPENAI API key (spring.ai.openai.api-key) is not configured or disabled; AI fallback mode is active.");
         }
 
-        if (missing.length() > 0) {
-            throw new IllegalStateException("Startup secret validation failed: " + missing.toString());
+        if (jwtSecret == null || jwtSecret.isBlank()) {
+            throw new IllegalStateException("Startup secret validation failed: JWT secret (axion.jwt.secret) is not configured.");
         }
     }
 }

@@ -1,5 +1,3 @@
-# emitters/mqtt_emitter.py
-
 import json
 from core.telemetry_builder import build_message
 from emitters.base import TelemetryEmitter

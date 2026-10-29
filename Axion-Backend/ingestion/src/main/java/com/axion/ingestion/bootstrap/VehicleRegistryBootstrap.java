@@ -11,17 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Auto-registers the known simulator fleet on application startup.
- * This ensures the vehicle registry is populated before the simulator
- * begins emitting telemetry, closing the implicit-twin-creation gap.
- *
- * In a production system, vehicles would be provisioned via the
- * /api/v1/registry/provision endpoint during hardware onboarding.
+ * Seeds default fleet vehicle records into PostgreSQL on initial startup.
  */
 @Slf4j
 @Component
 @ConditionalOnProperty(prefix = "axion.bootstrap", name = "enabled", havingValue = "true", matchIfMissing = false)
-@Order(2) // Run after DB migrations and admin bootstrap
+@Order(2)
 public class VehicleRegistryBootstrap implements CommandLineRunner {
 
     private final VehicleRegistryService registryService;

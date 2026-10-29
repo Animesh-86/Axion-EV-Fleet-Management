@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { AxionApi, AnomalyExplanation } from '../../services/api';
 
-const BASE_URL = '';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 export const FleetAssistantPanel: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -40,16 +40,19 @@ export const FleetAssistantPanel: React.FC = () => {
     setMessages(prev => [...prev, { sender: 'ai', text: '', id: aiMsgId }]);
 
       try {
-      // Rely on HttpOnly cookie for auth; include credentials so cookie is sent.
-      const response = await fetch(`${BASE_URL}/api/v1/ai/chat/stream`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: promptToSend,
-          sessionId: sessionIdRef.current,
-        }),
-      });
+        const token = localStorage.getItem('axion_token');
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const response = await fetch(`${BASE_URL}/api/v1/ai/chat/stream`, {
+          method: 'POST',
+          credentials: 'include',
+          headers,
+          body: JSON.stringify({
+            prompt: promptToSend,
+            sessionId: sessionIdRef.current,
+          }),
+        });
 
       if (!response.ok || !response.body) {
         throw new Error('Streaming connection setup failed');

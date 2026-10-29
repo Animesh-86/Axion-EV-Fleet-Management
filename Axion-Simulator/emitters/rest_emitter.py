@@ -1,5 +1,3 @@
-# emitters/rest_emitter.py
-
 import asyncio
 import httpx
 from core.telemetry_builder import build_message

@@ -24,6 +24,18 @@ public class AdminVehicleController {
     private final RedisTemplate<String, Object> genericRedisTemplate;
     private final VehicleRegistryService registryService;
 
+    @org.springframework.beans.factory.annotation.Value("${axion.vehicle.init.soc:90.0}")
+    private double defaultInitSoc;
+
+    @org.springframework.beans.factory.annotation.Value("${axion.vehicle.init.battery-temp:30.0}")
+    private double defaultInitBatteryTemp;
+
+    @org.springframework.beans.factory.annotation.Value("${axion.vehicle.init.motor-temp:35.0}")
+    private double defaultInitMotorTemp;
+
+    @org.springframework.beans.factory.annotation.Value("${axion.vehicle.init.ambient-temp:25.0}")
+    private double defaultInitAmbientTemp;
+
     public AdminVehicleController(RedisTemplate<String, DigitalTwinState> redisTemplate,
                                   RedisTemplate<String, Object> genericRedisTemplate,
                                   @Autowired(required = false) VehicleRegistryService registryService) {
@@ -52,10 +64,10 @@ public class AdminVehicleController {
 
         TelemetrySnapshot t = new TelemetrySnapshot();
         t.setSpeedKmph(0.0);
-        t.setBatterySocPct(90.0);
-        t.setBatteryTempC(30.0);
-        t.setMotorTempC(35.0);
-        t.setAmbientTempC(25.0);
+        t.setBatterySocPct(defaultInitSoc);
+        t.setBatteryTempC(defaultInitBatteryTemp);
+        t.setMotorTempC(defaultInitMotorTemp);
+        t.setAmbientTempC(defaultInitAmbientTemp);
         t.setOdometerKm(0.0);
 
         DigitalTwinState s = new DigitalTwinState();

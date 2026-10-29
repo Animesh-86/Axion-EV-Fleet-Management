@@ -1,5 +1,3 @@
-# core/clock.py
-
 from datetime import datetime, timezone
 
 

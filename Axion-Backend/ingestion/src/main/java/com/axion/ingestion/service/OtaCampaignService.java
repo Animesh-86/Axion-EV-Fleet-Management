@@ -34,12 +34,25 @@ public class OtaCampaignService {
     private final Random random = new Random();
 
     @Value("${axion.health.soc-critical:30.0}")
-    private double socMinForOta;
+    private double socMinForOta = 30.0;
 
     @Value("${axion.health.battery-temp-critical:45.0}")
-    private double tempMaxForOta;
+    private double tempMaxForOta = 45.0;
 
-    private static final double FAILURE_RATE_THRESHOLD = 0.30; // 30% triggers auto-halt
+    @Value("${axion.ota.failure-rate-threshold:0.30}")
+    private double failureRateThreshold = 0.30;
+
+    @Value("${axion.ota.simulation.success-rate:0.80}")
+    private double simulationSuccessRate = 0.80;
+
+    @Value("${axion.ota.canary-wait-ms:10000}")
+    private long canaryWaitMs = 10000L;
+
+    @Value("${axion.ota.rollout-delay-ms:1500}")
+    private long rolloutDelayMs = 1500L;
+
+    @Value("${axion.ota.install-delay-ms:3000}")
+    private long installDelayMs = 3000L;
 
     public OtaCampaignService(OtaCampaignRepository campaignRepo,
                               OtaJobRepository jobRepo,
@@ -141,8 +154,10 @@ public class OtaCampaignService {
             }
             campaignRepo.save(campaign);
 
-            // Wait for canary observation period (simulated: 10 seconds instead of 5 min)
-            Thread.sleep(10_000);
+            // Wait for canary observation period (configurable, defaults to 10s simulation)
+            if (canaryWaitMs > 0) {
+                Thread.sleep(canaryWaitMs);
+            }
 
             // Check canary results
             campaign = campaignRepo.findById(campaignId).orElseThrow();
@@ -192,7 +207,7 @@ public class OtaCampaignService {
             // Check failure rate threshold mid-rollout
             if (totalRollout > 0 && failCount > 0) {
                 double failureRate = (double) failCount / totalRollout;
-                if (failureRate >= FAILURE_RATE_THRESHOLD) {
+                if (failureRate >= failureRateThreshold) {
                     log.error("Campaign {}: Failure rate {}% exceeds threshold → AUTO-HALTING",
                             campaignId, String.format("%.0f", failureRate * 100));
                     autoRollback(campaignId);
@@ -205,10 +220,12 @@ public class OtaCampaignService {
                 failCount++;
             }
 
-            // Small delay between deployments (simulate real-world pacing)
-            try { Thread.sleep(1_500); } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return;
+            // Configurable delay between deployments (simulate real-world pacing)
+            if (rolloutDelayMs > 0) {
+                try { Thread.sleep(rolloutDelayMs); } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
             }
         }
 
@@ -217,7 +234,7 @@ public class OtaCampaignService {
         // Check final failure rate
         campaign = campaignRepo.findById(campaignId).orElseThrow();
         long totalFailed = campaign.getJobs().stream().filter(j -> "FAILED".equals(j.getState())).count();
-        if (totalFailed > 0 && (double) totalFailed / campaign.getJobs().size() >= FAILURE_RATE_THRESHOLD) {
+        if (totalFailed > 0 && (double) totalFailed / campaign.getJobs().size() >= failureRateThreshold) {
             autoRollback(campaignId);
         } else {
             campaign.setStatus("COMPLETED");
@@ -310,18 +327,20 @@ public class OtaCampaignService {
             }
         }
 
-        // Simulate deployment network download & install process (3 seconds)
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            job.setState("FAILED");
-            log.warn("OTA INTERRUPTED: vehicle={}", vehicleId);
-            return;
+        // Simulate deployment network download & install process (configurable, default 3s)
+        if (installDelayMs > 0) {
+            try {
+                Thread.sleep(installDelayMs);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                job.setState("FAILED");
+                log.warn("OTA INTERRUPTED: vehicle={}", vehicleId);
+                return;
+            }
         }
 
-        // Simulate deployment outcome (80% success rate)
-        boolean success = random.nextDouble() > 0.2;
+        // Simulate deployment outcome (configurable success rate, default 80%)
+        boolean success = random.nextDouble() <= simulationSuccessRate;
 
         if (success) {
             job.setState("SUCCESS");

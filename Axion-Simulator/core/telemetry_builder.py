@@ -1,5 +1,3 @@
-# core/telemetry_builder.py
-
 from datetime import datetime
 
 

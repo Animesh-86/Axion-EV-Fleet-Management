@@ -3,6 +3,7 @@ package com.axion.ingestion.bootstrap;
 import com.axion.ingestion.model.primary.User;
 import com.axion.ingestion.repository.primary.UserRepository;
 import com.axion.ingestion.security.JwtUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -13,6 +14,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import java.time.Instant;
 import java.util.UUID;
 
+@Slf4j
 @Component
 @ConditionalOnProperty(prefix = "axion.bootstrap", name = "enabled", havingValue = "true", matchIfMissing = false)
 public class BootstrapAdmin implements ApplicationRunner {
@@ -21,10 +23,10 @@ public class BootstrapAdmin implements ApplicationRunner {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
 
-    @Value("${axion.bootstrap.admin.username:demo_admin}")
+    @Value("${axion.bootstrap.admin.username:admin@axion.sys}")
     private String adminUser;
 
-    @Value("${axion.bootstrap.admin.password:demo}")
+    @Value("${axion.bootstrap.admin.password:axion2026}")
     private String adminPassword;
 
     @Value("${axion.bootstrap.enabled:false}")
@@ -51,7 +53,7 @@ public class BootstrapAdmin implements ApplicationRunner {
                     .createdAt(Instant.now())
                     .build();
             userRepository.save(user);
-            System.out.println("[BOOTSTRAP] Created default admin user: " + adminUser);
+            log.info("[BOOTSTRAP] Created default admin user: {}", adminUser);
         }
     }
 }

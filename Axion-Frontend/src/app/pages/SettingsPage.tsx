@@ -23,7 +23,7 @@ export function SettingsPage() {
           </h2>
           <div className="space-y-6">
             {[
-              { label: 'BACKEND_API_URL', value: `http://localhost:${PORTS.BACKEND}` },
+              { label: 'BACKEND_API_URL', value: import.meta.env.VITE_API_BASE_URL || `http://localhost:${PORTS.BACKEND}` },
               { label: 'MQTT_BROKER_URI', value: `localhost:${PORTS.MQTT}` },
               { label: 'REDIS_PERSISTENCE', value: `localhost:${PORTS.REDIS}` },
               { label: 'KAFKA_BOOTSTRAP', value: `localhost:${PORTS.KAFKA}` },

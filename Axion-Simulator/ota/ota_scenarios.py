@@ -1,5 +1,3 @@
-# ota/ota_scenarios.py
-
 import random
 from scenarios.base import Scenario
 import asyncio

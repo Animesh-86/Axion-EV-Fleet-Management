@@ -1,5 +1,3 @@
-# scenarios/battery_drain.py
-
 from scenarios.base import Scenario
 
 

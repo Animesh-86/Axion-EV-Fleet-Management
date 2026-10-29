@@ -19,22 +19,21 @@ public class RcaService {
     private final TelemetryHistoryService telemetryHistoryService;
     private final OtaJobRepository otaJobRepository;
 
+    private static final double TEMP_SHIFT_THRESHOLD_C = 5.0;
+    private static final double TEMP_CRITICAL_THRESHOLD_C = 45.0;
+    private static final double TEMP_WARNING_THRESHOLD_C = 40.0;
+    private static final double TEMP_ABSOLUTE_HIGH_C = 48.0;
+
     public RcaService(TelemetryHistoryService telemetryHistoryService, OtaJobRepository otaJobRepository) {
         this.telemetryHistoryService = telemetryHistoryService;
         this.otaJobRepository = otaJobRepository;
     }
 
-    /**
-     * Unified query engine that merges timeline events across multiple storage layers
-     * to perform Root Cause Analysis.
-     */
     public List<RcaEvent> getUnifiedTimeline(String vehicleId, Instant from, Instant to) {
         List<RcaEvent> events = new ArrayList<>();
 
-        // 1. Fetch OTA Events from PostgreSQL
-        List<OtaJobEntity> otaJobs = otaJobRepository.findAll().stream()
-                .filter(job -> vehicleId.equals(job.getVehicleId()))
-                .toList();
+        // 1. Fetch OTA Events from PostgreSQL for target vehicle
+        List<OtaJobEntity> otaJobs = otaJobRepository.findByVehicleId(vehicleId);
 
         for (OtaJobEntity job : otaJobs) {
             String version = job.getCampaign() != null ? job.getCampaign().getTargetVersion() : "unknown";
@@ -81,8 +80,8 @@ public class RcaService {
             // Detect Temperature Anomalies / Significant shifts
             if (item.getBatteryTemp() != null) {
                 double currentTemp = item.getBatteryTemp();
-                if (lastTemp != null && Math.abs(currentTemp - lastTemp) >= 5.0) { // 5 degree shift
-                    String severity = currentTemp > 45.0 ? "CRITICAL" : currentTemp > 40.0 ? "WARNING" : "INFO";
+                if (lastTemp != null && Math.abs(currentTemp - lastTemp) >= TEMP_SHIFT_THRESHOLD_C) {
+                    String severity = currentTemp > TEMP_CRITICAL_THRESHOLD_C ? "CRITICAL" : currentTemp > TEMP_WARNING_THRESHOLD_C ? "WARNING" : "INFO";
                     String direction = currentTemp > lastTemp ? "rose" : "dropped";
                     events.add(RcaEvent.builder()
                             .timestamp(time)
@@ -92,10 +91,9 @@ public class RcaService {
                             .detail(String.format("Battery temp %s rapidly from %.1f°C → %.1f°C", direction, lastTemp, currentTemp))
                             .vehicleId(vehicleId)
                             .build());
-                    lastTemp = currentTemp; // Reset reference after logging shift
-                } else if (lastTemp == null || currentTemp > 48.0 && lastTemp <= 48.0) {
-                    // Absolute high thresholds
-                    if (currentTemp > 48.0) {
+                    lastTemp = currentTemp;
+                } else if (lastTemp == null || currentTemp > TEMP_ABSOLUTE_HIGH_C && lastTemp <= TEMP_ABSOLUTE_HIGH_C) {
+                    if (currentTemp > TEMP_ABSOLUTE_HIGH_C) {
                         events.add(RcaEvent.builder()
                                 .timestamp(time)
                                 .category("TELEMETRY")

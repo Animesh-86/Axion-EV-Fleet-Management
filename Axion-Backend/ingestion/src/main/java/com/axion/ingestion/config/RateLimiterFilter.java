@@ -84,9 +84,12 @@ public class RateLimiterFilter implements Filter {
         return request.getRemoteAddr();
     }
 
-    /**
-     * Simple sliding-window counter: resets every 60 seconds.
-     */
+    @org.springframework.scheduling.annotation.Scheduled(fixedRate = 300000)
+    public void cleanupStaleCounters() {
+        long now = Instant.now().getEpochSecond();
+        counters.entrySet().removeIf(entry -> now - entry.getValue().getWindowStart() > 120);
+    }
+
     private static class WindowCounter {
         private volatile long windowStart = Instant.now().getEpochSecond();
         private final AtomicInteger count = new AtomicInteger(0);
@@ -98,6 +101,10 @@ public class RateLimiterFilter implements Filter {
                 count.set(0);
             }
             return count.incrementAndGet() <= maxPerMinute;
+        }
+
+        public long getWindowStart() {
+            return windowStart;
         }
     }
 }

@@ -4,12 +4,17 @@ import com.axion.ingestion.model.dto.AuthRequest;
 import com.axion.ingestion.model.dto.AuthResponse;
 import com.axion.ingestion.model.dto.RegisterRequest;
 import com.axion.ingestion.service.AuthService;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import jakarta.validation.Valid;
+
+import java.time.Duration;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -17,50 +22,41 @@ public class AuthController {
 
     private final AuthService authService;
 
+    @Value("${axion.cookie.secure:false}")
+    private boolean cookieSecure;
+
+    @Value("${axion.jwt.expirationMs:86400000}")
+    private long jwtExpirationMs;
+
     public AuthController(AuthService authService) {
         this.authService = authService;
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(
-            @Valid @RequestBody RegisterRequest request
-    ) {
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         AuthResponse resp = authService.register(request);
-        // Set HttpOnly cookie with Secure and SameSite options for production.
-        String token = resp.getToken();
-        org.springframework.http.ResponseCookie rc = org.springframework.http.ResponseCookie.from("AXION_JWT", token)
-            .httpOnly(true)
-            .secure(Boolean.parseBoolean(System.getenv().getOrDefault("AXION_COOKIE_SECURE", "false")))
-            .sameSite("Strict")
-            .path("/")
-            .maxAge(60 * 60 * 24)
-            .build();
-
-        jakarta.servlet.http.HttpServletResponse servletResponse = ((org.springframework.web.context.request.ServletRequestAttributes) org.springframework.web.context.request.RequestContextHolder.currentRequestAttributes()).getResponse();
-        if (servletResponse != null) {
-            servletResponse.setHeader("Set-Cookie", rc.toString());
-        }
-        return ResponseEntity.ok(resp);
+        ResponseCookie cookie = buildJwtCookie(resp.getToken());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(resp);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> authenticate(
-            @Valid @RequestBody AuthRequest request
-    ) {
+    public ResponseEntity<AuthResponse> authenticate(@Valid @RequestBody AuthRequest request) {
         AuthResponse resp = authService.authenticate(request);
-        String token2 = resp.getToken();
-        org.springframework.http.ResponseCookie rc2 = org.springframework.http.ResponseCookie.from("AXION_JWT", token2)
-            .httpOnly(true)
-            .secure(Boolean.parseBoolean(System.getenv().getOrDefault("AXION_COOKIE_SECURE", "false")))
-            .sameSite("Strict")
-            .path("/")
-            .maxAge(60 * 60 * 24)
-            .build();
+        ResponseCookie cookie = buildJwtCookie(resp.getToken());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(resp);
+    }
 
-        jakarta.servlet.http.HttpServletResponse servletResponse2 = ((org.springframework.web.context.request.ServletRequestAttributes) org.springframework.web.context.request.RequestContextHolder.currentRequestAttributes()).getResponse();
-        if (servletResponse2 != null) {
-            servletResponse2.setHeader("Set-Cookie", rc2.toString());
-        }
-        return ResponseEntity.ok(resp);
+    private ResponseCookie buildJwtCookie(String token) {
+        return ResponseCookie.from("AXION_JWT", token)
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .sameSite("Strict")
+                .path("/")
+                .maxAge(Duration.ofMillis(jwtExpirationMs))
+                .build();
     }
 }

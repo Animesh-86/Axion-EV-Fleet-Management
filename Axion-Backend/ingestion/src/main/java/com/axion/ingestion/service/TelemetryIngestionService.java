@@ -1,6 +1,5 @@
 package com.axion.ingestion.service;
 
-import com.axion.ingestion.adapter.RestTelemetryAdapter;
 import com.axion.ingestion.model.CanonicalTelemetryEnvelope;
 import com.axion.ingestion.producer.TelemetryProducer;
 import com.axion.ingestion.validation.TelemetryValidator;
@@ -13,18 +12,15 @@ import reactor.core.publisher.Mono;
 @Service
 public class TelemetryIngestionService {
 
-    private final RestTelemetryAdapter adapter;
     private final TelemetryValidator validator;
     private final TelemetryProducer producer;
     private final ThroughputTracker throughputTracker;
     private final VehicleRegistryService registryService;
 
-    public TelemetryIngestionService(RestTelemetryAdapter adapter,
-                                     TelemetryValidator validator,
+    public TelemetryIngestionService(TelemetryValidator validator,
                                      TelemetryProducer producer,
                                      ThroughputTracker throughputTracker,
                                      @Autowired(required = false) VehicleRegistryService registryService) {
-        this.adapter = adapter;
         this.validator = validator;
         this.producer = producer;
         this.throughputTracker = throughputTracker;

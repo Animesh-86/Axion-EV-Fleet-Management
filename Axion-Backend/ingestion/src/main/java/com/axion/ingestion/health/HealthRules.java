@@ -36,4 +36,10 @@ public class HealthRules {
 
     @Value("${axion.health.base-score}")
     public int baseScore;
+
+    @Value("${axion.health.threshold.healthy:80}")
+    public int healthyThreshold = 80;
+
+    @Value("${axion.health.threshold.degraded:50}")
+    public int degradedThreshold = 50;
 }

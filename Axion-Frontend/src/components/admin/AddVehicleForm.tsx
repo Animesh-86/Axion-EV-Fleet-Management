@@ -4,6 +4,8 @@ import { motion } from 'motion/react';
 import { ArrowRight, CarFront, CircleDashed, ShieldCheck } from 'lucide-react';
 import { paths } from '../../constants/navigation';
 
+import { AxionApi } from '../../services/api';
+
 export const AddVehicleForm: React.FC = () => {
   const [id, setId] = useState('');
   const [profile, setProfile] = useState('sedan_standard');
@@ -18,19 +20,7 @@ export const AddVehicleForm: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/v1/admin/vehicles', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ id, profile, scenario, registerWithSimulator }),
-      });
-      if (!res.ok) {
-        const txt = await res.text();
-        throw new Error(txt || res.statusText);
-      }
-      const data = await res.json();
+      await AxionApi.createVehicle({ id, profile, scenario, registerWithSimulator });
       // Navigate to the vehicle detail page
       navigate(`/vehicles/${encodeURIComponent(id)}`);
     } catch (err: any) {

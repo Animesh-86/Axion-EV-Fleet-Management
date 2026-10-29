@@ -1,5 +1,3 @@
-# profiles/base_profile.py
-
 from dataclasses import dataclass
 
 
